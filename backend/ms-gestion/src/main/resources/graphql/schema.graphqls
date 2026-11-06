@@ -1,0 +1,96 @@
+# ====================================================================
+# Esquema GraphQL para ms-gestion (Salón de Belleza)
+# ====================================================================
+
+enum AppointmentStatus {
+    SCHEDULED
+    CONFIRMED
+    COMPLETED
+    CANCELLED
+    RESCHEDULED
+}
+
+type StylistSchedule {
+    id: ID!
+    stylistId: String!
+    stylistName: String!
+    dayOfWeek: Int!
+    startTime: String!
+    endTime: String!
+    isAvailable: Boolean!
+}
+
+type Appointment {
+    id: ID!
+    clientId: String!
+    stylistId: String!
+    serviceName: String!
+    appointmentDate: String!
+    durationMinutes: Int!
+    totalPrice: Float!
+    status: AppointmentStatus!
+    notes: String
+}
+
+type InventoryItem {
+    id: ID!
+    code: String!
+    name: String!
+    category: String!
+    currentStock: Int!
+    minimumStock: Int!
+    unitPrice: Float!
+    isCriticalStock: Boolean!
+}
+
+input CreateAppointmentInput {
+    clientId: String!
+    stylistId: String!
+    serviceName: String!
+    appointmentDate: String!
+    durationMinutes: Int!
+    totalPrice: Float!
+    notes: String
+}
+
+input CreateInventoryItemInput {
+    code: String!
+    name: String!
+    category: String!
+    initialStock: Int!
+    minimumStock: Int!
+    unitPrice: Float!
+}
+
+input UpdateStockInput {
+    id: ID!
+    quantityChange: Int!
+    reason: String!
+}
+
+type Query {
+    # Citas
+    getAppointmentById(id: ID!): Appointment
+    getAppointmentsByStylist(stylistId: String!, date: String): [Appointment!]!
+    getAppointmentsByClient(clientId: String!): [Appointment!]!
+
+    # Estilistas y Horarios
+    getStylistAvailability(stylistId: String!, date: String!): Boolean!
+    getStylistSchedules(stylistId: String!): [StylistSchedule!]!
+
+    # Inventario
+    getAllInventory: [InventoryItem!]!
+    getCriticalStockItems: [InventoryItem!]!
+    getInventoryItem(id: ID!): InventoryItem
+}
+
+type Mutation {
+    # Citas
+    scheduleAppointment(input: CreateAppointmentInput!): Appointment!
+    cancelAppointment(id: ID!, reason: String): Appointment!
+    rescheduleAppointment(id: ID!, newDate: String!): Appointment!
+
+    # Inventario
+    createInventoryItem(input: CreateInventoryItemInput!): InventoryItem!
+    updateStock(input: UpdateStockInput!): InventoryItem!
+}

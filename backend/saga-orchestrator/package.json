@@ -1,0 +1,12 @@
+{
+  "name": "saga-orchestrator",
+  "version": "1.0.0",
+  "description": "Orquestador de Transacciones Distribuidas SAGA para Salón de Belleza con RabbitMQ",
+  "main": "src/saga-orchestrator.js",
+  "scripts": {
+    "start": "node src/saga-orchestrator.js"
+  },
+  "dependencies": {
+    "amqplib": "^0.10.4"
+  }
+}

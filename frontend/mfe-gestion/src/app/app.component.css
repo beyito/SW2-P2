@@ -1,0 +1,381 @@
+.mfe-gestion-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  color: #FFFFFF;
+}
+
+.glass-box {
+  background: rgba(20, 26, 41, 0.75);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  border-radius: 14px;
+}
+
+.header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 24px;
+  margin-bottom: 24px;
+}
+
+.brand-group {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.angular-badge {
+  background: #DD0031;
+  color: #FFFFFF;
+  font-weight: 800;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+}
+
+.gold-text {
+  background: linear-gradient(135deg, #FFF0B8 0%, #F5D061 50%, #D4AF37 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 800;
+}
+
+.subtitle {
+  font-size: 0.75rem;
+  color: #A0AEC0;
+}
+
+.tabs-nav {
+  display: flex;
+  gap: 8px;
+}
+
+.tabs-nav button {
+  padding: 8px 16px;
+  background: transparent;
+  border: none;
+  color: #A0AEC0;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+}
+
+.tabs-nav button.active {
+  background: linear-gradient(135deg, #F5D061, #D4AF37);
+  color: #0A0E17;
+}
+
+.badge-critical {
+  background: #FF4B4B;
+  color: #fff;
+  font-size: 0.65rem;
+  padding: 2px 6px;
+  border-radius: 10px;
+}
+
+.layout-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 24px;
+}
+
+.panel-left, .panel-right {
+  padding: 24px;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.badge-total {
+  background: rgba(212, 175, 55, 0.15);
+  color: #D4AF37;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.inventory-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.inventory-table th {
+  text-align: left;
+  padding: 10px 8px;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+  color: #A0AEC0;
+}
+
+.inventory-table td {
+  padding: 12px 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.item-name {
+  font-weight: 600;
+}
+
+.item-cat {
+  color: #A0AEC0;
+}
+
+.critical-text {
+  color: #FF4B4B;
+  font-weight: 700;
+}
+
+.badge-alert {
+  background: rgba(255, 75, 75, 0.15);
+  color: #FF4B4B;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.badge-ok {
+  background: rgba(66, 184, 131, 0.15);
+  color: #42B883;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.btn-restock {
+  background: transparent;
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  color: #D4AF37;
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.75rem;
+}
+
+.item-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.field label {
+  display: block;
+  font-size: 0.8rem;
+  color: #A0AEC0;
+  margin-bottom: 4px;
+}
+
+.input-ctrl {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 14px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  color: #fff;
+  border-radius: 8px;
+  font-size: 0.85rem;
+}
+
+.row-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.btn-primary {
+  padding: 12px;
+  background: linear-gradient(135deg, #F5D061, #D4AF37);
+  color: #0A0E17;
+  border: none;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+.full-panel {
+  padding: 24px;
+}
+
+.appointments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.apt-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  border-radius: 10px;
+}
+
+.apt-time {
+  background: rgba(212, 175, 55, 0.15);
+  color: #D4AF37;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.apt-info {
+  flex: 1;
+  margin: 0 18px;
+  display: flex;
+  flex-direction: column;
+}
+
+.apt-info span {
+  font-size: 0.8rem;
+  color: #A0AEC0;
+}
+
+.price {
+  font-weight: 800;
+  color: #42B883;
+  margin-right: 14px;
+}
+
+.status-badge {
+  background: rgba(66, 184, 131, 0.15);
+  color: #42B883;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  height: 480px;
+}
+
+.chat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+  padding-bottom: 12px;
+  margin-bottom: 14px;
+}
+
+.rpc-badge {
+  background: rgba(212, 175, 55, 0.15);
+  color: #D4AF37;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 0.75rem;
+}
+
+.chat-feed {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-right: 6px;
+}
+
+.chat-msg {
+  padding: 10px 14px;
+  border-radius: 10px;
+  max-width: 85%;
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+.chat-msg.user {
+  align-self: flex-end;
+  background: linear-gradient(135deg, #D4AF37, #AA820A);
+  color: #0A0E17;
+}
+
+.chat-msg.agent {
+  align-self: flex-start;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  color: #fff;
+  white-space: pre-line;
+}
+
+.sender-header {
+  font-size: 0.7rem;
+  opacity: 0.8;
+  margin-bottom: 2px;
+  font-weight: 600;
+}
+
+.loading-msg {
+  color: #A0AEC0;
+  font-size: 0.8rem;
+  font-style: italic;
+}
+
+.chat-input-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.btn-send {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #F5D061, #D4AF37);
+  color: #0A0E17;
+  border: none;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.presets-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 14px 0 20px;
+}
+
+.btn-preset {
+  text-align: left;
+  padding: 10px 12px;
+  background: transparent;
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  color: #D4AF37;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+.security-box {
+  background: rgba(212, 175, 55, 0.06);
+  border-left: 3px solid #D4AF37;
+  padding: 12px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  color: #A0AEC0;
+  line-height: 1.4;
+}
+
+.security-box strong {
+  color: #D4AF37;
+}

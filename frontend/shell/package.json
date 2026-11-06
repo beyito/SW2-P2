@@ -1,0 +1,21 @@
+{
+  "name": "salon-shell-container",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Shell Container de Microfrontends - Salón de Belleza y Asesoramiento IA",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "keycloak-js": "26.0.7",
+    "lucide-react": "^0.460.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.3",
+    "vite": "^5.4.11"
+  }
+}

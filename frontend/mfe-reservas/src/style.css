@@ -1,0 +1,37 @@
+:root {
+  --bg-primary: #0A0E17;
+  --bg-surface: #141A29;
+  --bg-glass: rgba(20, 26, 41, 0.75);
+  --border-glass: rgba(212, 175, 55, 0.2);
+  --gold-primary: #D4AF37;
+  --gold-glow: #F5D061;
+  --vue-green: #42B883;
+  --crimson-alert: #FF4B4B;
+  --text-primary: #FFFFFF;
+  --text-secondary: #A0AEC0;
+  --text-muted: #718096;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  background-image: radial-gradient(circle at 10% 20%, rgba(212, 175, 55, 0.05) 0%, transparent 40%),
+                    radial-gradient(circle at 90% 80%, rgba(66, 184, 131, 0.04) 0%, transparent 40%);
+  min-height: 100vh;
+}
+
+.gold-text {
+  background: linear-gradient(135deg, #FFF0B8 0%, #F5D061 50%, #D4AF37 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.glass-box {
+  background: var(--bg-glass);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--border-glass);
+  border-radius: 14px;
+}

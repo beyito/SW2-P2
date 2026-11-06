@@ -1,0 +1,14 @@
+{
+    "name": "salon/ms-crm",
+    "type": "project",
+    "description": "Microservicio de CRM, Fidelización y Facturación - Clean Architecture y GraphQL",
+    "license": "proprietary",
+    "require": {
+        "php": "^8.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/"
+        }
+    }
+}

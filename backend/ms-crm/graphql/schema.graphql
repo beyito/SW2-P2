@@ -1,0 +1,66 @@
+# ====================================================================
+# Esquema GraphQL para ms-crm (Clientes, Puntos y Facturas)
+# ====================================================================
+
+type Client {
+    id: ID!
+    fullName: String!
+    email: String!
+    phone: String!
+    loyaltyPoints: Int!
+    createdAt: String!
+}
+
+type LoyaltyTransaction {
+    id: ID!
+    clientId: String!
+    points: Int!
+    type: String! # ACCUMULATION | REDEMPTION
+    description: String!
+    createdAt: String!
+}
+
+type Invoice {
+    id: ID!
+    appointmentId: String!
+    clientId: String!
+    clientName: String!
+    totalAmount: Float!
+    taxAmount: Float!
+    paymentMethod: String!
+    status: String! # ISSUED | CANCELLED
+    issuedAt: String!
+}
+
+input RegisterClientInput {
+    fullName: String!
+    email: String!
+    phone: String!
+}
+
+input AccumulatePointsInput {
+    clientId: String!
+    points: Int!
+    description: String!
+}
+
+input IssueInvoiceInput {
+    appointmentId: String!
+    clientId: String!
+    totalAmount: Float!
+    paymentMethod: String!
+}
+
+type Query {
+    getClientById(id: ID!): Client
+    getClientByEmail(email: String!): Client
+    getClientPoints(clientId: String!): Int!
+    getInvoiceById(id: ID!): Invoice
+    getInvoicesByClient(clientId: String!): [Invoice!]!
+}
+
+type Mutation {
+    registerClient(input: RegisterClientInput!): Client!
+    accumulatePoints(input: AccumulatePointsInput!): Int!
+    issueInvoice(input: IssueInvoiceInput!): Invoice!
+}

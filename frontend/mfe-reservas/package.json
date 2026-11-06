@@ -1,0 +1,19 @@
+{
+  "name": "mfe-reservas",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Microfrontend de Reservas y Checkout SAGA en Vue.js 3",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "vue": "^3.4.38"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.1.2",
+    "vite": "^5.4.11"
+  }
+}

@@ -1,0 +1,52 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: ms-gestion
+
+  # Configuración PostgreSQL
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/salon_gestion}
+    username: ${SPRING_DATASOURCE_USERNAME:salon_admin}
+    password: ${SPRING_DATASOURCE_PASSWORD:salon_secret_pass}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+
+  # Configuración GraphQL
+  graphql:
+    graphiql:
+      enabled: true
+      path: /graphiql
+    schema:
+      printer:
+        enabled: true
+
+  # Configuración RabbitMQ
+  rabbitmq:
+    host: ${SPRING_RABBITMQ_HOST:localhost}
+    port: ${SPRING_RABBITMQ_PORT:5672}
+    username: ${SPRING_RABBITMQ_USERNAME:rabbit_admin}
+    password: ${SPRING_RABBITMQ_PASSWORD:rabbit_secret_pass}
+
+# Seguridad: Keycloak y control de sesiones (RF-01, CU-01, CU-02)
+salon:
+  security:
+    issuer: ${KEYCLOAK_ISSUER:http://localhost:8080/realms/salon}
+    jwks-uri: ${KEYCLOAK_JWKS_URI:http://localhost:8080/realms/salon/protocol/openid-connect/certs}
+    audience: ${KEYCLOAK_AUDIENCE:salon-api}
+    dynamodb-endpoint: ${DYNAMODB_ENDPOINT:http://localhost:8000}
+    allowed-origins: ${ALLOWED_ORIGINS:http://localhost:3000}
+
+# Configuración de Actuator y Métricas
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
