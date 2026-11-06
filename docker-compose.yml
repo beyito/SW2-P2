@@ -1,0 +1,396 @@
+# ====================================================================
+# Plataforma Inteligente Salón de Belleza - Entorno completo
+# Infraestructura: PostgreSQL, MongoDB, DynamoDB Local, RabbitMQ,
+#                  Keycloak y n8n
+# Inicialización:  db-migrate, mongo-init y dynamodb-init (una sola vez)
+# Backend:         ms-gestion, ms-asesoria, ms-crm, ms-ia y mcp-server
+# Nota: el orquestador SAGA se incorpora en la Fase D del ROADMAP.
+# ====================================================================
+
+x-auth-env: &auth-env
+  # Variables compartidas para validar tokens de Keycloak y sesiones activas
+  KEYCLOAK_ISSUER: http://localhost:${KEYCLOAK_PORT:-8080}/realms/salon
+  KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/salon/protocol/openid-connect/certs
+  KEYCLOAK_AUDIENCE: salon-api
+  DYNAMODB_ENDPOINT: http://dynamodb-local:8000
+  ALLOWED_ORIGINS: http://localhost:3000,http://localhost:3001,http://localhost:3002,http://localhost:3003
+
+services:
+  # ------------------------------------------------------------------
+  # Base de Datos Relacional: PostgreSQL
+  # Destino: ms-gestion (Spring Boot) y ms-crm (Laravel)
+  # ------------------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: salon-postgres
+    restart: unless-stopped
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-salon_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-salon_secret_pass}
+      POSTGRES_DB: ${POSTGRES_DB:-postgres}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    networks:
+      - salon-network
+    healthcheck:
+      # Se usa TCP: durante la inicialización solo responde el socket Unix temporal
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U ${POSTGRES_USER:-salon_admin} -d ${POSTGRES_DB:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ------------------------------------------------------------------
+  # Base de Datos Documental: MongoDB
+  # Destino: ms-asesoria (NestJS) - Asesoría, Clóset Virtual y Comunidad
+  # ------------------------------------------------------------------
+  mongodb:
+    image: mongo:7.0
+    container_name: salon-mongodb
+    restart: unless-stopped
+    ports:
+      - "${MONGO_PORT:-27017}:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME:-mongo_admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD:-mongo_secret_pass}
+      MONGO_INITDB_DATABASE: ${MONGO_DATABASE:-salon_asesoria}
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - salon-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ------------------------------------------------------------------
+  # Base de Datos NoSQL Llave-Valor: DynamoDB Local
+  # Destino: Control de Sesión Única e Idempotencia SAGA (Idempotency-Key)
+  # ------------------------------------------------------------------
+  dynamodb-local:
+    image: amazon/dynamodb-local:latest
+    container_name: salon-dynamodb-local
+    restart: unless-stopped
+    user: root
+    working_dir: /home/dynamodblocal
+    command: "-jar DynamoDBLocal.jar -sharedDb -dbPath ./data"
+    ports:
+      - "${DYNAMODB_PORT:-8000}:8000"
+    volumes:
+      - dynamodb_data:/home/dynamodblocal/data
+    networks:
+      - salon-network
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/8000'"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ------------------------------------------------------------------
+  # Bus de Mensajería y Eventos: RabbitMQ
+  # Destino: Orquestación SAGA, Compensaciones (Rollbacks) y Eventos de Dominio
+  # ------------------------------------------------------------------
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: salon-rabbitmq
+    restart: unless-stopped
+    ports:
+      - "${RABBITMQ_PORT:-5672}:5672"       # Protocolo AMQP
+      - "${RABBITMQ_MGMT_PORT:-15672}:15672" # Panel Web de Administración
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-rabbit_admin}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-rabbit_secret_pass}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - salon-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ------------------------------------------------------------------
+  # Inicialización idempotente (se ejecuta y termina en cada arranque)
+  # ------------------------------------------------------------------
+  db-migrate:
+    image: postgres:16-alpine
+    container_name: salon-db-migrate
+    restart: "no"
+    command: ["sh", "/migrate.sh"]
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-salon_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-salon_secret_pass}
+      POSTGRES_DB: ${POSTGRES_DB:-postgres}
+    volumes:
+      - ./docker/postgres/migrate.sh:/migrate.sh:ro
+      - ./docker/postgres/migrations:/migrations:ro
+    networks:
+      - salon-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  mongo-init:
+    image: mongo:7.0
+    container_name: salon-mongo-init
+    restart: "no"
+    command:
+      - mongosh
+      - "mongodb://${MONGO_INITDB_ROOT_USERNAME:-mongo_admin}:${MONGO_INITDB_ROOT_PASSWORD:-mongo_secret_pass}@mongodb:27017/admin"
+      - "--quiet"
+      - "--file"
+      - /init/init-collections.js
+    volumes:
+      - ./docker/mongodb/init-collections.js:/init/init-collections.js:ro
+    networks:
+      - salon-network
+    depends_on:
+      mongodb:
+        condition: service_healthy
+
+  dynamodb-init:
+    image: python:3.11-alpine
+    container_name: salon-dynamodb-init
+    restart: "no"
+    command: ["python", "/init/init-dynamodb.py"]
+    environment:
+      DYNAMODB_ENDPOINT: http://dynamodb-local:8000
+    volumes:
+      - ./docker/dynamodb/init-dynamodb.py:/init/init-dynamodb.py:ro
+    networks:
+      - salon-network
+    depends_on:
+      dynamodb-local:
+        condition: service_healthy
+
+  # ------------------------------------------------------------------
+  # Identidad y Acceso: Keycloak (SSO). El realm se configura en la Fase B.
+  # ------------------------------------------------------------------
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0.7
+    container_name: salon-keycloak
+    restart: unless-stopped
+    # El realm "salon" solo se importa si aún no existe en la base de datos
+    command: ["start-dev", "--import-realm"]
+    ports:
+      - "${KEYCLOAK_PORT:-8080}:8080"
+    volumes:
+      - ./docker/keycloak/salon-realm.json:/opt/keycloak/data/import/salon-realm.json:ro
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USER:-admin}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin_secret_pass}
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/salon_keycloak
+      KC_DB_USERNAME: ${POSTGRES_USER:-salon_admin}
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD:-salon_secret_pass}
+      KC_HEALTH_ENABLED: "true"
+      # Emisor fijo: el navegador y los servicios deben ver el mismo "iss"
+      KC_HOSTNAME: http://localhost:${KEYCLOAK_PORT:-8080}
+      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "true"
+    networks:
+      - salon-network
+    depends_on:
+      db-migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      # La imagen no incluye curl; se consulta el puerto de administración con bash
+      test:
+        - CMD-SHELL
+        - >-
+          bash -c 'exec 3<>/dev/tcp/127.0.0.1/9000 &&
+          printf "GET /health/ready HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n" >&3 &&
+          grep -q "\"status\": \"UP\"" <&3'
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+
+  # ------------------------------------------------------------------
+  # Automatización omnicanal: n8n. Los flujos se integran en la Fase H.
+  # ------------------------------------------------------------------
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:1.70.3
+    container_name: salon-n8n
+    restart: unless-stopped
+    ports:
+      - "${N8N_PORT:-5678}:5678"
+    environment:
+      N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY:-clave_local_de_desarrollo_n8n}
+      N8N_SECURE_COOKIE: "false"
+      GENERIC_TIMEZONE: America/La_Paz
+    volumes:
+      - n8n_data:/home/node/.n8n
+    networks:
+      - salon-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:5678/healthz || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  # ------------------------------------------------------------------
+  # Microservicio 1: Gestión operativa (Spring Boot + GraphQL)
+  # ------------------------------------------------------------------
+  ms-gestion:
+    build: ./backend/ms-gestion
+    container_name: salon-ms-gestion
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/salon_gestion
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-salon_admin}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-salon_secret_pass}
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_USERNAME: ${RABBITMQ_DEFAULT_USER:-rabbit_admin}
+      SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_DEFAULT_PASS:-rabbit_secret_pass}
+      <<: *auth-env
+    networks:
+      - salon-network
+    depends_on:
+      db-migrate:
+        condition: service_completed_successfully
+      dynamodb-init:
+        condition: service_completed_successfully
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8081/actuator/health | grep -q UP"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+
+  # ------------------------------------------------------------------
+  # Microservicio 2: Asesoría, clóset y comunidad (NestJS + REST)
+  # ------------------------------------------------------------------
+  ms-asesoria:
+    build: ./backend/ms-asesoria
+    container_name: salon-ms-asesoria
+    restart: unless-stopped
+    ports:
+      - "3100:3100"
+    environment:
+      PORT: "3100"
+      MONGO_URI: mongodb://${MONGO_INITDB_ROOT_USERNAME:-mongo_admin}:${MONGO_INITDB_ROOT_PASSWORD:-mongo_secret_pass}@mongodb:27017/${MONGO_DATABASE:-salon_asesoria}?authSource=admin
+      <<: *auth-env
+    networks:
+      - salon-network
+    depends_on:
+      mongo-init:
+        condition: service_completed_successfully
+      dynamodb-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3100/health > /dev/null || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  # ------------------------------------------------------------------
+  # Microservicio 3: CRM y facturación (PHP)
+  # ------------------------------------------------------------------
+  ms-crm:
+    build: ./backend/ms-crm
+    container_name: salon-ms-crm
+    restart: unless-stopped
+    ports:
+      - "8083:8000"
+    environment:
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_DATABASE: salon_crm
+      DB_USERNAME: ${POSTGRES_USER:-salon_admin}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-salon_secret_pass}
+      <<: *auth-env
+    networks:
+      - salon-network
+    depends_on:
+      db-migrate:
+        condition: service_completed_successfully
+      dynamodb-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8000/health > /dev/null || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  # ------------------------------------------------------------------
+  # Microservicio 4: Inteligencia artificial (FastAPI)
+  # ------------------------------------------------------------------
+  ms-ia:
+    build: ./backend/ms-ia
+    container_name: salon-ms-ia
+    restart: unless-stopped
+    ports:
+      - "8002:8002"
+    environment:
+      <<: *auth-env
+    networks:
+      - salon-network
+    depends_on:
+      dynamodb-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://127.0.0.1:8002/health', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  # ------------------------------------------------------------------
+  # Servidor MCP para agentes de IA
+  # ------------------------------------------------------------------
+  mcp-server:
+    build: ./backend/mcp-server
+    container_name: salon-mcp-server
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    environment:
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      <<: *auth-env
+    networks:
+      - salon-network
+    depends_on:
+      dynamodb-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:4000/health > /dev/null || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+# --------------------------------------------------------------------
+# Redes y Volúmenes Persistentes
+# --------------------------------------------------------------------
+networks:
+  salon-network:
+    driver: bridge
+    name: salon-network
+
+volumes:
+  postgres_data:
+    driver: local
+    name: salon-postgres-data
+  mongo_data:
+    driver: local
+    name: salon-mongo-data
+  dynamodb_data:
+    driver: local
+    name: salon-dynamodb-data
+  rabbitmq_data:
+    driver: local
+    name: salon-rabbitmq-data
+  n8n_data:
+    driver: local
+    name: salon-n8n-data

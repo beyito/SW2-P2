@@ -1,0 +1,268 @@
+{
+  "realm": "salon",
+  "enabled": true,
+  "displayName": "Salón & IA Studio",
+  "sslRequired": "none",
+  "registrationAllowed": true,
+  "registrationEmailAsUsername": false,
+  "loginWithEmailAllowed": true,
+  "resetPasswordAllowed": false,
+  "rememberMe": false,
+  "bruteForceProtected": true,
+  "failureFactor": 10,
+  "accessTokenLifespan": 300,
+  "ssoSessionIdleTimeout": 3600,
+  "ssoSessionMaxLifespan": 28800,
+  "defaultRole": {
+    "name": "default-roles-salon",
+    "composite": true
+  },
+  "roles": {
+    "realm": [
+      {
+        "name": "ADMIN",
+        "description": "Administrador del salón; sesión única concurrente"
+      },
+      {
+        "name": "STYLIST",
+        "description": "Estilista del salón"
+      },
+      {
+        "name": "CLIENT",
+        "description": "Cliente final"
+      },
+      {
+        "name": "default-roles-salon",
+        "description": "Rol asignado a toda cuenta nueva (autorregistro de clientes)",
+        "composite": true,
+        "composites": {
+          "realm": [
+            "CLIENT"
+          ]
+        }
+      }
+    ]
+  },
+  "components": {
+    "org.keycloak.userprofile.UserProfileProvider": [
+      {
+        "providerId": "declarative-user-profile",
+        "subComponents": {},
+        "config": {
+          "kc.user.profile.config": [
+            "{\"attributes\":[{\"name\":\"username\",\"displayName\":\"${username}\",\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"validations\":{\"length\":{\"min\":3,\"max\":255}}},{\"name\":\"email\",\"displayName\":\"${email}\",\"required\":{\"roles\":[\"user\"]},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"validations\":{\"email\":{}}},{\"name\":\"firstName\",\"displayName\":\"${firstName}\",\"required\":{\"roles\":[\"user\"]},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]}},{\"name\":\"lastName\",\"displayName\":\"${lastName}\",\"required\":{\"roles\":[\"user\"]},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]}}],\"unmanagedAttributePolicy\":\"ADMIN_EDIT\"}"
+          ]
+        }
+      }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "salon-web",
+      "name": "Plataforma web (Shell)",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "redirectUris": [
+        "http://localhost:3000/*"
+      ],
+      "webOrigins": [
+        "http://localhost:3000"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:3000/*"
+      },
+      "protocolMappers": [
+        {
+          "name": "audiencia-salon-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.custom.audience": "salon-api",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        },
+        {
+          "name": "salon-id",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "config": {
+            "user.attribute": "salon_id",
+            "claim.name": "salon_id",
+            "jsonType.label": "String",
+            "access.token.claim": "true",
+            "id.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "salon-mobile",
+      "name": "Aplicación móvil (Flutter)",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "redirectUris": [
+        "com.salon.mobile://callback"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "com.salon.mobile://callback"
+      },
+      "protocolMappers": [
+        {
+          "name": "audiencia-salon-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.custom.audience": "salon-api",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        },
+        {
+          "name": "salon-id",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "config": {
+            "user.attribute": "salon_id",
+            "claim.name": "salon_id",
+            "jsonType.label": "String",
+            "access.token.claim": "true",
+            "id.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "salon-agent",
+      "name": "Agentes de IA (cuenta de servicio para el Servidor MCP)",
+      "enabled": true,
+      "publicClient": false,
+      "secret": "salon-agent-secret-local",
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "protocolMappers": [
+        {
+          "name": "audiencia-salon-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.custom.audience": "salon-api",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "username": "admin.salon",
+      "enabled": true,
+      "email": "admin@salon.local",
+      "emailVerified": true,
+      "firstName": "Administración",
+      "lastName": "Salón",
+      "attributes": {
+        "salon_id": [
+          "adm-001"
+        ]
+      },
+      "realmRoles": [
+        "ADMIN"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Admin#2026",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "valentina.rossi",
+      "enabled": true,
+      "email": "valentina.rossi@salon.local",
+      "emailVerified": true,
+      "firstName": "Valentina",
+      "lastName": "Rossi",
+      "attributes": {
+        "salon_id": [
+          "sty-101"
+        ]
+      },
+      "realmRoles": [
+        "STYLIST"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Estilista#2026",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "camila.fernandez",
+      "enabled": true,
+      "email": "camila.f@example.com",
+      "emailVerified": true,
+      "firstName": "Camila",
+      "lastName": "Fernandez",
+      "attributes": {
+        "salon_id": [
+          "cli-001"
+        ]
+      },
+      "realmRoles": [
+        "CLIENT"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Cliente#2026",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "alejandro.morales",
+      "enabled": true,
+      "email": "alejandro.m@example.com",
+      "emailVerified": true,
+      "firstName": "Alejandro",
+      "lastName": "Morales",
+      "attributes": {
+        "salon_id": [
+          "cli-002"
+        ]
+      },
+      "realmRoles": [
+        "CLIENT"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Cliente#2026",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "service-account-salon-agent",
+      "enabled": true,
+      "serviceAccountClientId": "salon-agent",
+      "realmRoles": [
+        "ADMIN"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,93 @@
+{
+  "name": "Recordatorio Cita 24h WhatsApp - Salon de Belleza",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "saga-appointment-confirmed",
+        "options": {}
+      },
+      "id": "node-webhook-01",
+      "name": "Webhook RabbitMQ / SAGA",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "clientPhone",
+              "value": "={{ $json.body.clientPhone || '+59170012345' }}"
+            },
+            {
+              "name": "messageText",
+              "value": "Hola {{ $json.body.clientName }}! ✨ Te recordamos que tu cita en el Salón de Belleza para el servicio de {{ $json.body.serviceName }} está programada para mañana a las {{ $json.body.appointmentTime }} con {{ $json.body.stylistName }}. Por favor responde '1' para confirmar o '2' para reprogramar."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-set-template",
+      "name": "Formatear Plantilla WhatsApp",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "https://api.whatsapp.com/v1/messages",
+        "options": {},
+        "bodyParametersUi": {
+          "parameter": [
+            {
+              "name": "to",
+              "value": "={{ $json.clientPhone }}"
+            },
+            {
+              "name": "type",
+              "value": "text"
+            },
+            {
+              "name": "text",
+              "value": "={{ $json.messageText }}"
+            }
+          ]
+        }
+      },
+      "id": "node-whatsapp-api",
+      "name": "Enviar WhatsApp (Meta API)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [680, 300]
+    }
+  ],
+  "connections": {
+    "Webhook RabbitMQ / SAGA": {
+      "main": [
+        [
+          {
+            "node": "Formatear Plantilla WhatsApp",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Formatear Plantilla WhatsApp": {
+      "main": [
+        [
+          {
+            "node": "Enviar WhatsApp (Meta API)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {}
+}

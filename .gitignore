@@ -1,0 +1,52 @@
+# Entornos virtuales Python
+.venv/
+venv/
+ENV/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+
+# Node & Frontend
+node_modules/
+.npm
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Java & Maven
+target/
+*.class
+*.jar
+*.war
+*.ear
+.m2/
+
+# PHP & Composer
+vendor/
+composer.lock
+
+# IDEs y SO
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Logs y entornos
+*.log
+.env.local
+
+# Secretos: nunca versionar variables de entorno reales
+.env
+.env.*
+!.env.example
+
+# Cachés de pruebas y herramientas
+.pytest_cache/
+.phpunit.result.cache
+.dart_tool/
