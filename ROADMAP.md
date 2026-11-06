@@ -192,7 +192,7 @@ La Fase D se ejecutó antes por decisión del usuario, e incorporó las piezas d
 
 **Verificación en vivo (6 de noviembre):**
 - [x] `tests/integration`: 214/214 contra todos los servicios reales, con `ms-asesoria` detenido a propósito para comprobar que `ms-ia` no analiza sin poder revisar el consentimiento.
-- [x] `tests/e2e` en Chromium, contra `ng serve` real: `fase_g` 33/33 con cámara y micrófono alimentados por un video y un audio reales, `fase_f` 51/51, `reservas` 9/9, `seguridad` 14/14.
+- [x] `tests/e2e` en Chromium, contra `ng serve` real: `fase_g` 32/32 con cámara y micrófono alimentados por un video y un audio reales, `fase_f` 51/51, `reservas` 9/9, `seguridad` 14/14.
 - [x] Un video WebM real grabado por el navegador, sin duración en su cabecera, se mide y se analiza.
 - [x] Voz a reporte con Gemini real (`gemini-3.1-flash-lite`, por el cupo agotado de `gemini-2.5-flash`). Marca personal con ambos modelos.
 - [x] Suites: `ms-ia` 103/103 con los modelos reales, `ms-asesoria` 68/68, `ms-gestion` 61/61, `ms-crm` 33/33, `mcp-server` 30/30, `saga-orchestrator` 31/31.
