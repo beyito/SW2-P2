@@ -46,7 +46,7 @@ export class MongoClosetRepository implements IClosetRepository {
   }
 
   async findByClientId(clientId: string): Promise<ClosetItem[]> {
-    const docs = await this.closetModel.find({ clientId }).exec();
+    const docs = await this.closetModel.find({ clientId }).sort({ createdAt: -1 }).exec();
     return docs.map(
       (doc) =>
         new ClosetItem({

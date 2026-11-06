@@ -92,7 +92,9 @@ def reembolsado_en_stripe(view):
 def limpieza():
     foto = foto_de_puntos()
     stock_inicial = stock(ITEM_KERATINA)[0]
+    telefono = sql_crm(f"SELECT phone FROM crm_clients WHERE id='{CLIENTE_ID}'")
     yield
+    sql_crm(f"UPDATE crm_clients SET phone='{telefono}' WHERE id='{CLIENTE_ID}'")
     limpiar_crm_de_pruebas(foto)
     sql_gestion("DELETE FROM inventory_logs WHERE appointment_id IN "
                 "(SELECT id FROM appointments WHERE appointment_date >= '2036-01-01')")

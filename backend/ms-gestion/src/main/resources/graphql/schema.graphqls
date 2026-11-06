@@ -19,9 +19,54 @@ type SalonService {
     price: Float!
 }
 
+type StylistRating {
+    average: Float!
+    count: Int!
+}
+
 type Stylist {
     id: ID!
     name: String!
+    specialty: String
+    phone: String
+    active: Boolean!
+    rating: StylistRating!
+    schedules: [StylistSchedule!]!
+}
+
+type Review {
+    id: ID!
+    appointmentId: String!
+    stylistId: String!
+    rating: Int!
+    comment: String
+    createdAt: String
+}
+
+"Fila del Read Model de la agenda del panel empresarial."
+type PanelAppointment {
+    id: ID!
+    clientId: String!
+    stylistId: String!
+    stylistName: String!
+    serviceName: String!
+    appointmentDate: String!
+    appointmentEnd: String!
+    durationMinutes: Int!
+    totalPrice: Float!
+    status: AppointmentStatus!
+}
+
+type PanelSummary {
+    totalAppointments: Int!
+    pendingPayment: Int!
+    active: Int!
+    completed: Int!
+    cancelled: Int!
+    "Valor de las citas no canceladas del periodo; los ingresos cobrados los informa el CRM."
+    bookedValue: Float!
+    "Minutos reservados sobre minutos laborables, entre 0 y 1."
+    occupancyRate: Float!
 }
 
 type TimeSlot {
@@ -50,6 +95,9 @@ type Appointment {
     totalPrice: Float!
     status: AppointmentStatus!
     notes: String
+    sagaId: String
+    stylistName: String!
+    reviewed: Boolean!
 }
 
 type InventoryItem {
@@ -59,6 +107,7 @@ type InventoryItem {
     category: String!
     currentStock: Int!
     minimumStock: Int!
+    reservedStock: Int
     unitPrice: Float!
     isCriticalStock: Boolean!
 }
@@ -86,15 +135,43 @@ input UpdateStockInput {
     reason: String!
 }
 
+input StylistInput {
+    name: String!
+    specialty: String
+    phone: String
+}
+
+input ScheduleInput {
+    stylistId: String!
+    "1 = lunes, 7 = domingo"
+    dayOfWeek: Int!
+    startTime: String!
+    endTime: String!
+    isAvailable: Boolean!
+}
+
+input CreateReviewInput {
+    appointmentId: String!
+    rating: Int!
+    comment: String
+}
+
 type Query {
     # Citas
     getAppointmentById(id: ID!): Appointment
     getAppointmentsByStylist(stylistId: String!, date: String): [Appointment!]!
     getAppointmentsByClient(clientId: String!): [Appointment!]!
+    getMyAppointments: [Appointment!]!
+
+    # Panel empresarial (Read Model)
+    getPanelAgenda(from: String!, to: String!): [PanelAppointment!]!
+    getPanelSummary(from: String!, to: String!): PanelSummary!
 
     # Catálogo, estilistas y horarios
     getServices: [SalonService!]!
     getStylists: [Stylist!]!
+    getAllStylists: [Stylist!]!
+    getStylistReviews(stylistId: String!): [Review!]!
     getStylistSchedules(stylistId: String!): [StylistSchedule!]!
     getAvailableSlots(stylistId: String!, serviceId: String!, date: String!): [TimeSlot!]!
 
@@ -109,8 +186,19 @@ type Mutation {
     scheduleAppointment(input: CreateAppointmentInput!): Appointment!
     cancelAppointment(id: ID!, reason: String): Appointment!
     rescheduleAppointment(id: ID!, newDate: String!): Appointment!
+    completeAppointment(id: ID!): Appointment!
+
+    # Estilistas y horarios
+    createStylist(input: StylistInput!): Stylist!
+    updateStylist(id: ID!, input: StylistInput!): Stylist!
+    setStylistActive(id: ID!, active: Boolean!): Stylist!
+    setStylistSchedule(input: ScheduleInput!): StylistSchedule!
+
+    # Reseñas
+    createReview(input: CreateReviewInput!): Review!
 
     # Inventario
     createInventoryItem(input: CreateInventoryItemInput!): InventoryItem!
     updateStock(input: UpdateStockInput!): InventoryItem!
+    updateMinimumStock(id: ID!, minimumStock: Int!): InventoryItem!
 }

@@ -3,13 +3,17 @@
 namespace App\FrameworksDrivers\Providers;
 
 use App\FrameworksDrivers\Persistence\PostgresClientRepository;
+use App\FrameworksDrivers\Persistence\PostgresCrmMetrics;
 use App\FrameworksDrivers\Persistence\PostgresInvoiceRepository;
 use App\FrameworksDrivers\Persistence\PostgresLoyaltyLedger;
+use App\FrameworksDrivers\Persistence\PostgresNoticeRepository;
 use App\FrameworksDrivers\Security\CachedJwksProvider;
 use App\FrameworksDrivers\Security\DynamoSessionRegistry;
 use App\InterfaceAdapters\Gateways\ClientRepositoryInterface;
+use App\InterfaceAdapters\Gateways\CrmMetricsInterface;
 use App\InterfaceAdapters\Gateways\InvoiceRepositoryInterface;
 use App\InterfaceAdapters\Gateways\LoyaltyLedgerInterface;
+use App\InterfaceAdapters\Gateways\NoticeRepositoryInterface;
 use App\InterfaceAdapters\Security\Authenticator;
 use App\InterfaceAdapters\Security\JwtVerifier;
 use Illuminate\Support\Facades\DB;
@@ -27,6 +31,8 @@ class CrmServiceProvider extends ServiceProvider
         $this->app->singleton(ClientRepositoryInterface::class, fn () => new PostgresClientRepository($pdo()));
         $this->app->singleton(InvoiceRepositoryInterface::class, fn () => new PostgresInvoiceRepository($pdo()));
         $this->app->singleton(LoyaltyLedgerInterface::class, fn () => new PostgresLoyaltyLedger($pdo()));
+        $this->app->singleton(NoticeRepositoryInterface::class, fn () => new PostgresNoticeRepository($pdo()));
+        $this->app->singleton(CrmMetricsInterface::class, fn () => new PostgresCrmMetrics($pdo()));
 
         $this->app->singleton(Authenticator::class, function () {
             $issuer = env('KEYCLOAK_ISSUER', 'http://localhost:8080/realms/salon');

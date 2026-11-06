@@ -1,87 +1,61 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { GestionApiService, InventoryItem, Appointment } from './services/gestion-api.service';
+import { Component, computed, inject, signal } from '@angular/core';
+import { AuthService } from './core/auth.service';
+import { AgendaComponent } from './features/agenda.component';
+import { AgentComponent } from './features/agent.component';
+import { ClientsComponent } from './features/clients.component';
+import { InventoryComponent } from './features/inventory.component';
+import { ModerationComponent } from './features/moderation.component';
+import { PanelComponent } from './features/panel.component';
+import { StylistsComponent } from './features/stylists.component';
 
-interface McpMessage {
-  sender: 'user' | 'agent';
-  text: string;
-  time: string;
-}
+type Tab = 'panel' | 'agenda' | 'inventory' | 'stylists' | 'clients' | 'moderation' | 'agent';
+
+const TABS: { id: Tab; label: string }[] = [
+  { id: 'panel', label: 'Panel' },
+  { id: 'agenda', label: 'Agenda' },
+  { id: 'inventory', label: 'Inventario' },
+  { id: 'stylists', label: 'Estilistas' },
+  { id: 'clients', label: 'Clientes' },
+  { id: 'moderation', label: 'Moderación' },
+  { id: 'agent', label: 'Agente MCP' },
+];
 
 @Component({
   selector: 'app-root',
-  standalone: true,
-  imports: [CommonModule, FormsModule],
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.css']
+  imports: [
+    AgendaComponent, AgentComponent, ClientsComponent, InventoryComponent,
+    ModerationComponent, PanelComponent, StylistsComponent,
+  ],
+  template: `
+    <div class="page">
+      @if (!auth.token()) {
+        <div class="card" id="waiting-session">Esperando la sesión de la plataforma...</div>
+      } @else if (!isStaff()) {
+        <div class="card error" role="alert">Este módulo es solo para el personal del salón.</div>
+      } @else {
+        <nav class="tabs">
+          @for (tab of tabs; track tab.id) {
+            <button type="button" [id]="'erp-tab-' + tab.id" [class.active]="active() === tab.id" (click)="active.set(tab.id)">
+              {{ tab.label }}
+            </button>
+          }
+        </nav>
+        @switch (active()) {
+          @case ('panel') { <app-panel /> }
+          @case ('agenda') { <app-agenda /> }
+          @case ('inventory') { <app-inventory /> }
+          @case ('stylists') { <app-stylists /> }
+          @case ('clients') { <app-clients /> }
+          @case ('moderation') { <app-moderation /> }
+          @case ('agent') { <app-agent /> }
+        }
+      }
+    </div>
+  `,
 })
-export class AppComponent implements OnInit {
-  activeTab: 'inventory' | 'schedule' | 'mcp' = 'inventory';
-
-  inventory: InventoryItem[] = [];
-  appointments: Appointment[] = [];
-  
-  // New Item form (CU-08)
-  newItemName = '';
-  newItemCategory = 'COLORACION';
-  newItemStock = 10;
-  newItemMin = 3;
-
-  // MCP Chat state (CU-17, CU-18)
-  mcpMessages: McpMessage[] = [
-    { sender: 'agent', text: 'Hola Valentina. Soy el Agente Autónomo del Salón (Servidor MCP sobre puerto 4000). ¿En qué puedo asistirte?', time: '10:00' }
-  ];
-  userPrompt = '';
-  isAgentLoading = false;
-
-  constructor(private apiService: GestionApiService) {}
-
-  ngOnInit(): void {
-    this.apiService.getInventory().subscribe(items => this.inventory = items);
-    this.apiService.getAppointments().subscribe(apts => this.appointments = apts);
-  }
-
-  get criticalCount(): number {
-    return this.inventory.filter(i => i.currentStock <= i.minStock).length;
-  }
-
-  restock(id: string): void {
-    const item = this.inventory.find(i => i.id === id);
-    if (item) {
-      item.currentStock += 5;
-    }
-  }
-
-  addInventoryItem(): void {
-    if (!this.newItemName.trim()) return;
-    this.inventory.unshift({
-      id: 'inv-' + (this.inventory.length + 1),
-      name: this.newItemName,
-      category: this.newItemCategory,
-      currentStock: this.newItemStock,
-      minStock: this.newItemMin,
-      supplier: 'Proveedor Oficial',
-      unit: 'unidades'
-    });
-    this.newItemName = '';
-    this.newItemStock = 10;
-    this.newItemMin = 3;
-  }
-
-  sendMcpPrompt(promptOverride?: string): void {
-    const textToSend = promptOverride || this.userPrompt;
-    if (!textToSend.trim()) return;
-
-    this.mcpMessages.push({ sender: 'user', text: textToSend, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
-    this.userPrompt = '';
-    this.isAgentLoading = true;
-
-    this.apiService.queryMcpAgent(textToSend).subscribe(reply => {
-      setTimeout(() => {
-        this.mcpMessages.push({ sender: 'agent', text: reply, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
-        this.isAgentLoading = false;
-      }, 500);
-    });
-  }
+export class AppComponent {
+  readonly auth = inject(AuthService);
+  readonly tabs = TABS;
+  readonly active = signal<Tab>('panel');
+  readonly isStaff = computed(() => this.auth.roles().some((role) => role === 'ADMIN' || role === 'STYLIST'));
 }

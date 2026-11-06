@@ -42,6 +42,9 @@ public class Appointment {
         if (this.status == AppointmentStatus.CANCELLED) {
             throw new IllegalStateException("No se puede reprogramar una cita cancelada");
         }
+        if (this.status == AppointmentStatus.COMPLETED) {
+            throw new IllegalStateException("No se puede reprogramar una cita completada");
+        }
         this.appointmentDate = newDate;
         this.status = AppointmentStatus.RESCHEDULED;
     }
@@ -52,6 +55,20 @@ public class Appointment {
             throw new IllegalStateException("No se puede confirmar una cita cancelada");
         }
         this.status = AppointmentStatus.CONFIRMED;
+    }
+
+    /** Registra que el servicio se prestó; solo es posible una vez iniciada la cita. */
+    public void complete(LocalDateTime now) {
+        boolean attendable = this.status == AppointmentStatus.SCHEDULED
+                || this.status == AppointmentStatus.CONFIRMED
+                || this.status == AppointmentStatus.RESCHEDULED;
+        if (!attendable) {
+            throw new IllegalStateException("La cita no se puede completar en su estado actual");
+        }
+        if (now.isBefore(this.appointmentDate)) {
+            throw new IllegalStateException("La cita todavía no ha comenzado");
+        }
+        this.status = AppointmentStatus.COMPLETED;
     }
 
     public LocalDateTime endDate() {

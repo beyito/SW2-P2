@@ -7,6 +7,7 @@ use App\Core\Entities\LoyaltyPolicy;
 use App\Core\UseCases\AccumulatePointsUseCase;
 use App\Core\UseCases\ApplyRefundUseCase;
 use App\Core\UseCases\ProcessCompletedBookingUseCase;
+use App\Core\UseCases\RecordNoticesUseCase;
 use App\Core\UseCases\ReleasePointsUseCase;
 use App\Core\UseCases\ReservePointsUseCase;
 use App\InterfaceAdapters\Messaging\SagaMessageHandler;
@@ -32,6 +33,7 @@ class FacturacionYPuntosTest extends TestCase
     private FakeClients $clients;
     private FakeInvoices $invoices;
     private FakeLedger $ledger;
+    private FakeNotices $notices;
     private SagaMessageHandler $handler;
 
     protected function setUp(): void
@@ -43,7 +45,8 @@ class FacturacionYPuntosTest extends TestCase
             new ProcessCompletedBookingUseCase($this->clients, $this->invoices, $this->ledger),
             new ReservePointsUseCase($this->ledger),
             new ReleasePointsUseCase($this->ledger),
-            new ApplyRefundUseCase($this->invoices, $this->ledger)
+            new ApplyRefundUseCase($this->invoices, $this->ledger),
+            new RecordNoticesUseCase($this->notices = new FakeNotices())
         );
     }
 
@@ -217,5 +220,55 @@ class FacturacionYPuntosTest extends TestCase
         $useCase = new AccumulatePointsUseCase($this->clients, $this->ledger);
         $this->expectException(\InvalidArgumentException::class);
         $useCase->execute('cli-001', 0, 'x');
+    }
+
+    public function test_el_pago_avisa_al_cliente_una_sola_vez(): void
+    {
+        $evento = ['sagaId' => 's-aviso', 'clientId' => 'c-1', 'appointmentId' => 'a-1', 'amountCents' => 4500, 'serviceName' => 'Corte'];
+
+        $this->handler->handle('saga.completed', $evento);
+        $this->handler->handle('saga.completed', $evento);
+
+        $this->assertCount(1, $this->notices->items);
+        $aviso = array_values($this->notices->items)[0];
+        $this->assertSame('c-1', $aviso->recipient);
+        $this->assertSame('PAYMENT', $aviso->type);
+        $this->assertStringContainsString('Corte', $aviso->message);
+    }
+
+    public function test_el_reembolso_avisa_al_dueno_de_la_factura(): void
+    {
+        $this->handler->handle('saga.completed', ['sagaId' => 's-ref', 'clientId' => 'c-2', 'appointmentId' => 'a-2', 'amountCents' => 4500]);
+
+        $this->handler->handle('crm.command.refund.apply', ['sagaId' => 's-ref']);
+
+        $avisos = array_values(array_filter($this->notices->items, fn ($n) => $n->type === 'REFUND'));
+        $this->assertCount(1, $avisos);
+        $this->assertSame('c-2', $avisos[0]->recipient);
+        $this->assertStringContainsString('45.00', $avisos[0]->message);
+    }
+
+    public function test_el_stock_critico_avisa_a_los_administradores_una_vez_por_dia(): void
+    {
+        $this->handler->handle('inventory.stock.critical', ['items' => ['KERAT-1', 'TINT-2']]);
+        $this->handler->handle('inventory.stock.critical', ['sagaId' => 's-9', 'items' => ['KERAT-1']]);
+
+        $this->assertCount(2, $this->notices->items);
+        foreach ($this->notices->items as $aviso) {
+            $this->assertSame('role:ADMIN', $aviso->recipient);
+        }
+    }
+
+    public function test_ocultar_una_publicacion_avisa_a_su_autor(): void
+    {
+        $evento = ['postId' => 'p-1', 'authorId' => 'c-3', 'title' => 'Mi look', 'reason' => 'Contenido ofensivo'];
+
+        $this->handler->handle('community.post.hidden', $evento);
+        $this->handler->handle('community.post.hidden', $evento);
+
+        $this->assertCount(1, $this->notices->items);
+        $aviso = array_values($this->notices->items)[0];
+        $this->assertSame('c-3', $aviso->recipient);
+        $this->assertStringContainsString('Contenido ofensivo', $aviso->message);
     }
 }

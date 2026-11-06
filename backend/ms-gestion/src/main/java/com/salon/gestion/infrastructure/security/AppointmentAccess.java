@@ -26,7 +26,8 @@ public class AppointmentAccess {
                 .orElse(false);
     }
 
-    private String salonId(Authentication authentication) {
+    /** Identificador de negocio del usuario autenticado. */
+    public String salonId(Authentication authentication) {
         if (authentication instanceof JwtAuthenticationToken token) {
             String salonId = token.getToken().getClaimAsString("salon_id");
             return salonId != null ? salonId : token.getToken().getSubject();

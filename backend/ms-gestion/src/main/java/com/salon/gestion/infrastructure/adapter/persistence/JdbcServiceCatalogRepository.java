@@ -41,12 +41,15 @@ public class JdbcServiceCatalogRepository implements ServiceCatalogRepository {
 
     @Override
     public List<Stylist> findStylists() {
+        // Solo quienes pueden recibir reservas: activos y con al menos un bloque disponible
         return jdbc.sql("""
-                        SELECT stylist_id AS id, MIN(stylist_name) AS name
-                        FROM stylist_schedules
-                        WHERE is_available
-                        GROUP BY stylist_id
-                        ORDER BY name
+                        SELECT s.id, s.name, s.specialty, s.phone, s.active
+                        FROM stylists s
+                        WHERE s.active AND EXISTS (
+                            SELECT 1 FROM stylist_schedules block
+                            WHERE block.stylist_id = s.id AND block.is_available
+                        )
+                        ORDER BY s.name
                         """)
                 .query(Stylist.class)
                 .list();

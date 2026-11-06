@@ -40,6 +40,8 @@ class ConsumeSagaMessages extends Command
         ]));
         $channel->queue_bind(self::QUEUE, self::EXCHANGE, 'saga.completed');
         $channel->queue_bind(self::QUEUE, self::EXCHANGE, 'crm.command.#');
+        $channel->queue_bind(self::QUEUE, self::EXCHANGE, 'inventory.stock.critical');
+        $channel->queue_bind(self::QUEUE, self::EXCHANGE, 'community.post.hidden');
         $channel->basic_qos(0, 1, false);
 
         $channel->basic_consume(self::QUEUE, '', false, false, false, false, function (AMQPMessage $message) use ($handler, $channel) {

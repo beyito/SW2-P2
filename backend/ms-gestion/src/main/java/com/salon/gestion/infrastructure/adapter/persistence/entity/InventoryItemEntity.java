@@ -33,6 +33,10 @@ public class InventoryItemEntity {
     @Column(name = "minimum_stock", nullable = false)
     private Integer minimumStock;
 
+    // Lo administra solo la SAGA con sentencias atómicas
+    @Column(name = "reserved_stock", insertable = false, updatable = false)
+    private Integer reservedStock;
+
     @Column(name = "unit_price", nullable = false)
     private Double unitPrice;
 

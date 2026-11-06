@@ -2,12 +2,25 @@
   "compilerOptions": {
     "target": "ES2022",
     "module": "ES2022",
-    "moduleResolution": "node",
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
-    "skipLibCheck": true,
+    "moduleResolution": "bundler",
     "strict": true,
-    "lib": ["ES2022", "dom"]
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "experimentalDecorators": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "lib": [
+      "ES2022",
+      "dom"
+    ],
+    "types": []
   },
-  "include": ["src/**/*.ts"]
+  "angularCompilerOptions": {
+    "strictTemplates": true,
+    "strictInjectionParameters": true
+  },
+  "files": [
+    "src/main.ts"
+  ]
 }

@@ -1,6 +1,7 @@
 // Prueba en navegador real del checkout: reserva y pago con Stripe en modo prueba (CU-06, CU-10).
 // Requiere el backend en Docker Compose y los microfrontends shell y reservas en ejecución.
 import { chromium } from 'playwright';
+import { fotoDePuntos, limpiarCitasDePrueba } from './soporte.mjs';
 
 const SHELL = 'http://localhost:3000/';
 const CLIENT = ['camila.fernandez', 'Cliente#2026'];
@@ -40,6 +41,7 @@ async function fillCard(mfe, card) {
   await stripe.locator('input[name="cvc"]').fill('123');
 }
 
+const puntosIniciales = fotoDePuntos();
 const browser = await chromium.launch();
 const page = await (await browser.newContext()).newPage();
 
@@ -121,5 +123,7 @@ await mfe.locator('#points-to-redeem').fill('100');
 check('el canje de 100 puntos descuenta $1.00', (await mfe.locator('#total-to-pay').textContent()).includes('$44.00'));
 
 await browser.close();
+// Las fechas de esta prueba empiezan en 2040: nunca tocan citas reales
+await limpiarCitasDePrueba('2040-01-01', puntosIniciales);
 console.log(fallos === 0 ? 'E2E RESERVAS: TODO OK' : `E2E RESERVAS: ${fallos} FALLOS`);
 process.exit(fallos === 0 ? 0 : 1);

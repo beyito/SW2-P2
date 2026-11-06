@@ -1,5 +1,6 @@
 // Prueba de extremo a extremo en un navegador real: login, roles, token en MFE, sesión única y logout.
 import { chromium } from 'playwright';
+import { usarErpCompilado } from './soporte.mjs';
 
 const SHELL = 'http://localhost:3000/';
 const ADMIN = ['admin.salon', 'Admin#2026'];
@@ -24,6 +25,7 @@ const browser = await chromium.launch();
 
 // --- Cliente
 const ctxCliente = await browser.newContext();
+await usarErpCompilado(ctxCliente);
 const cliente = await ctxCliente.newPage();
 const pedidos = [];
 cliente.on('request', (r) => {
@@ -56,13 +58,14 @@ check('tras el logout no hay sesión SSO', await cliente.locator('#username').is
 
 // --- Admin: sesión única entre dos navegadores
 const ctxA = await browser.newContext();
+await usarErpCompilado(ctxA);
 const adminA = await ctxA.newPage();
 await login(adminA, ADMIN);
 check('admin ve la pestaña ERP', (await adminA.locator('#tab-mfe-gestion').count()) === 1);
 
 const rpcEstados = [];
 adminA.on('response', (r) => {
-  if (r.url().includes(':4000/mcp/rpc') && r.request().method() === 'POST') rpcEstados.push(r.status());
+  if (r.url().includes(':4000/mcp') && r.request().method() === 'POST') rpcEstados.push(r.status());
 });
 await adminA.click('#tab-mfe-gestion');
 await adminA.waitForTimeout(1500);
@@ -74,6 +77,7 @@ check('el ERP llama a MCP con token real', rpcEstados.length > 0 && rpcEstados.e
 
 await adminA.waitForTimeout(1200);
 const ctxB = await browser.newContext();
+await usarErpCompilado(ctxB);
 const adminB = await ctxB.newPage();
 await login(adminB, ADMIN);
 await adminB.waitForTimeout(500);

@@ -41,3 +41,21 @@ export async function authFetch(url, options = {}) {
   }
   return response;
 }
+
+/** Espera el token de la sesión y devuelve quién es el usuario. Solo sirve para decidir qué mostrar. */
+export async function currentUser() {
+  if (!token) {
+    await Promise.race([firstToken, new Promise((resolve) => setTimeout(resolve, TOKEN_WAIT_MS))]);
+  }
+  if (!token) {
+    throw new Error('Abre este módulo desde la plataforma para iniciar sesión.');
+  }
+  const payload = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+  const claims = JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(payload), (char) => char.charCodeAt(0))));
+  const roles = claims.realm_access?.roles ?? [];
+  return {
+    id: claims.salon_id ?? claims.sub,
+    name: claims.name ?? claims.preferred_username,
+    isStaff: roles.includes('ADMIN') || roles.includes('STYLIST'),
+  };
+}

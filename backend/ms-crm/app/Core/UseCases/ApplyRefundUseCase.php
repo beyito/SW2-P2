@@ -3,6 +3,7 @@
 namespace App\Core\UseCases;
 
 use App\Core\Entities\CreditNote;
+use App\Core\Entities\Invoice;
 use App\InterfaceAdapters\Gateways\InvoiceRepositoryInterface;
 use App\InterfaceAdapters\Gateways\LoyaltyLedgerInterface;
 
@@ -18,7 +19,7 @@ class ApplyRefundUseCase
     ) {
     }
 
-    public function execute(string $sagaId, string $reason): void
+    public function execute(string $sagaId, string $reason): Invoice
     {
         $invoice = $this->invoices->findBySagaId($sagaId);
         if (!$invoice) {
@@ -58,5 +59,7 @@ class ApplyRefundUseCase
                 "saga:{$sagaId}:redeem-return"
             );
         }
+
+        return $invoice;
     }
 }

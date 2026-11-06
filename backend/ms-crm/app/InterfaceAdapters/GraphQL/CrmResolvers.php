@@ -3,11 +3,14 @@
 namespace App\InterfaceAdapters\GraphQL;
 
 use App\Core\Entities\Client;
+use App\Core\Entities\Notice;
 use App\Core\UseCases\AccumulatePointsUseCase;
 use App\Core\UseCases\RegisterClientUseCase;
 use App\InterfaceAdapters\Gateways\ClientRepositoryInterface;
+use App\InterfaceAdapters\Gateways\CrmMetricsInterface;
 use App\InterfaceAdapters\Gateways\InvoiceRepositoryInterface;
 use App\InterfaceAdapters\Gateways\LoyaltyLedgerInterface;
+use App\InterfaceAdapters\Gateways\NoticeRepositoryInterface;
 use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
 
 /**
@@ -20,7 +23,9 @@ class CrmResolvers
         private InvoiceRepositoryInterface $invoices,
         private LoyaltyLedgerInterface $ledger,
         private RegisterClientUseCase $registerClient,
-        private AccumulatePointsUseCase $accumulatePoints
+        private AccumulatePointsUseCase $accumulatePoints,
+        private NoticeRepositoryInterface $notices,
+        private CrmMetricsInterface $metrics
     ) {
     }
 
@@ -117,6 +122,46 @@ class CrmResolvers
         } catch (\InvalidArgumentException $error) {
             throw new CrmForbidden($error->getMessage(), 'BAD_REQUEST');
         }
+    }
+
+    public function getMyNotices($root, array $args, GraphQLContext $context): array
+    {
+        return array_map([CrmPresenter::class, 'notice'], $this->notices->forRecipients($this->noticeRecipients($context)));
+    }
+
+    public function markNoticeRead($root, array $args, GraphQLContext $context): bool
+    {
+        if (!$this->notices->markRead($args['id'], $this->noticeRecipients($context))) {
+            throw new CrmForbidden('El aviso no existe.', 'NOT_FOUND');
+        }
+        return true;
+    }
+
+    public function getCrmMetrics($root, array $args, GraphQLContext $context): array
+    {
+        if (!in_array('ADMIN', $this->roles($context), true)) {
+            throw new CrmForbidden('Solo un administrador puede consultar los indicadores.');
+        }
+        foreach ([$args['from'], $args['to']] as $date) {
+            $parsed = \DateTimeImmutable::createFromFormat('!Y-m-d', $date);
+            if (!$parsed || $parsed->format('Y-m-d') !== $date) {
+                throw new CrmForbidden('Fecha inválida: use el formato AAAA-MM-DD.', 'BAD_REQUEST');
+            }
+        }
+        if ($args['to'] < $args['from']) {
+            throw new CrmForbidden('La fecha final no puede ser anterior a la inicial.', 'BAD_REQUEST');
+        }
+        return $this->metrics->between($args['from'], $args['to']);
+    }
+
+    /** El propio usuario y los roles que reciben avisos colectivos. */
+    private function noticeRecipients(GraphQLContext $context): array
+    {
+        $recipients = [$this->userId($context)];
+        if (in_array('ADMIN', $this->roles($context), true)) {
+            $recipients[] = Notice::ADMINS;
+        }
+        return $recipients;
     }
 
     private function claims(GraphQLContext $context): array

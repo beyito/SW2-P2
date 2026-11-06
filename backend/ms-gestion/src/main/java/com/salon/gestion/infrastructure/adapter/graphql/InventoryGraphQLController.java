@@ -48,6 +48,12 @@ public class InventoryGraphQLController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @MutationMapping
+    public InventoryItem updateMinimumStock(@Argument String id, @Argument int minimumStock) {
+        return manageInventoryUseCase.updateMinimumStock(id, minimumStock);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @MutationMapping
     public InventoryItem updateStock(@Argument UpdateStockInput input) {
         return manageInventoryUseCase.updateStock(input);
     }

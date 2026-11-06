@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { Camera, Sparkles, Heart, MessageCircle, Shirt, RefreshCw, CheckCircle, Tag } from 'lucide-react';
+import { Camera, Sparkles, RefreshCw } from 'lucide-react';
 import { authFetch } from './auth';
+import Closet from './components/Closet';
+import Community from './components/Community';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('biometrics'); // biometrics | closet | community
@@ -8,29 +10,6 @@ export default function App() {
   const [scanResult, setScanResult] = useState(null);
   const [scanError, setScanError] = useState(null);
   const [recommendations, setRecommendations] = useState([]);
-
-  // Closet
-  const [closetItems, setClosetItems] = useState([
-    { id: 'c1', name: 'Blazer Lino Beige', category: 'OUTERWEAR', color: 'Beige', season: 'SPRING', imageUrl: 'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=400' },
-    { id: 'c2', name: 'Vestido Seda Esmeralda', category: 'OUTERWEAR', color: 'Verde Esmeralda', season: 'SUMMER', imageUrl: 'https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=400' }
-  ]);
-  const [newItem, setNewItem] = useState({ name: '', category: 'OUTERWEAR', color: '', season: 'SPRING' });
-
-  // Community
-  const [posts, setPosts] = useState([
-    {
-      id: 'p1',
-      author: 'Camila Fernandez',
-      title: 'Balayage Miel & Avellana ✨',
-      desc: 'Resultado después del análisis biométrico capilar.',
-      likes: 2,
-      liked: false,
-      comments: [
-        { id: 'cm1', author: 'Valentina Rossi', text: 'Gran elección para tu subtono cálido.' }
-      ]
-    }
-  ]);
-  const [newComment, setNewComment] = useState('');
 
   const runBiometrics = async () => {
     setScanning(true);
@@ -64,39 +43,6 @@ export default function App() {
     } finally {
       setScanning(false);
     }
-  };
-
-  const toggleLike = (id) => {
-    setPosts(prev => prev.map(p => {
-      if (p.id === id) {
-        return { ...p, liked: !p.liked, likes: p.liked ? p.likes - 1 : p.likes + 1 };
-      }
-      return p;
-    }));
-  };
-
-  const addComment = (id) => {
-    if (!newComment.trim()) return;
-    setPosts(prev => prev.map(p => {
-      if (p.id === id) {
-        return {
-          ...p,
-          comments: [...p.comments, { id: 'c-' + Date.now(), author: 'Camila Fernandez', text: newComment }]
-        };
-      }
-      return p;
-    }));
-    setNewComment('');
-  };
-
-  const addPrenda = (e) => {
-    e.preventDefault();
-    if (!newItem.name || !newItem.color) return;
-    setClosetItems(prev => [
-      { id: 'c-' + Date.now(), ...newItem, imageUrl: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=400' },
-      ...prev
-    ]);
-    setNewItem({ name: '', category: 'OUTERWEAR', color: '', season: 'SPRING' });
   };
 
   return (
@@ -241,112 +187,8 @@ export default function App() {
         </div>
       )}
 
-      {/* TAB 2: CLOSET */}
-      {activeTab === 'closet' && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: '24px' }}>
-          <div className="glass-panel" style={{ padding: '24px' }}>
-            <h3 className="gold-gradient-text" style={{ margin: '0 0 16px', fontSize: '1.15rem' }}>
-              Armario Virtual Inteligente (CU-15)
-            </h3>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-              {closetItems.map(item => (
-                <div key={item.id} style={{ borderRadius: '10px', overflow: 'hidden', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-glass)' }}>
-                  <img src={item.imageUrl} alt={item.name} style={{ width: '100%', height: '140px', objectFit: 'cover' }} />
-                  <div style={{ padding: '12px' }}>
-                    <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{item.name}</div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
-                      {item.category} • {item.color} • {item.season}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="glass-panel" style={{ padding: '24px' }}>
-            <h3 className="gold-gradient-text" style={{ margin: '0 0 16px', fontSize: '1.15rem' }}>
-              Agregar Prenda al Clóset
-            </h3>
-            <form onSubmit={addPrenda} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <input
-                type="text"
-                placeholder="Nombre de la prenda"
-                value={newItem.name}
-                onChange={e => setNewItem({ ...newItem, name: e.target.value })}
-                style={{ width: '100%', padding: '12px', boxSizing: 'border-box', background: 'rgba(0,0,0,0.3)', border: '1px solid var(--border-glass)', color: '#fff', borderRadius: '8px' }}
-              />
-              <input
-                type="text"
-                placeholder="Color (ej: Verde Esmeralda)"
-                value={newItem.color}
-                onChange={e => setNewItem({ ...newItem, color: e.target.value })}
-                style={{ width: '100%', padding: '12px', boxSizing: 'border-box', background: 'rgba(0,0,0,0.3)', border: '1px solid var(--border-glass)', color: '#fff', borderRadius: '8px' }}
-              />
-              <button
-                type="submit"
-                style={{ padding: '12px', background: 'linear-gradient(135deg, #F5D061, #D4AF37)', color: '#0A0E17', border: 'none', borderRadius: '8px', fontWeight: 700, cursor: 'pointer' }}
-              >
-                Guardar en MongoDB
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* TAB 3: COMMUNITY */}
-      {activeTab === 'community' && (
-        <div className="glass-panel" style={{ padding: '24px', maxWidth: '700px', margin: '0 auto' }}>
-          <h3 className="gold-gradient-text" style={{ margin: '0 0 16px', fontSize: '1.15rem' }}>
-            Muro de Comunidad Social (CU-20, CU-21)
-          </h3>
-          {posts.map(post => (
-            <div key={post.id} style={{ background: 'rgba(255, 255, 255, 0.02)', padding: '18px', borderRadius: '12px', border: '1px solid var(--border-glass)', marginBottom: '16px' }}>
-              <div style={{ fontWeight: 700, fontSize: '1rem', marginBottom: '4px' }}>{post.title}</div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '10px' }}>Por {post.author}</div>
-              <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: '0 0 14px' }}>{post.desc}</p>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', borderTop: '1px solid var(--border-glass)', paddingTop: '10px' }}>
-                <button
-                  onClick={() => toggleLike(post.id)}
-                  style={{ background: 'none', border: 'none', color: post.liked ? 'var(--crimson-alert)' : 'var(--text-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem' }}
-                >
-                  <Heart size={16} fill={post.liked ? 'var(--crimson-alert)' : 'none'} />
-                  {post.likes} Likes
-                </button>
-                <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <MessageCircle size={16} />
-                  {post.comments.length} Comentarios
-                </span>
-              </div>
-
-              {/* Comentarios */}
-              <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                {post.comments.map(c => (
-                  <div key={c.id} style={{ background: 'rgba(0,0,0,0.2)', padding: '8px 12px', borderRadius: '6px', fontSize: '0.8rem' }}>
-                    <strong>{c.author}:</strong> {c.text}
-                  </div>
-                ))}
-              </div>
-
-              <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
-                <input
-                  type="text"
-                  placeholder="Escribe un comentario..."
-                  value={newComment}
-                  onChange={e => setNewComment(e.target.value)}
-                  style={{ flex: 1, padding: '8px 12px', background: 'rgba(0,0,0,0.3)', border: '1px solid var(--border-glass)', color: '#fff', borderRadius: '6px', fontSize: '0.8rem' }}
-                />
-                <button
-                  onClick={() => addComment(post.id)}
-                  style={{ padding: '8px 14px', background: 'linear-gradient(135deg, #F5D061, #D4AF37)', color: '#0A0E17', border: 'none', borderRadius: '6px', fontWeight: 700, cursor: 'pointer', fontSize: '0.8rem' }}
-                >
-                  Publicar
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+      {activeTab === 'closet' && <Closet />}
+      {activeTab === 'community' && <Community />}
     </div>
   );
 }

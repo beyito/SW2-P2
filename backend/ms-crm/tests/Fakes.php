@@ -5,9 +5,11 @@ namespace Tests;
 use App\Core\Entities\Client;
 use App\Core\Entities\CreditNote;
 use App\Core\Entities\Invoice;
+use App\Core\Entities\Notice;
 use App\InterfaceAdapters\Gateways\ClientRepositoryInterface;
 use App\InterfaceAdapters\Gateways\InvoiceRepositoryInterface;
 use App\InterfaceAdapters\Gateways\LoyaltyLedgerInterface;
+use App\InterfaceAdapters\Gateways\NoticeRepositoryInterface;
 
 /** Dobles en memoria con el mismo contrato que los repositorios de PostgreSQL. */
 class FakeClients implements ClientRepositoryInterface
@@ -149,5 +151,26 @@ class FakeLedger implements LoyaltyLedgerInterface
     public function historyOf(string $clientId): array
     {
         return [];
+    }
+}
+
+class FakeNotices implements NoticeRepositoryInterface
+{
+    /** @var array<string, Notice> */
+    public array $items = [];
+
+    public function addOnce(Notice $notice): void
+    {
+        $this->items[$notice->sourceRef] ??= $notice;
+    }
+
+    public function forRecipients(array $recipients): array
+    {
+        return array_values(array_filter($this->items, fn (Notice $n) => in_array($n->recipient, $recipients, true)));
+    }
+
+    public function markRead(string $id, array $recipients): bool
+    {
+        return false;
     }
 }

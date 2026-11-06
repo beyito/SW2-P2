@@ -9,6 +9,7 @@ import com.salon.gestion.domain.repository.ServiceCatalogRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -27,6 +28,7 @@ public class ScheduleAppointmentUseCase {
     private final AppointmentRepository appointmentRepository;
     private final ServiceCatalogRepository catalogRepository;
     private final AvailabilityUseCase availability;
+    private final Clock clock;
 
     public Appointment schedule(CreateAppointmentInput input) {
         SalonService service = catalogRepository.findActiveById(input.getServiceId())
@@ -81,6 +83,13 @@ public class ScheduleAppointmentUseCase {
         }
 
         appointment.reschedule(newDate);
+        return appointmentRepository.save(appointment);
+    }
+
+    /** El personal registra que atendió la cita; a partir de ahí el cliente puede reseñarla. */
+    public Appointment complete(String appointmentId) {
+        Appointment appointment = find(appointmentId);
+        appointment.complete(LocalDateTime.now(clock));
         return appointmentRepository.save(appointment);
     }
 

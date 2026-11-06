@@ -65,4 +65,40 @@ class AppointmentTest {
 
         assertThrows(IllegalStateException.class, () -> apt.reschedule(LocalDateTime.now()));
     }
+
+    @org.junit.jupiter.api.Nested
+    @org.junit.jupiter.api.DisplayName("Completar una cita atendida")
+    class CompleteAppointment {
+        private final java.time.LocalDateTime start = java.time.LocalDateTime.of(2026, 11, 9, 10, 0);
+
+        private Appointment withStatus(AppointmentStatus status) {
+            return Appointment.builder().id("apt").status(status).appointmentDate(start).durationMinutes(60).build();
+        }
+
+        @org.junit.jupiter.api.Test
+        @org.junit.jupiter.api.DisplayName("Debe completarse una cita confirmada ya iniciada")
+        void shouldComplete() {
+            Appointment appointment = withStatus(AppointmentStatus.CONFIRMED);
+            appointment.complete(start.plusMinutes(5));
+            org.junit.jupiter.api.Assertions.assertEquals(AppointmentStatus.COMPLETED, appointment.getStatus());
+        }
+
+        @org.junit.jupiter.api.Test
+        @org.junit.jupiter.api.DisplayName("No debe completarse antes de iniciar, ni cancelada ni pendiente de pago")
+        void shouldRejectInvalidCompletion() {
+            org.junit.jupiter.api.Assertions.assertThrows(IllegalStateException.class,
+                    () -> withStatus(AppointmentStatus.CONFIRMED).complete(start.minusMinutes(1)));
+            org.junit.jupiter.api.Assertions.assertThrows(IllegalStateException.class,
+                    () -> withStatus(AppointmentStatus.CANCELLED).complete(start));
+            org.junit.jupiter.api.Assertions.assertThrows(IllegalStateException.class,
+                    () -> withStatus(AppointmentStatus.PENDING_PAYMENT).complete(start));
+        }
+
+        @org.junit.jupiter.api.Test
+        @org.junit.jupiter.api.DisplayName("No debe reprogramarse una cita completada")
+        void shouldNotRescheduleCompleted() {
+            org.junit.jupiter.api.Assertions.assertThrows(IllegalStateException.class,
+                    () -> withStatus(AppointmentStatus.COMPLETED).reschedule(start.plusDays(1)));
+        }
+    }
 }

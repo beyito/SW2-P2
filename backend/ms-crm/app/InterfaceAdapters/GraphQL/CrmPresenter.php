@@ -5,6 +5,7 @@ namespace App\InterfaceAdapters\GraphQL;
 use App\Core\Entities\Client;
 use App\Core\Entities\CreditNote;
 use App\Core\Entities\Invoice;
+use App\Core\Entities\Notice;
 
 /**
  * Convierte las entidades del dominio al formato del esquema GraphQL.
@@ -40,6 +41,18 @@ final class CrmPresenter
             'status' => $invoice->getStatus(),
             'issuedAt' => $invoice->getIssuedAt(),
         ] : null;
+    }
+
+    public static function notice(Notice $notice): array
+    {
+        return [
+            'id' => $notice->id,
+            'type' => $notice->type,
+            'title' => $notice->title,
+            'message' => $notice->message,
+            'read' => $notice->read,
+            'createdAt' => $notice->createdAt,
+        ];
     }
 
     public static function creditNote(CreditNote $note): array

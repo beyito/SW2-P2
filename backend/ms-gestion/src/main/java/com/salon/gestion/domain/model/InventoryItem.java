@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
  * Control de stock y alerta de stock crítico (RF-03, CU-08, CU-09)
  */
 @Data
-@Builder
+@Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
 public class InventoryItem {
@@ -21,6 +21,7 @@ public class InventoryItem {
     private String category;
     private Integer currentStock;
     private Integer minimumStock;
+    private Integer reservedStock;
     private Double unitPrice;
 
     public boolean isCriticalStock() {

@@ -20,20 +20,19 @@ Guía para poner en marcha el entorno local. El avance real de cada funcionalida
 | Backend | `ms-crm` | Laravel, GraphQL | `8083` | http://localhost:8083/health |
 | Backend | `ms-crm-worker` | Laravel, RabbitMQ | N/A | `docker compose ps ms-crm-worker` |
 | Backend | `ms-ia` | FastAPI | `8002` | http://localhost:8002/docs |
-| Backend | `mcp-server` | Node.js, JSON-RPC | `4000` | http://localhost:4000/health |
+| Backend | `mcp-server` | Node.js, SDK oficial de MCP (`POST /mcp`) | `4000` | http://localhost:4000/health |
 | Backend | `saga-orchestrator` | Node.js, RabbitMQ, Stripe | `4100` | http://localhost:4100/health |
 | Frontend | `shell` | React + Vite | `3000` | http://localhost:3000 |
 | Frontend | `mfe-estudio-ia` | React | `3001` | http://localhost:3001 |
 | Frontend | `mfe-reservas` | Vue | `3002` | http://localhost:3002 |
-| Frontend | `mfe-gestion` | ERP | `3003` | http://localhost:3003 |
+| Frontend | `mfe-gestion` | Angular | `3003` | http://localhost:3003 |
 
 ---
 
 ## 2. Requisitos Previos
 
 - Docker Desktop con Docker Compose.
-- Node.js 20 o superior, para los microfrontends.
-- Python 3.11 o superior, para servir `mfe-gestion`.
+- Node.js 22 o superior, para los microfrontends (Angular 21 lo exige).
 - Flutter SDK, solo para el cliente móvil.
 
 ---
@@ -91,7 +90,7 @@ La primera vez, ejecute `npm install` en cada carpeta.
 cd frontend\shell;          npm run dev   # Puerto 3000
 cd frontend\mfe-estudio-ia; npm run dev   # Puerto 3001
 cd frontend\mfe-reservas;   npm run dev   # Puerto 3002
-cd frontend\mfe-gestion;    python -m http.server 3003 --directory src
+cd frontend\mfe-gestion;    npm start     # Puerto 3003
 ```
 
 ---
@@ -138,6 +137,10 @@ cd tests\integration; ..\..\backend\ms-ia\.venv\Scripts\python.exe -m pytest .
 
 # Navegador real: requiere además los microfrontends en ejecución
 cd tests\e2e; npm install; npx playwright install chromium; npm test
+
+# Si el puerto 3003 está ocupado por otro proceso, el ERP compilado se puede probar sin liberarlo
+cd frontend\mfe-gestion; npm run build
+cd tests\e2e; $env:ERP_DESDE_DIST = '1'; npm test
 ```
 
 ---

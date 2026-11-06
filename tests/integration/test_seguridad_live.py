@@ -24,7 +24,7 @@ GESTION = "http://localhost:8081/graphql"
 ASESORIA = "http://localhost:3100"
 CRM = "http://localhost:8083"
 IA = "http://localhost:8002"
-MCP = "http://localhost:4000/mcp/rpc"
+MCP = "http://localhost:4000/mcp"
 
 ADMIN = ("admin.salon", "Admin#2026")
 STYLIST = ("valentina.rossi", "Estilista#2026")
@@ -71,7 +71,8 @@ def gql(query, token):
 
 
 def rpc(method, params, token):
-    return httpx.post(MCP, json={"jsonrpc": "2.0", "id": 1, "method": method, "params": params}, headers=auth(token))
+    headers = {**auth(token), "Accept": "application/json, text/event-stream"}
+    return httpx.post(MCP, json={"jsonrpc": "2.0", "id": 1, "method": method, "params": params}, headers=headers, timeout=30)
 
 
 # Una petición protegida por servicio. Son consultas de lectura.

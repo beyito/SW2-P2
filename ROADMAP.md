@@ -14,10 +14,10 @@ Registro oficial del desarrollo de la **Plataforma Inteligente para Salón de Be
 | :---: | :--- | :---: | :---: |
 | **A** | Sinceramiento e infraestructura completa en Compose | Vie 6 | **COMPLETADA** |
 | **B** | Seguridad real: Keycloak, JWT, roles y sesión única | Vie 6 | **COMPLETADA** |
-| **C** | Catálogo, receta de insumos, estilistas, horarios y stock mínimo | Sáb 7 | **PARCIAL** (lo necesario para D ya está hecho; falta lo indicado abajo) |
+| **C** | Catálogo, receta de insumos, estilistas, horarios y stock mínimo | Vie 6 | **COMPLETADA** |
 | **D** | Reserva y pago real: SAGA, Stripe e idempotencia | Vie 6 | **COMPLETADA** |
 | **E** | CRM: Laravel, GraphQL, factura, puntos, canje y reembolso | Vie 6 | **COMPLETADA** |
-| **F** | Frontends y MCP con datos reales, perfil, reseñas, avisos y moderación | Dom 8 - Lun 9 | Pendiente |
+| **F** | Frontends y MCP con datos reales, perfil, reseñas, avisos y moderación | Vie 6 | **COMPLETADA** (el diagnóstico biométrico sigue simulado hasta la Fase G) |
 | **G** | IA real y consentimiento biométrico | Lun 9 | Pendiente |
 | **H** | Offline, n8n, Module Federation, Testcontainers y certificación final | Lun 9 - Mar 10 | Pendiente (primera en recortarse si falta tiempo) |
 
@@ -71,19 +71,20 @@ Registro oficial del desarrollo de la **Plataforma Inteligente para Salón de Be
 - Las llamadas a DynamoDB no llevan firma SigV4: funcionan con DynamoDB Local, no con AWS real.
 - El realm versionado contiene contraseñas y un secreto de desarrollo; es solo para entorno local.
 
-## Fase C: Catálogo e Inventario (CU-04, CU-05, CU-08, CU-09, RF-02, RF-03) (Parcial)
-La Fase D se ejecutó antes por decisión del usuario, e incorporó las piezas de esta fase de las que depende.
+## Fase C: Catálogo e Inventario (CU-04, CU-05, CU-08, CU-09, RF-02, RF-03) (Completada)
+La Fase D se ejecutó antes por decisión del usuario, e incorporó las piezas de esta fase de las que depende. El resto se cerró junto con la Fase F.
 
 - [x] Catálogo de servicios con precio y duración definidos en el servidor.
 - [x] Receta de insumos por servicio y registro de movimientos en `inventory_logs`.
 - [x] Consultas de estilistas, horarios y turnos disponibles.
 - [x] Validar horario laboral, fechas pasadas y solapes (también al reprogramar); doble reserva imposible con una restricción de exclusión en PostgreSQL.
 - [x] Errores GraphQL semánticos.
-- [ ] CRUD de estilistas y de sus horarios (CU-04, CU-05).
-- [ ] Mutación para cambiar el stock mínimo (CU-09).
-- [ ] ERP conectado al inventario real.
+- [x] Registro y modificación de estilistas, activación y horario por día; ningún cambio puede dejar fuera una cita ya reservada (CU-04, CU-05).
+- [x] Mutación para cambiar el stock mínimo (CU-09).
+- [x] ERP conectado al inventario real.
+- [x] Movimientos de stock atómicos y registrados con su motivo. Antes, `updateStock` podía pisar un descuento simultáneo de la SAGA e ignoraba el motivo.
 
-**Aceptación:** una cita calcula en el backend su precio y sus insumos (verificado); dos reservas simultáneas no pueden ocupar el mismo turno (verificado); el administrador gestiona estilistas, horarios y stock mínimo (pendiente).
+**Aceptación:** una cita calcula en el backend su precio y sus insumos (verificado); dos reservas simultáneas no pueden ocupar el mismo turno (verificado); el administrador gestiona estilistas, horarios y stock mínimo (verificado).
 
 ## Fase D: Reserva y Pago Real (CU-06, CU-07, CU-10, RF-07, RNF-03, RNF-04) (Completada)
 - [x] Orquestador SAGA como servicio (`saga-orchestrator`), con estado persistente en DynamoDB y consumidores RabbitMQ reales en ambos lados.
@@ -141,14 +142,37 @@ La Fase D se ejecutó antes por decisión del usuario, e incorporó las piezas d
 - Una cuenta cuyo correo ya exista en el CRM con otro ID manda su factura a `saga.dead-letter`.
 - El servidor web es `php -S` con varios procesos: es suficiente para este entorno, no para producción.
 
-## Fase F: Frontends y MCP (CU-15, CU-17, CU-20, CU-21, RF-09, RF-11)
-- [ ] Angular real para el ERP; React conectado a `ms-asesoria`.
-- [ ] Portal "Mis citas / Mis facturas", reseñas de estilistas y avisos en la aplicación.
-- [ ] Comunidad: subida de imágenes, comentarios en cascada, like atómico y moderación.
-- [ ] Servidor MCP con el protocolo estándar y herramientas que consultan los servicios reales.
-- [ ] DataLoader y Read Model para el panel empresarial (RNF-01).
+## Fase F: Frontends y MCP (CU-03, CU-04, CU-05, CU-07, CU-08, CU-09, CU-15, CU-17, CU-20, CU-21, RF-09, RF-11, RNF-01, RNF-02) (Completada)
+- [x] ERP en Angular 21 real, en lugar del HTML con datos fijos: panel, agenda, inventario, estilistas, clientes, moderación y agente.
+- [x] Clóset y comunidad en React conectados a `ms-asesoria`.
+- [x] Portal en Vue: "Mis citas" (reprogramar, cancelar con reembolso y reseñar), "Mis facturas" con comprobante y nota de crédito, perfil con puntos e historial, y avisos.
+- [x] Reseñas: solo sobre una cita propia ya atendida y una por cita. La calificación se muestra al reservar.
+- [x] Avisos en la aplicación por pago, reembolso, stock crítico y moderación, generados por eventos reales de RabbitMQ.
+- [x] Comunidad: imágenes en GridFS validadas por su contenido, comentarios en cascada hasta tres niveles, like atómico y moderación con denuncias.
+- [x] Servidor MCP con el SDK oficial (Streamable HTTP, `POST /mcp`). Sus herramientas consultan los servicios reales con el token de quien llama.
+- [x] Reportes con `gemini-2.5-flash`; sin clave o si la API falla, se arma un resumen con los mismos datos reales.
+- [x] DataLoader (`@BatchMapping`) y Read Model (`panel_appointments_view`) para el panel empresarial (RNF-01).
 
-**Aceptación:** ninguna pantalla ni herramienta MCP usa datos fijos.
+**Aceptación:** ninguna pantalla ni herramienta MCP usa datos fijos. Verificada, con una excepción prevista: el escáner biométrico sigue llamando al diagnóstico simulado de `ms-ia` hasta la Fase G.
+
+**Verificación en vivo (6 de noviembre):**
+- [x] `tests/integration`: 188/188 contra todos los servicios reales.
+- [x] `tests/e2e`: `fase_f` 51/51, `reservas` 9/9 y `seguridad` 14/14 en Chromium.
+- [x] RNF-01 con autenticación: p95 entre 53 y 57 ms en agenda, resumen y estilistas.
+- [x] DataLoader medido con las estadísticas de PostgreSQL: las calificaciones de todos los estilistas se leen con una sola consulta.
+- [x] 10 movimientos de stock simultáneos no se pierden; 12 clics simultáneos en like no duplican ninguno.
+- [x] Las métricas de MCP coinciden con ms-gestion, ms-crm y la base; cambiar un dato cambia la respuesta de la herramienta.
+- [x] Suites: `ms-gestion` 61/61, `ms-crm` 33/33, `ms-asesoria` 47/47, `mcp-server` 30/30, `saga-orchestrator` 31/31, `ms-ia` 20/20.
+
+**Limitaciones conocidas:**
+- El E2E del ERP usó el Angular compilado (`ERP_DESDE_DIST=1`), porque el puerto 3003 seguía ocupado por el servidor estático anterior. `ng serve` se comprobó aparte: compila y arranca.
+- El chat del agente ofrece consultas predefinidas y reportes en lenguaje natural, pero el modelo aún no elige herramientas por sí mismo. La voz (Whisper) llega en la Fase G.
+- Registrar un estilista no le crea una cuenta en Keycloak. Un cliente registrado por el personal tampoco queda vinculado a una cuenta.
+- Un administrador que marca un aviso de stock como leído lo marca para todos los administradores.
+- Cada estilista tiene un solo bloque de horario por día.
+- La URL de la imagen de una publicación oculta sigue accesible, y una imagen subida que nunca se usa queda huérfana en GridFS.
+- Los comentarios y las reseñas no tienen paginación; el muro muestra las 50 publicaciones más recientes.
+- No hay pruebas unitarias de componentes de frontend (Fase H); los cubre el E2E.
 
 ## Fase G: IA Real (CU-13, CU-14, CU-16, CU-18, RF-04, RF-05, RF-06)
 - [ ] Consentimiento biométrico, política de retención y borrado de datos.
@@ -174,23 +198,23 @@ Estado actualizado al cierre de cada fase. ✅ completo y verificado en vivo. �
 | :---: | :--- | :---: | :---: |
 | CU-01 | Autenticar usuario (SSO y sesión única) | ✅ (web) | B |
 | CU-02 | Cerrar sesión activa | ✅ (web) | B |
-| CU-03 | Registrar cliente | 🟡 (API lista; falta la pantalla, Fase F) | E, F |
-| CU-04 | Registrar o modificar estilista | ❌ | C |
-| CU-05 | Horarios y disponibilidad | 🟡 (consulta sí; gestión no) | C |
+| CU-03 | Registrar cliente | ✅ | E, F |
+| CU-04 | Registrar o modificar estilista | ✅ (sin crear cuenta de acceso) | C |
+| CU-05 | Horarios y disponibilidad | ✅ | C |
 | CU-06 | Agendar cita | ✅ (web) | D |
-| CU-07 | Reprogramar o cancelar cita | 🟡 (cancelar con reembolso sí; reprogramar solo por API) | D, E, F |
-| CU-08 | Registrar inventario | 🟡 | C |
-| CU-09 | Actualizar stock mínimo | ❌ | C |
+| CU-07 | Reprogramar o cancelar cita | ✅ | D, E, F |
+| CU-08 | Registrar inventario | ✅ | C |
+| CU-09 | Actualizar stock mínimo | ✅ | C |
 | CU-10 | Reserva y pago (SAGA e idempotencia) | ✅ (web) | D |
-| CU-11 | Emitir factura | ✅ (sin validez fiscal; listado en F) | E |
-| CU-12 | Puntos de fidelidad | ✅ (historial visible en F) | E |
+| CU-11 | Emitir factura | ✅ (sin validez fiscal) | E, F |
+| CU-12 | Puntos de fidelidad | ✅ | E, F |
 | CU-13 | Escaneo capilar y facial | ❌ | G |
 | CU-14 | Recomendaciones | 🟡 | G |
-| CU-15 | Armario virtual | 🟡 | F |
+| CU-15 | Armario virtual | ✅ | F |
 | CU-16 | Asesoría para redes sociales | 🟡 | G |
-| CU-17 | Métricas por agente (MCP) | ❌ | F |
-| CU-18 | Reportes por lenguaje natural | ❌ | G |
+| CU-17 | Métricas por agente (MCP) | ✅ (consultas predefinidas; el modelo aún no elige herramientas) | F |
+| CU-18 | Reportes por lenguaje natural | 🟡 (texto sí; voz en Fase G) | F, G |
 | CU-19 | Recordatorios por WhatsApp (n8n) | ❌ | H |
-| CU-20 | Publicar look | 🟡 | F |
-| CU-21 | Reaccionar y comentar | 🟡 | F |
+| CU-20 | Publicar look | ✅ | F |
+| CU-21 | Reaccionar y comentar | ✅ | F |
 | CU-22 | Sincronización offline | 🟡 | H |

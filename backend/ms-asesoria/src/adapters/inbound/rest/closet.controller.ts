@@ -7,9 +7,10 @@ import {
   Inject,
   NotFoundException,
   Param,
+  Patch,
   Post,
 } from '@nestjs/common';
-import { IClosetUseCase, CLOSET_USE_CASE, CreateClosetItemDto } from '../../../ports/inbound/closet.use-case.port';
+import { IClosetUseCase, CLOSET_USE_CASE, CreateClosetItemDto, UpdateClosetItemDto } from '../../../ports/inbound/closet.use-case.port';
 import { ClosetItem } from '../../../domain/entities/closet-item.entity';
 import { AuthenticatedUser, CurrentUser, isStaff } from '../../../common/security/auth.decorators';
 
@@ -39,6 +40,16 @@ export class ClosetController {
   @Get(':id')
   async getById(@Param('id') id: string, @CurrentUser() user: AuthenticatedUser): Promise<ClosetItem> {
     return this.findOwned(id, user);
+  }
+
+  @Patch(':id')
+  async update(
+    @Param('id') id: string,
+    @Body() dto: UpdateClosetItemDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<ClosetItem> {
+    await this.findOwned(id, user);
+    return this.closetUseCase.updateItem(id, dto);
   }
 
   @Delete(':id')

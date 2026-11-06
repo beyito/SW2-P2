@@ -48,6 +48,27 @@ type CreditNote {
     issuedAt: String
 }
 
+type Notice {
+    id: ID!
+    type: String!
+    title: String!
+    message: String!
+    read: Boolean!
+    createdAt: String
+}
+
+"Indicadores de facturación y fidelización de un periodo."
+type CrmMetrics {
+    "Lo cobrado menos lo reembolsado en el periodo."
+    revenue: Float!
+    refunded: Float!
+    invoicesIssued: Int!
+    payingClients: Int!
+    totalClients: Int!
+    pointsEarned: Int!
+    pointsRedeemed: Int!
+}
+
 input RegisterClientInput {
     fullName: String!
     email: String!
@@ -64,9 +85,15 @@ type Query {
     getInvoiceById(id: ID!): Invoice @field(resolver: "App\\InterfaceAdapters\\GraphQL\\CrmResolvers@getInvoiceById")
     getInvoicesByClient(clientId: String!): [Invoice!]! @field(resolver: "App\\InterfaceAdapters\\GraphQL\\CrmResolvers@getInvoicesByClient")
     getCreditNotesByClient(clientId: String!): [CreditNote!]! @field(resolver: "App\\InterfaceAdapters\\GraphQL\\CrmResolvers@getCreditNotesByClient")
+    "Avisos del usuario autenticado y de sus roles, los más recientes primero."
+    getMyNotices: [Notice!]! @field(resolver: "App\\InterfaceAdapters\\GraphQL\\CrmResolvers@getMyNotices")
+    "Indicadores del periodo; solo para administradores. Fechas AAAA-MM-DD, ambas incluidas."
+    getCrmMetrics(from: String!, to: String!): CrmMetrics! @field(resolver: "App\\InterfaceAdapters\\GraphQL\\CrmResolvers@getCrmMetrics")
 }
 
 type Mutation {
+    "Marca un aviso propio como leído."
+    markNoticeRead(id: ID!): Boolean! @field(resolver: "App\\InterfaceAdapters\\GraphQL\\CrmResolvers@markNoticeRead")
     "Registro de un cliente por el personal del salón (CU-03)."
     registerClient(input: RegisterClientInput!): Client! @field(resolver: "App\\InterfaceAdapters\\GraphQL\\CrmResolvers@registerClient")
     "Crea o completa la ficha del usuario autenticado con los datos de su cuenta."

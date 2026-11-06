@@ -297,6 +297,7 @@ services:
     environment:
       PORT: "3100"
       MONGO_URI: mongodb://${MONGO_INITDB_ROOT_USERNAME:-mongo_admin}:${MONGO_INITDB_ROOT_PASSWORD:-mongo_secret_pass}@mongodb:27017/${MONGO_DATABASE:-salon_asesoria}?authSource=admin
+      RABBITMQ_URL: amqp://${RABBITMQ_DEFAULT_USER:-rabbit_admin}:${RABBITMQ_DEFAULT_PASS:-rabbit_secret_pass}@rabbitmq:5672
       <<: *auth-env
     networks:
       - salon-network
@@ -395,6 +396,10 @@ services:
       - "4000:4000"
     environment:
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash}
+      SALON_TIMEZONE: ${SALON_TIMEZONE:-America/La_Paz}
+      GESTION_GRAPHQL_URL: http://ms-gestion:8081/graphql
+      CRM_GRAPHQL_URL: http://ms-crm:8000/graphql
       <<: *auth-env
     networks:
       - salon-network

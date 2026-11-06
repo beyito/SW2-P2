@@ -2,9 +2,15 @@ import { Module } from '@nestjs/common';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ClosetController } from './adapters/inbound/rest/closet.controller';
+import { MediaController } from './adapters/inbound/rest/media.controller';
 import { CommunityController } from './adapters/inbound/rest/community.controller';
 import { ClosetService } from './adapters/inbound/services/closet.service';
 import { CommunityService } from './adapters/inbound/services/community.service';
+import { MediaService } from './adapters/inbound/services/media.service';
+import { RabbitEventPublisher } from './adapters/outbound/messaging/rabbit-event.publisher';
+import { GridFsMediaStorage } from './adapters/outbound/persistence/gridfs-media.storage';
+import { EVENT_PUBLISHER } from './ports/outbound/event-publisher.port';
+import { MEDIA_STORAGE } from './ports/outbound/media-storage.port';
 import { MongoClosetRepository } from './adapters/outbound/persistence/mongo-closet.repository';
 import { MongoCommunityRepository } from './adapters/outbound/persistence/mongo-community.repository';
 import {
@@ -40,9 +46,12 @@ const MONGO_URI =
       { name: CommunityPostMongo.name, schema: CommunityPostSchema },
     ]),
   ],
-  controllers: [ClosetController, CommunityController, AuthController, HealthController],
+  controllers: [ClosetController, CommunityController, MediaController, AuthController, HealthController],
   providers: [
     DynamoHttpClient,
+    MediaService,
+    { provide: MEDIA_STORAGE, useClass: GridFsMediaStorage },
+    { provide: EVENT_PUBLISHER, useClass: RabbitEventPublisher },
     { provide: SESSION_REGISTRY, useClass: DynamoSessionRegistry },
     { provide: TOKEN_VERIFIER, useClass: KeycloakTokenVerifier },
     // Toda ruta exige un token válido salvo las marcadas con @Public()

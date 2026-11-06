@@ -5,6 +5,7 @@ import com.salon.gestion.application.dto.UpdateStockInput;
 import com.salon.gestion.application.usecase.ManageInventoryUseCase;
 import com.salon.gestion.domain.model.InventoryItem;
 import com.salon.gestion.domain.repository.InventoryRepository;
+import com.salon.gestion.domain.repository.StockAlertPublisher;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -26,6 +27,9 @@ class ManageInventoryUseCaseTest {
 
     @Mock
     private InventoryRepository inventoryRepository;
+
+    @Mock
+    private StockAlertPublisher stockAlerts;
 
     @InjectMocks
     private ManageInventoryUseCase manageInventoryUseCase;
@@ -68,20 +72,67 @@ class ManageInventoryUseCaseTest {
     }
 
     @Test
-    @DisplayName("Debe actualizar el stock mediante reposición positiva")
+    @DisplayName("Debe reponer stock con una operación atómica que registra el motivo")
     void shouldRestockItemSuccessfully() {
+        InventoryItem restocked = sampleItem.toBuilder().currentStock(15).build();
         when(inventoryRepository.findById("inv-uuid-1")).thenReturn(Optional.of(sampleItem));
-        when(inventoryRepository.save(any(InventoryItem.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(inventoryRepository.adjustStock("inv-uuid-1", 5, "Compra")).thenReturn(Optional.of(restocked));
 
-        UpdateStockInput input = UpdateStockInput.builder()
-                .id("inv-uuid-1")
-                .quantityChange(5)
-                .build();
-
-        InventoryItem updated = manageInventoryUseCase.updateStock(input);
+        InventoryItem updated = manageInventoryUseCase.updateStock(stockChange(5, " Compra "));
 
         assertEquals(15, updated.getCurrentStock());
-        verify(inventoryRepository).save(sampleItem);
+        verify(inventoryRepository, never()).save(any());
+        verifyNoInteractions(stockAlerts);
+    }
+
+    @Test
+    @DisplayName("Debe rechazar un movimiento sin motivo o con cantidad cero")
+    void shouldRejectInvalidStockChange() {
+        assertThrows(IllegalArgumentException.class, () -> manageInventoryUseCase.updateStock(stockChange(5, "  ")));
+        assertThrows(IllegalArgumentException.class, () -> manageInventoryUseCase.updateStock(stockChange(0, "Compra")));
+        verifyNoInteractions(inventoryRepository);
+    }
+
+    @Test
+    @DisplayName("Debe informar conflicto si el stock quedaría por debajo de lo reservado")
+    void shouldRejectStockBelowReserved() {
+        when(inventoryRepository.findById("inv-uuid-1")).thenReturn(Optional.of(sampleItem));
+        when(inventoryRepository.adjustStock("inv-uuid-1", -10, "Merma")).thenReturn(Optional.empty());
+
+        assertThrows(IllegalStateException.class, () -> manageInventoryUseCase.updateStock(stockChange(-10, "Merma")));
+    }
+
+    @Test
+    @DisplayName("Debe avisar cuando un movimiento deja el insumo en nivel crítico")
+    void shouldAlertWhenStockBecomesCritical() {
+        InventoryItem low = sampleItem.toBuilder().currentStock(3).build();
+        when(inventoryRepository.findById("inv-uuid-1")).thenReturn(Optional.of(sampleItem));
+        when(inventoryRepository.adjustStock("inv-uuid-1", -7, "Merma")).thenReturn(Optional.of(low));
+
+        manageInventoryUseCase.updateStock(stockChange(-7, "Merma"));
+
+        verify(stockAlerts).publishCritical(List.of("TIN-001"));
+    }
+
+    @Test
+    @DisplayName("CU-09: debe cambiar el stock mínimo y alertar si el insumo pasa a nivel crítico")
+    void shouldUpdateMinimumStock() {
+        InventoryItem critical = sampleItem.toBuilder().minimumStock(10).build();
+        when(inventoryRepository.updateMinimumStock("inv-uuid-1", 10)).thenReturn(Optional.of(critical));
+
+        InventoryItem updated = manageInventoryUseCase.updateMinimumStock("inv-uuid-1", 10);
+
+        assertEquals(10, updated.getMinimumStock());
+        verify(stockAlerts).publishCritical(List.of("TIN-001"));
+    }
+
+    @Test
+    @DisplayName("CU-09: debe rechazar un stock mínimo negativo o un insumo inexistente")
+    void shouldRejectInvalidMinimumStock() {
+        when(inventoryRepository.updateMinimumStock("no-existe", 2)).thenReturn(Optional.empty());
+
+        assertThrows(IllegalArgumentException.class, () -> manageInventoryUseCase.updateMinimumStock("inv-uuid-1", -1));
+        assertThrows(IllegalArgumentException.class, () -> manageInventoryUseCase.updateMinimumStock("no-existe", 2));
     }
 
     @Test
@@ -101,5 +152,9 @@ class ManageInventoryUseCaseTest {
         assertEquals(1, criticalList.size());
         assertEquals("Polvo Decolorante Plex", criticalList.get(0).getName());
         verify(inventoryRepository).findCriticalStockItems();
+    }
+
+    private UpdateStockInput stockChange(int quantity, String reason) {
+        return UpdateStockInput.builder().id("inv-uuid-1").quantityChange(quantity).reason(reason).build();
     }
 }

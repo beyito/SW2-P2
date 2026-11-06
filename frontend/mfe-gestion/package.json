@@ -1,21 +1,25 @@
 {
   "name": "mfe-gestion",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
-  "description": "Microfrontend ERP y Gestión Operativa en Angular (DDD & GraphQL)",
+  "description": "Microfrontend ERP y Gestión Operativa en Angular",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc --noEmit"
+    "start": "ng serve --port 3003 --host 0.0.0.0",
+    "build": "ng build"
   },
   "dependencies": {
-    "@angular/core": "^17.3.0",
-    "@angular/common": "^17.3.0",
-    "@angular/platform-browser": "^17.3.0",
-    "@angular/forms": "^17.3.0",
-    "rxjs": "^7.8.1",
-    "zone.js": "^0.14.4"
+    "@angular/common": "21.2.26",
+    "@angular/compiler": "21.2.26",
+    "@angular/core": "21.2.26",
+    "@angular/forms": "21.2.26",
+    "@angular/platform-browser": "21.2.26",
+    "rxjs": "7.8.2",
+    "tslib": "2.8.1"
   },
   "devDependencies": {
-    "typescript": "^5.4.5"
+    "@angular/build": "21.2.19",
+    "@angular/cli": "21.2.19",
+    "@angular/compiler-cli": "21.2.26",
+    "typescript": "5.9.3"
   }
 }

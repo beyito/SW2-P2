@@ -23,7 +23,7 @@ export class ClosetItemMongo {
   @Prop({ required: true, enum: ['SPRING', 'SUMMER', 'AUTUMN', 'WINTER', 'ALL_SEASON'], index: true })
   season: string;
 
-  @Prop({ required: true })
+  @Prop({ default: '' })
   imageUrl: string;
 
   @Prop({ type: [String], default: [] })

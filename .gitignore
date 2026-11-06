@@ -49,3 +49,6 @@ Thumbs.db
 .pytest_cache/
 .phpunit.result.cache
 .dart_tool/
+
+# Caché de compilación de Angular
+.angular/

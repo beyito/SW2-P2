@@ -1,13 +1,14 @@
 {
   "name": "salon-mcp-server",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Servidor MCP (Model Context Protocol) para Agentes de IA - Salón de Belleza",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
-    "test": "node --test test/security.test.js"
+    "test": "node --test test/security.test.js test/tools.test.js"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "1.32.2",
     "jose": "5.9.6"
   }
 }

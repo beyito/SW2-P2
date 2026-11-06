@@ -61,6 +61,19 @@
             <div class="avatar">{{ initials(sty.name) }}</div>
             <div class="stylist-info">
               <div class="stylist-name">{{ sty.name }}</div>
+              <div v-if="sty.specialty" class="stylist-rating">{{ sty.specialty }}</div>
+              <div class="stylist-rating" :data-stylist-rating="sty.id">
+                <template v-if="sty.rating.count">
+                  ★ {{ sty.rating.average.toFixed(1) }} ({{ sty.rating.count }})
+                  <button type="button" class="review-link btn-see-reviews" @click.stop="toggleReviews(sty)">Ver reseñas</button>
+                </template>
+                <template v-else>Sin reseñas todavía</template>
+              </div>
+              <template v-if="openReviews === sty.id">
+                <div v-for="review in reviews" :key="review.id" class="review-item">
+                  {{ '★'.repeat(review.rating) }} {{ review.comment }}
+                </div>
+              </template>
             </div>
           </div>
         </div>
@@ -178,7 +191,7 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 import { loadStripe } from '@stripe/stripe-js';
-import { cancelBooking, getBooking, getPublishableKey, loadCatalog, loadMyPoints, loadSlots, startBooking, syncBooking } from './api';
+import { cancelBooking, getBooking, getPublishableKey, loadCatalog, loadMyPoints, loadSlots, loadStylistReviews, startBooking, syncBooking } from './api';
 
 const POLL_MS = 700;
 const TERMINAL = ['COMPLETED', 'COMPENSATED', 'FAILED', 'REFUNDED'];
@@ -256,6 +269,36 @@ const maxRedeemablePoints = computed(() => {
 });
 const validPoints = computed(() => Math.min(Math.max(0, Math.floor(pointsToRedeem.value || 0)), maxRedeemablePoints.value));
 const totalToPay = computed(() => (selectedService.value?.price ?? 0) - validPoints.value / 100);
+
+/** Actualiza precios y calificaciones al volver a la pestaña, sin tocar una reserva ya iniciada. */
+async function refreshCatalog() {
+  if (currentStep.value !== 1) return;
+  try {
+    const catalog = await loadCatalog();
+    services.value = catalog.services;
+    stylists.value = catalog.stylists;
+  } catch (failure) {
+    errorMessage.value = failure.message;
+  }
+}
+
+defineExpose({ refreshCatalog });
+
+const openReviews = ref(null);
+const reviews = ref([]);
+
+async function toggleReviews(stylist) {
+  if (openReviews.value === stylist.id) {
+    openReviews.value = null;
+    return;
+  }
+  try {
+    reviews.value = await loadStylistReviews(stylist.id);
+    openReviews.value = stylist.id;
+  } catch (failure) {
+    errorMessage.value = failure.message;
+  }
+}
 
 const initials = (name) => name.split(' ').slice(0, 2).map((part) => part[0]).join('');
 const timeOf = (iso) => iso.slice(11, 16);

@@ -15,7 +15,7 @@ Write-Host ">>> Iniciando Microfrontends..." -ForegroundColor Yellow
 Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd frontend\shell; npm run dev"
 Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd frontend\mfe-estudio-ia; npm run dev"
 Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd frontend\mfe-reservas; npm run dev"
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd frontend\mfe-gestion; python -m http.server 3003 --directory src"
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd frontend\mfe-gestion; npm start"
 
 Write-Host "==========================================================" -ForegroundColor Cyan
 Write-Host " Plataforma iniciada" -ForegroundColor Cyan

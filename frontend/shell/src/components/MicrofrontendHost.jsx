@@ -23,11 +23,11 @@ const MFE_CONFIGS = {
   },
   gestion: {
     title: 'Gestión Operativa & ERP',
-    framework: 'ERP',
+    framework: 'Angular 21',
     badgeColor: '#DD0031',
     textColor: '#FFFFFF',
     origin: import.meta.env.VITE_MFE_GESTION_URL || 'http://localhost:3003',
-    domain: 'Inventario, agenda y asistente analítico.',
+    domain: 'Inventario, agenda, estilistas, clientes, moderación y agente MCP.',
     icon: LayoutDashboard,
   },
 };
