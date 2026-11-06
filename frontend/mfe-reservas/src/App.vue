@@ -1,12 +1,11 @@
 <template>
   <div class="mfe-reservas-container">
-    <!-- Header Vue Component -->
     <header class="glass-box header-bar">
       <div class="brand-group">
         <div class="vue-badge">Vue 3</div>
         <div>
-          <h2 class="gold-text title">MFE Reservas & SAGA Checkout</h2>
-          <span class="subtitle">Componente Autónomo Vue.js (Module Federation / Remote)</span>
+          <h2 class="gold-text title">Reservas y Pago</h2>
+          <span class="subtitle">Agenda tu cita y paga en línea</span>
         </div>
       </div>
       <div class="wizard-steps">
@@ -14,20 +13,27 @@
         <span class="arrow">→</span>
         <span :class="{ active: currentStep >= 2 }">2. Horario</span>
         <span class="arrow">→</span>
-        <span :class="{ active: currentStep >= 3 }">3. SAGA Transaccional</span>
+        <span :class="{ active: currentStep >= 3 }">3. Pago</span>
       </div>
     </header>
 
-    <!-- STEP 1: Servicio y Estilista -->
-    <div v-if="currentStep === 1" class="step-layout">
+    <div v-if="errorMessage" id="booking-error" class="status-banner error" style="margin-bottom: 16px;">
+      {{ errorMessage }}
+    </div>
+
+    <div v-if="loading" class="glass-box" style="padding: 24px;">Cargando catálogo...</div>
+
+    <!-- PASO 1: Servicio y estilista -->
+    <div v-else-if="currentStep === 1" class="step-layout">
       <div class="glass-box panel-left">
-        <h3 class="gold-text section-title">Catálogo de Servicios Profesionales (CU-06)</h3>
+        <h3 class="gold-text section-title">Servicios</h3>
         <div class="services-list">
           <div
             v-for="srv in services"
             :key="srv.id"
             class="service-card"
-            :class="{ selected: selectedService.id === srv.id }"
+            :class="{ selected: selectedService?.id === srv.id }"
+            :data-service="srv.id"
             @click="selectedService = srv"
           >
             <div class="srv-top">
@@ -36,123 +42,112 @@
             </div>
             <p class="srv-desc">{{ srv.description }}</p>
             <div class="srv-meta">
-              <span>⏱ {{ srv.duration }}</span>
-              <span class="srv-supply">Insumo: {{ srv.requiredSupply }}</span>
+              <span>⏱ {{ srv.durationMinutes }} min</span>
             </div>
           </div>
         </div>
       </div>
 
       <div class="glass-box panel-right">
-        <h3 class="gold-text section-title">Estilista Asignado (CU-05)</h3>
+        <h3 class="gold-text section-title">Estilista</h3>
         <div class="stylist-list">
           <div
             v-for="sty in stylists"
             :key="sty.id"
             class="stylist-card"
-            :class="{ selected: selectedStylist.id === sty.id }"
+            :class="{ selected: selectedStylist?.id === sty.id }"
             @click="selectedStylist = sty"
           >
-            <div class="avatar">{{ sty.avatar }}</div>
+            <div class="avatar">{{ initials(sty.name) }}</div>
             <div class="stylist-info">
               <div class="stylist-name">{{ sty.name }}</div>
-              <div class="stylist-spec">{{ sty.specialty }}</div>
             </div>
-            <span class="rating-badge">★ {{ sty.rating }}</span>
           </div>
         </div>
 
-        <button class="btn-primary" @click="currentStep = 2">
+        <button id="btn-to-schedule" class="btn-primary" :disabled="!selectedService || !selectedStylist" @click="goToSchedule">
           Continuar a Fecha y Turno →
         </button>
       </div>
     </div>
 
-    <!-- STEP 2: Fecha y Turno -->
-    <div v-if="currentStep === 2" class="step-layout">
+    <!-- PASO 2: Fecha y turno -->
+    <div v-else-if="currentStep === 2" class="step-layout">
       <div class="glass-box panel-left">
-        <h3 class="gold-text section-title">Fecha y Turno del Servicio</h3>
+        <h3 class="gold-text section-title">Fecha y Turno</h3>
         <div class="field-group">
-          <label>Fecha de la Cita:</label>
-          <input type="date" v-model="selectedDate" class="input-date" min="2026-11-03" />
+          <label>Fecha de la cita:</label>
+          <input id="booking-date" v-model="selectedDate" type="date" class="input-date" :min="today" @change="refreshSlots" />
         </div>
 
-        <h4 style="margin: 20px 0 10px; font-size: 0.95rem;">Turnos Disponibles con {{ selectedStylist.name }}:</h4>
+        <h4 style="margin: 20px 0 10px; font-size: 0.95rem;">Turnos disponibles con {{ selectedStylist.name }}:</h4>
+        <p v-if="slotsLoading" class="hint">Consultando disponibilidad...</p>
+        <p v-else-if="slots.length === 0" id="no-slots" class="hint">No hay turnos disponibles en esta fecha.</p>
         <div class="slots-grid">
           <button
-            v-for="slot in timeSlots"
-            :key="slot"
+            v-for="slot in slots"
+            :key="slot.start"
             class="slot-btn"
-            :class="{ selected: selectedSlot === slot }"
+            :class="{ selected: selectedSlot?.start === slot.start }"
             @click="selectedSlot = slot"
           >
-            {{ slot }}
+            {{ timeOf(slot.start) }} - {{ timeOf(slot.end) }}
           </button>
         </div>
       </div>
 
       <div class="glass-box panel-right">
-        <h3 class="gold-text section-title">Resumen de Agendamiento</h3>
+        <h3 class="gold-text section-title">Resumen</h3>
         <div class="summary-box">
           <div class="sum-row"><span>Servicio:</span> <strong>{{ selectedService.name }}</strong></div>
           <div class="sum-row"><span>Estilista:</span> <strong>{{ selectedStylist.name }}</strong></div>
-          <div class="sum-row"><span>Fecha:</span> <strong>{{ selectedDate }} ({{ selectedSlot }})</strong></div>
+          <div class="sum-row"><span>Fecha:</span> <strong>{{ selectedDate }} {{ selectedSlot ? timeOf(selectedSlot.start) : '' }}</strong></div>
           <div class="divider"></div>
           <div class="sum-row total"><span>Total:</span> <strong style="color: #42B883;">${{ selectedService.price.toFixed(2) }} USD</strong></div>
         </div>
 
         <div class="action-buttons">
           <button class="btn-outline" @click="currentStep = 1">← Volver</button>
-          <button class="btn-primary" @click="currentStep = 3">Continuar a Checkout SAGA →</button>
+          <button id="btn-to-checkout" class="btn-primary" :disabled="!selectedSlot || sagaBusy" @click="reserve">
+            {{ sagaBusy ? 'Reservando turno...' : 'Reservar y continuar al pago →' }}
+          </button>
         </div>
       </div>
     </div>
 
-    <!-- STEP 3: SAGA Checkout & Idempotencia -->
-    <div v-if="currentStep === 3" class="step-layout saga-view">
+    <!-- PASO 3: Pago con Stripe y avance real de la SAGA -->
+    <div v-else class="step-layout saga-view">
       <div class="glass-box panel-left">
-        <h3 class="gold-text section-title">Control SAGA & Idempotency-Key (CU-10, RNF-04)</h3>
-        
-        <div class="field-group">
-          <label>Header Idempotency-Key (DynamoDB):</label>
-          <div class="idem-row">
-            <input type="text" :value="idempotencyKey" readonly class="input-idem" />
-            <button class="btn-outline" @click="refreshIdemKey">↺</button>
-          </div>
+        <h3 class="gold-text section-title">Pago</h3>
+
+        <div v-if="booking?.status === 'AWAITING_PAYMENT'">
+          <p class="hint">Tu turno está bloqueado durante 15 minutos mientras completas el pago.</p>
+          <div id="payment-element" style="margin: 16px 0;"></div>
+          <button id="btn-pay" class="btn-primary" :disabled="paying || !paymentReady" @click="pay">
+            {{ paying ? 'Procesando pago...' : `Pagar $${(booking.amountCents / 100).toFixed(2)} USD` }}
+          </button>
+          <p class="hint" style="margin-top: 12px;">
+            Modo de prueba. Aprobada: 4242 4242 4242 4242. Rechazada: 4000 0000 0000 0002. Fecha futura y cualquier CVC.
+          </p>
         </div>
 
-        <div class="fail-toggle-box">
-          <label class="checkbox-label">
-            <input type="checkbox" v-model="simulateFailure" />
-            <span>Simular Fallo de Pago (Demostrar Compensación / Rollback SAGA)</span>
-          </label>
-          <p class="hint">Si se activa, el paso pivote fallará y RabbitMQ emitirá los eventos compensatorios de devolución de inventario y cancelación.</p>
-        </div>
+        <p v-else-if="!isFinished" class="hint">Procesando tu reserva...</p>
 
-        <button class="btn-primary" :disabled="sagaRunning" @click="executeSaga">
-          <span v-if="sagaRunning">Ejecutando SAGA en Tiempo Real...</span>
-          <span v-else>Ejecutar Reserva y Pago Transaccional</span>
-        </button>
-        <button class="btn-outline" style="margin-top: 10px;" :disabled="sagaRunning" @click="currentStep = 2">
-          Modificar Datos
-        </button>
+        <button v-if="isFinished" id="btn-new-booking" class="btn-primary" @click="restart">Hacer otra reserva</button>
       </div>
 
       <div class="glass-box panel-right">
-        <h3 class="gold-text section-title">Eventos SAGA (RabbitMQ & DynamoDB)</h3>
+        <h3 class="gold-text section-title">Avance de la reserva</h3>
         <div class="console-box">
-          <div v-if="sagaLogs.length === 0" class="console-empty">
-            Haga clic en "Ejecutar Reserva y Pago Transaccional" para observar la orquestación distribuida.
-          </div>
-          <div v-for="(log, idx) in sagaLogs" :key="idx" class="console-line" :class="log.status">
-            <span class="ts">[{{ log.time }}]</span> {{ log.text }}
+          <div v-for="(step, index) in booking?.history ?? []" :key="index" class="console-line" :class="stepClass(step.state)">
+            <span class="ts">[{{ new Date(step.at).toLocaleTimeString() }}]</span> {{ stepLabel(step.state) }}
           </div>
         </div>
-        <div v-if="sagaResult === 'SUCCESS'" class="status-banner success">
-          ✅ SAGA COMPLETADA: Cita confirmada, insumo reservado y factura emitida.
+        <div v-if="booking?.status === 'COMPLETED'" id="booking-success" class="status-banner success">
+          ✅ Reserva confirmada: tu pago se procesó y el turno es tuyo.
         </div>
-        <div v-if="sagaResult === 'COMPENSATED'" class="status-banner error">
-          ⚠️ SAGA COMPENSADA: Rollbacks automáticos ejecutados sin inconsistencias.
+        <div v-if="isFailure" id="booking-failure" class="status-banner error">
+          ⚠️ {{ failureMessage }} No se realizó ningún cobro y el turno quedó libre.
         </div>
       </div>
     </div>
@@ -160,81 +155,193 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
+import { loadStripe } from '@stripe/stripe-js';
+import { getBooking, getPublishableKey, loadCatalog, loadSlots, startBooking, syncBooking } from './api';
 
+const POLL_MS = 700;
+const TERMINAL = ['COMPLETED', 'COMPENSATED', 'FAILED'];
+const STEP_LABELS = {
+  RESERVING_APPOINTMENT: 'Bloqueando el turno',
+  RESERVING_STOCK: 'Apartando los insumos',
+  CREATING_PAYMENT: 'Preparando el cobro',
+  AWAITING_PAYMENT: 'Esperando el pago',
+  CONFIRMING_APPOINTMENT: 'Pago recibido: confirmando la cita',
+  COMMITTING_STOCK: 'Descontando los insumos',
+  COMPLETED: 'Reserva completada',
+  COMPENSATING_STOCK: 'Devolviendo los insumos',
+  COMPENSATING_APPOINTMENT: 'Liberando el turno',
+  COMPENSATED: 'Reserva revertida',
+  FAILED: 'Reserva rechazada',
+};
+const FAILURE_MESSAGES = {
+  SLOT_TAKEN: 'Ese turno acaba de ser tomado por otra persona.',
+  OUTSIDE_WORKING_HOURS: 'Ese horario ya no está disponible.',
+  STOCK_INSUFFICIENT: 'Por ahora no hay insumos suficientes para este servicio.',
+  PAYMENT_DECLINED: 'El banco rechazó el pago.',
+  PAYMENT_TIMEOUT: 'Venció el tiempo para pagar.',
+  PAYMENT_UNAVAILABLE: 'El servicio de pagos no está disponible.',
+};
+
+const loading = ref(true);
+const errorMessage = ref(null);
 const currentStep = ref(1);
+const services = ref([]);
+const stylists = ref([]);
+const selectedService = ref(null);
+const selectedStylist = ref(null);
+const today = new Date().toISOString().slice(0, 10);
+const selectedDate = ref(today);
+const slots = ref([]);
+const slotsLoading = ref(false);
+const selectedSlot = ref(null);
 
-const services = [
-  { id: 'srv-01', name: 'Balayage Deluxe & Matizado', price: 120.0, duration: '150 min', requiredSupply: 'Tinte Rubio Cenizo 8.1 (120ml)', description: 'Aclarado a mano alzada con tonalizado y nutrición.' },
-  { id: 'srv-02', name: 'Tratamiento Keratina Brasileña', price: 95.0, duration: '120 min', requiredSupply: 'Keratina Hidrolizada Premium (80ml)', description: 'Alisado termoactivo y sellado de cutícula sin formol.' },
-  { id: 'srv-03', name: 'Corte Visagista & Styling', price: 45.0, duration: '60 min', requiredSupply: 'Sérum Termo-Protector Argán (15ml)', description: 'Corte adaptado al visagismo biométrico computacional.' }
-];
+const booking = ref(null);
+const sagaBusy = ref(false);
+const paying = ref(false);
+const paymentReady = ref(false);
+let idempotencyKey = null;
+let pollTimer = null;
+let stripe = null;
+let elements = null;
+let cardElement = null;
+let paymentSecret = null;
 
-const stylists = [
-  { id: 'sty-001', name: 'Valentina Rossi', specialty: 'Master Colorista', rating: 4.9, avatar: 'VR' },
-  { id: 'sty-002', name: 'Carlos Mendoza', specialty: 'Visagismo & Corte', rating: 4.8, avatar: 'CM' },
-  { id: 'sty-003', name: 'Sofía Morales', specialty: 'Tratamientos & SPA', rating: 4.9, avatar: 'SM' }
-];
+const isFinished = computed(() => TERMINAL.includes(booking.value?.status));
+const isFailure = computed(() => ['COMPENSATED', 'FAILED'].includes(booking.value?.status));
+const failureMessage = computed(() => FAILURE_MESSAGES[booking.value?.failureReason] ?? 'No se pudo completar la reserva.');
 
-const timeSlots = ['09:00 - 11:30', '10:00 - 12:30', '14:00 - 16:30', '16:30 - 19:00'];
-
-const selectedService = ref(services[0]);
-const selectedStylist = ref(stylists[0]);
-const selectedDate = ref('2026-11-15');
-const selectedSlot = ref('10:00 - 12:30');
-
-const idempotencyKey = ref('idem-' + Math.random().toString(36).substring(2, 10));
-const simulateFailure = ref(false);
-const sagaRunning = ref(false);
-const sagaLogs = ref([]);
-const sagaResult = ref(null);
-
-const refreshIdemKey = () => {
-  idempotencyKey.value = 'idem-' + Math.random().toString(36).substring(2, 10);
+const initials = (name) => name.split(' ').slice(0, 2).map((part) => part[0]).join('');
+const timeOf = (iso) => iso.slice(11, 16);
+const stepLabel = (state) => STEP_LABELS[state] ?? state;
+const stepClass = (state) => {
+  if (state === 'COMPLETED') return 'success';
+  if (state === 'FAILED' || state === 'COMPENSATED') return 'error';
+  return state.startsWith('COMPENSATING') ? 'warning' : 'info';
 };
 
-const executeSaga = async () => {
-  sagaRunning.value = true;
-  sagaLogs.value = [];
-  sagaResult.value = null;
-
-  const pushLog = (text, status = 'info', delay = 500) => {
-    return new Promise(resolve => {
-      setTimeout(() => {
-        sagaLogs.value.push({ text, status, time: new Date().toLocaleTimeString() });
-        resolve();
-      }, delay);
-    });
-  };
-
-  await pushLog(`[DynamoDB] Validando Idempotency-Key '${idempotencyKey.value}'...`, 'info', 400);
-  await pushLog(`[DynamoDB] Llave verificada (MISS). Transacción registrada en estado PENDING.`, 'success', 500);
-
-  await pushLog(`[RabbitMQ SAGA] Emitiendo evento 'saga.appointment.created' para ${selectedService.value.name}...`, 'info', 500);
-  await pushLog(`[ms-gestion] Cita reservada en PostgreSQL (salon_gestion).`, 'success', 500);
-
-  await pushLog(`[RabbitMQ SAGA] Descontando insumo: ${selectedService.value.requiredSupply}...`, 'info', 500);
-  await pushLog(`[ms-gestion] Stock de inventario decrementado exitosamente.`, 'success', 500);
-
-  await pushLog(`[RabbitMQ SAGA] Procesando cobro $${selectedService.value.price.toFixed(2)} USD...`, 'info', 600);
-
-  if (simulateFailure.value) {
-    await pushLog(`[Pasarela Pagos] ERROR: Pago rechazado por la entidad bancaria.`, 'error', 700);
-    await pushLog(`[SAGA Rollback] Emitiendo 'saga.compensation.inventory' a RabbitMQ...`, 'warning', 500);
-    await pushLog(`[ms-gestion] Stock de insumos restituido en PostgreSQL.`, 'success', 500);
-    await pushLog(`[SAGA Rollback] Emitiendo 'saga.compensation.appointment'...`, 'warning', 500);
-    await pushLog(`[ms-gestion] Cita marcada como CANCELLED_BY_SAGA. Consistencia distribuida preservada.`, 'success', 500);
-    sagaResult.value = 'COMPENSATED';
-  } else {
-    await pushLog(`[ms-crm] Pago confirmado. Emisión de Factura con 13% IVA en PostgreSQL.`, 'success', 500);
-    await pushLog(`[ms-crm] +${Math.round(selectedService.value.price * 10)} puntos acumulados en el perfil del cliente.`, 'success', 400);
-    await pushLog(`[n8n] Trigger emitido a RabbitMQ: Notificación agendada por WhatsApp a 24h.`, 'info', 400);
-    await pushLog(`[SAGA Orchestrator] Transacción distribuida finalizada con éxito total.`, 'success', 400);
-    sagaResult.value = 'SUCCESS';
+onMounted(async () => {
+  try {
+    const catalog = await loadCatalog();
+    services.value = catalog.services;
+    stylists.value = catalog.stylists;
+    selectedService.value = catalog.services[0] ?? null;
+    selectedStylist.value = catalog.stylists[0] ?? null;
+  } catch (error) {
+    errorMessage.value = error.message;
+  } finally {
+    loading.value = false;
   }
+});
 
-  sagaRunning.value = false;
-};
+onBeforeUnmount(() => clearTimeout(pollTimer));
+
+async function refreshSlots() {
+  // Nunca se muestran turnos anteriores mientras llega la disponibilidad actual
+  slots.value = [];
+  selectedSlot.value = null;
+  slotsLoading.value = true;
+  errorMessage.value = null;
+  try {
+    slots.value = await loadSlots(selectedStylist.value.id, selectedService.value.id, selectedDate.value);
+  } catch (error) {
+    slots.value = [];
+    errorMessage.value = error.message;
+  } finally {
+    slotsLoading.value = false;
+  }
+}
+
+function goToSchedule() {
+  currentStep.value = 2;
+  refreshSlots();
+}
+
+/** La llave se conserva entre reintentos del mismo intento: así un doble clic no reserva dos veces. */
+async function reserve() {
+  errorMessage.value = null;
+  sagaBusy.value = true;
+  idempotencyKey ??= crypto.randomUUID();
+  try {
+    booking.value = await startBooking(
+      {
+        serviceId: selectedService.value.id,
+        stylistId: selectedStylist.value.id,
+        appointmentDate: selectedSlot.value.start,
+      },
+      idempotencyKey,
+    );
+    currentStep.value = 3;
+    poll();
+  } catch (error) {
+    errorMessage.value = error.message;
+  } finally {
+    sagaBusy.value = false;
+  }
+}
+
+async function poll() {
+  try {
+    booking.value = await getBooking(booking.value.sagaId);
+  } catch (error) {
+    errorMessage.value = error.message;
+  }
+  if (booking.value.status === 'AWAITING_PAYMENT' && !elements) {
+    await mountPaymentForm();
+  }
+  if (!isFinished.value) {
+    pollTimer = setTimeout(poll, POLL_MS);
+  } else {
+    idempotencyKey = null;
+  }
+}
+
+/** Solo tarjeta: es síncrona y encaja con el paso pivote de la SAGA. */
+async function mountPaymentForm() {
+  stripe ??= await loadStripe(await getPublishableKey());
+  paymentSecret = booking.value.clientSecret;
+  elements = stripe.elements();
+  await nextTick();
+  cardElement = elements.create('card', {
+    hidePostalCode: true,
+    style: {
+      base: { color: '#F3F4F6', fontSize: '16px', '::placeholder': { color: '#9CA3AF' } },
+      invalid: { color: '#FF4B4B' },
+    },
+  });
+  cardElement.on('ready', () => {
+    paymentReady.value = true;
+  });
+  cardElement.mount('#payment-element');
+}
+
+async function pay() {
+  paying.value = true;
+  errorMessage.value = null;
+  const { error } = await stripe.confirmCardPayment(paymentSecret, { payment_method: { card: cardElement } });
+  // Datos incompletos no son un rechazo: el cliente puede corregirlos sin perder el turno
+  if (error && error.type === 'validation_error') {
+    errorMessage.value = error.message;
+    paying.value = false;
+    return;
+  }
+  await syncBooking(booking.value.sagaId).catch(() => undefined);
+  paying.value = false;
+}
+
+function restart() {
+  clearTimeout(pollTimer);
+  booking.value = null;
+  // Stripe admite un solo elemento de tarjeta activo: el anterior debe destruirse
+  cardElement?.destroy();
+  elements = null;
+  cardElement = null;
+  paymentSecret = null;
+  paymentReady.value = false;
+  selectedSlot.value = null;
+  idempotencyKey = null;
+  currentStep.value = 1;
+}
 </script>
 
 <style scoped>

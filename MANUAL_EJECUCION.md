@@ -19,7 +19,8 @@ Guía para poner en marcha el entorno local. El avance real de cada funcionalida
 | Backend | `ms-asesoria` | NestJS, REST | `3100` | http://localhost:3100/community |
 | Backend | `ms-crm` | PHP | `8083` | http://localhost:8083/health |
 | Backend | `ms-ia` | FastAPI | `8002` | http://localhost:8002/docs |
-| Backend | `mcp-server` | Node.js, JSON-RPC | `4000` | http://localhost:4000/mcp/tools |
+| Backend | `mcp-server` | Node.js, JSON-RPC | `4000` | http://localhost:4000/health |
+| Backend | `saga-orchestrator` | Node.js, RabbitMQ, Stripe | `4100` | http://localhost:4100/health |
 | Frontend | `shell` | React + Vite | `3000` | http://localhost:3000 |
 | Frontend | `mfe-estudio-ia` | React | `3001` | http://localhost:3001 |
 | Frontend | `mfe-reservas` | Vue | `3002` | http://localhost:3002 |
@@ -46,6 +47,16 @@ if (-not (Test-Path .env)) { Copy-Item .env.example .env }
 
 > **Atención:** no use `Copy-Item -Force` si ya tiene un `.env`, porque sobrescribiría sus claves de Gemini y Stripe. El archivo `.env` no se versiona.
 
+### Claves de Stripe (obligatorias)
+
+El orquestador no arranca sin las claves de prueba. Cópielas de https://dashboard.stripe.com/test/apikeys a `STRIPE_SECRET_KEY` y `STRIPE_PUBLISHABLE_KEY`. Luego obtenga el secreto de los webhooks y guárdelo en `STRIPE_WEBHOOK_SECRET`:
+
+```powershell
+docker run --rm -e STRIPE_API_KEY=<su sk_test> stripe/stripe-cli:v1.21.8 listen --print-secret
+```
+
+**Tarjetas de prueba:** `4242 4242 4242 4242` se aprueba y `4000 0000 0000 0002` se rechaza. Use una fecha futura y cualquier CVC.
+
 ---
 
 ## 4. Inicio Rápido
@@ -69,7 +80,7 @@ docker compose up -d --build --wait
 docker compose ps -a
 ```
 
-**Resultado esperado:** 11 servicios en estado `healthy`. Las tareas `db-migrate`, `mongo-init` y `dynamodb-init` deben figurar como `Exited (0)`: crean bases, tablas, colecciones y semillas sin duplicarlas, y se ejecutan en cada arranque.
+**Resultado esperado:** 12 servicios en estado `healthy` y `stripe-cli` en ejecución, que no define healthcheck. Las tareas `db-migrate`, `mongo-init` y `dynamodb-init` deben figurar como `Exited (0)`: crean bases, tablas, colecciones y semillas sin duplicarlas, y se ejecutan en cada arranque.
 
 ### Microfrontends
 
@@ -116,8 +127,9 @@ cd backend\ms-asesoria; npm test
 # ms-ia (PyTest): crea el entorno virtual la primera vez con python -m venv .venv
 cd backend\ms-ia; .\.venv\Scripts\python.exe -m pytest tests
 
-# Servidor MCP (node:test)
+# Servidor MCP y orquestador SAGA (node:test)
 cd backend\mcp-server; npm test
+cd backend\saga-orchestrator; npm test
 
 # Seguridad y rendimiento en vivo: requiere el entorno levantado
 cd tests\integration; ..\..\backend\ms-ia\.venv\Scripts\python.exe -m pytest .

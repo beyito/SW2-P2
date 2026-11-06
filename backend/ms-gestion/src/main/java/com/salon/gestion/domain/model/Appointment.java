@@ -19,12 +19,14 @@ public class Appointment {
     private String id;
     private String clientId;
     private String stylistId;
+    private String serviceId;
     private String serviceName;
     private LocalDateTime appointmentDate;
     private Integer durationMinutes;
     private Double totalPrice;
     private AppointmentStatus status;
     private String notes;
+    private String sagaId;
 
     public void cancel(String reason) {
         if (this.status == AppointmentStatus.COMPLETED) {
@@ -42,5 +44,17 @@ public class Appointment {
         }
         this.appointmentDate = newDate;
         this.status = AppointmentStatus.RESCHEDULED;
+    }
+
+    /** Pago recibido: el turno queda confirmado definitivamente. */
+    public void confirm() {
+        if (this.status == AppointmentStatus.CANCELLED) {
+            throw new IllegalStateException("No se puede confirmar una cita cancelada");
+        }
+        this.status = AppointmentStatus.CONFIRMED;
+    }
+
+    public LocalDateTime endDate() {
+        return this.appointmentDate.plusMinutes(this.durationMinutes);
     }
 }

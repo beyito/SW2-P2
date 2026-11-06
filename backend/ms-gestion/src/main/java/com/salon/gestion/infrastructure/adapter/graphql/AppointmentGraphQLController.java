@@ -39,7 +39,7 @@ public class AppointmentGraphQLController {
         return scheduleAppointmentUseCase.getByClient(clientId);
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN','STYLIST') or @appointmentAccess.isSelf(authentication, #input.clientId)")
+    @PreAuthorize("hasAnyRole('ADMIN','STYLIST')")
     @MutationMapping
     public Appointment scheduleAppointment(@Argument CreateAppointmentInput input) {
         return scheduleAppointmentUseCase.schedule(input);

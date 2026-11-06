@@ -3,8 +3,8 @@
 # Infraestructura: PostgreSQL, MongoDB, DynamoDB Local, RabbitMQ,
 #                  Keycloak y n8n
 # Inicialización:  db-migrate, mongo-init y dynamodb-init (una sola vez)
-# Backend:         ms-gestion, ms-asesoria, ms-crm, ms-ia y mcp-server
-# Nota: el orquestador SAGA se incorpora en la Fase D del ROADMAP.
+# Backend:         ms-gestion, ms-asesoria, ms-crm, ms-ia, mcp-server y saga-orchestrator
+# Pagos:           stripe-cli reenvía los webhooks de Stripe al orquestador
 # ====================================================================
 
 x-auth-env: &auth-env
@@ -369,6 +369,59 @@ services:
       timeout: 5s
       retries: 10
       start_period: 10s
+
+  # ------------------------------------------------------------------
+  # Orquestador de la SAGA de reserva y pago (CU-10, RF-07, RNF-03, RNF-04)
+  # ------------------------------------------------------------------
+  saga-orchestrator:
+    build: ./backend/saga-orchestrator
+    container_name: salon-saga-orchestrator
+    restart: unless-stopped
+    ports:
+      - "4100:4100"
+    environment:
+      RABBITMQ_URL: amqp://${RABBITMQ_DEFAULT_USER:-rabbit_admin}:${RABBITMQ_DEFAULT_PASS:-rabbit_secret_pass}@rabbitmq:5672
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:?Defina STRIPE_SECRET_KEY en .env}
+      STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY:?Defina STRIPE_PUBLISHABLE_KEY en .env}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      <<: *auth-env
+    networks:
+      - salon-network
+    depends_on:
+      dynamodb-init:
+        condition: service_completed_successfully
+      rabbitmq:
+        condition: service_healthy
+      ms-gestion:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:4100/health > /dev/null || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  # ------------------------------------------------------------------
+  # Reenvía los webhooks de Stripe al entorno local. La sincronización
+  # POST /bookings/{id}/sync cubre el caso en que este servicio no esté disponible.
+  # ------------------------------------------------------------------
+  stripe-cli:
+    image: stripe/stripe-cli:v1.21.8
+    container_name: salon-stripe-cli
+    restart: unless-stopped
+    command:
+      - listen
+      - --forward-to
+      - http://saga-orchestrator:4100/webhooks/stripe
+      - --events
+      - payment_intent.succeeded,payment_intent.payment_failed
+    environment:
+      STRIPE_API_KEY: ${STRIPE_SECRET_KEY:?Defina STRIPE_SECRET_KEY en .env}
+    networks:
+      - salon-network
+    depends_on:
+      saga-orchestrator:
+        condition: service_healthy
 
 # --------------------------------------------------------------------
 # Redes y Volúmenes Persistentes

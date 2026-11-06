@@ -14,8 +14,8 @@ Registro oficial del desarrollo de la **Plataforma Inteligente para Salón de Be
 | :---: | :--- | :---: | :---: |
 | **A** | Sinceramiento e infraestructura completa en Compose | Vie 6 | **COMPLETADA** |
 | **B** | Seguridad real: Keycloak, JWT, roles y sesión única | Vie 6 | **COMPLETADA** |
-| **C** | Catálogo, receta de insumos, estilistas, horarios y stock mínimo | Sáb 7 | Pendiente de aprobación |
-| **D** | Reserva y pago real: SAGA, Stripe e idempotencia | Sáb 7 - Dom 8 | Pendiente |
+| **C** | Catálogo, receta de insumos, estilistas, horarios y stock mínimo | Sáb 7 | **PARCIAL** (lo necesario para D ya está hecho; falta lo indicado abajo) |
+| **D** | Reserva y pago real: SAGA, Stripe e idempotencia | Vie 6 | **COMPLETADA** |
 | **E** | CRM: Laravel, GraphQL, factura, puntos, canje y reembolso | Dom 8 | Pendiente |
 | **F** | Frontends y MCP con datos reales, perfil, reseñas, avisos y moderación | Dom 8 - Lun 9 | Pendiente |
 | **G** | IA real y consentimiento biométrico | Lun 9 | Pendiente |
@@ -71,23 +71,46 @@ Registro oficial del desarrollo de la **Plataforma Inteligente para Salón de Be
 - Las llamadas a DynamoDB no llevan firma SigV4: funcionan con DynamoDB Local, no con AWS real.
 - El realm versionado contiene contraseñas y un secreto de desarrollo; es solo para entorno local.
 
-## Fase C: Catálogo e Inventario (CU-04, CU-05, CU-08, CU-09, RF-02, RF-03)
-- [ ] Catálogo de servicios con precio y duración definidos en el servidor.
-- [ ] Receta de insumos por servicio y registro de movimientos en `inventory_logs`.
-- [ ] Estilistas y horarios: CRUD y resolvers faltantes (`getStylistAvailability`, `getStylistSchedules`).
-- [ ] Validar horario laboral, fechas pasadas y solapes (también al reprogramar); evitar doble reserva concurrente.
-- [ ] Mutación para cambiar el stock mínimo y errores GraphQL semánticos.
+## Fase C: Catálogo e Inventario (CU-04, CU-05, CU-08, CU-09, RF-02, RF-03) (Parcial)
+La Fase D se ejecutó antes por decisión del usuario, e incorporó las piezas de esta fase de las que depende.
 
-**Aceptación:** una cita calcula en el backend su precio y sus insumos; dos reservas simultáneas no pueden ocupar el mismo turno.
+- [x] Catálogo de servicios con precio y duración definidos en el servidor.
+- [x] Receta de insumos por servicio y registro de movimientos en `inventory_logs`.
+- [x] Consultas de estilistas, horarios y turnos disponibles.
+- [x] Validar horario laboral, fechas pasadas y solapes (también al reprogramar); doble reserva imposible con una restricción de exclusión en PostgreSQL.
+- [x] Errores GraphQL semánticos.
+- [ ] CRUD de estilistas y de sus horarios (CU-04, CU-05).
+- [ ] Mutación para cambiar el stock mínimo (CU-09).
+- [ ] ERP conectado al inventario real.
 
-## Fase D: Reserva y Pago Real (CU-06, CU-07, CU-10, RF-07, RNF-03, RNF-04)
-- [ ] Orquestador SAGA como servicio con estado persistente y consumidores RabbitMQ reales.
-- [ ] Stripe en modo prueba como paso pivote, detrás de un adaptador, con webhooks.
-- [ ] Compensaciones reales de turno e inventario.
-- [ ] Idempotencia atómica en DynamoDB con verificación del hash del payload (422 si difiere).
-- [ ] Checkout Vue conectado, sin simulaciones.
+**Aceptación:** una cita calcula en el backend su precio y sus insumos (verificado); dos reservas simultáneas no pueden ocupar el mismo turno (verificado); el administrador gestiona estilistas, horarios y stock mínimo (pendiente).
 
-**Aceptación:** un pago rechazado libera el turno y el stock; un reintento con la misma llave no cobra dos veces.
+## Fase D: Reserva y Pago Real (CU-06, CU-07, CU-10, RF-07, RNF-03, RNF-04) (Completada)
+- [x] Orquestador SAGA como servicio (`saga-orchestrator`), con estado persistente en DynamoDB y consumidores RabbitMQ reales en ambos lados.
+- [x] Stripe en modo prueba como paso pivote, detrás de un adaptador, con webhooks firmados (`stripe-cli`) y sincronización de respaldo.
+- [x] Compensaciones reales de stock y turno, en orden inverso.
+- [x] Plazo de pago de 15 minutos con cola de espera en RabbitMQ; un cobro tardío se reembolsa.
+- [x] Idempotencia atómica en DynamoDB por usuario con verificación del hash (422 si difiere).
+- [x] Checkout Vue conectado a datos reales; eliminado el simulador.
+- [x] Mensajes que fallan tres veces van a la cola `saga.dead-letter`.
+
+**Aceptación:** un pago rechazado libera el turno y el stock; un reintento con la misma llave no cobra dos veces. Ambas verificadas.
+
+**Verificación en vivo (6 de noviembre):**
+- [x] `tests/integration/test_saga_live.py` contra Stripe, RabbitMQ, DynamoDB y PostgreSQL reales. Con seguridad y RNF-01, la carpeta suma 79/79.
+- [x] `tests/e2e/reservas.e2e.mjs`: 6/6 en Chromium, con tarjeta aprobada y rechazada en el formulario real de Stripe. `seguridad.e2e.mjs` sigue en 14/14.
+- [x] 8 reintentos simultáneos con la misma llave: una SAGA y un solo cobro en Stripe.
+- [x] 6 reservas simultáneas del mismo turno: una gana y 5 reciben `SLOT_TAKEN`.
+- [x] Vencimiento real: una SAGA esperó de 05:38:41 a 05:53:42 y se compensó con `PAYMENT_TIMEOUT`.
+- [x] Suites: `ms-gestion` 35/35, `saga-orchestrator` 22/22, `ms-asesoria` 25/25, `ms-crm` 15/15, `ms-ia` 20/20, `mcp-server` 11/11.
+
+**Limitaciones conocidas:**
+- `saga.completed` aún no tiene consumidor: el pago no genera factura ni puntos hasta la Fase E.
+- Una cita pagada no se puede cancelar hasta la Fase E, porque requiere reembolso; sí se puede reprogramar.
+- La alerta `inventory.stock.critical` se publica, pero nadie la consume hasta la Fase H.
+- Solo se acepta tarjeta: otros métodos de Stripe son asíncronos y la SAGA no los contempla.
+- Los webhooks requieren internet y el contenedor `stripe-cli`; sin él, el checkout confirma con la sincronización.
+- Todos los mensajes de la cola de espera deben usar el mismo plazo, porque RabbitMQ los vence desde la cabeza.
 
 ## Fase E: CRM (CU-03, CU-11, CU-12, RF-08)
 - [ ] `ms-crm` sobre Laravel real con API GraphQL, conservando Clean Architecture.
@@ -131,12 +154,12 @@ Estado actualizado al cierre de cada fase. ✅ completo y verificado en vivo. �
 | CU-02 | Cerrar sesión activa | ✅ (web) | B |
 | CU-03 | Registrar cliente | 🟡 | E |
 | CU-04 | Registrar o modificar estilista | ❌ | C |
-| CU-05 | Horarios y disponibilidad | ❌ | C |
-| CU-06 | Agendar cita | 🟡 | C, D |
-| CU-07 | Reprogramar o cancelar cita | 🟡 | C, D |
+| CU-05 | Horarios y disponibilidad | 🟡 (consulta sí; gestión no) | C |
+| CU-06 | Agendar cita | ✅ (web) | D |
+| CU-07 | Reprogramar o cancelar cita | 🟡 (cancelar lo pagado requiere E) | D, E |
 | CU-08 | Registrar inventario | 🟡 | C |
 | CU-09 | Actualizar stock mínimo | ❌ | C |
-| CU-10 | Reserva y pago (SAGA e idempotencia) | ❌ | D |
+| CU-10 | Reserva y pago (SAGA e idempotencia) | ✅ (web) | D |
 | CU-11 | Emitir factura | 🟡 | E |
 | CU-12 | Puntos de fidelidad | 🟡 | E |
 | CU-13 | Escaneo capilar y facial | ❌ | G |

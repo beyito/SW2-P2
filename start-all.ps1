@@ -28,7 +28,8 @@ Write-Host "ms-asesoria (REST):      http://localhost:3100/community" -Foregroun
 Write-Host "ms-ia (Swagger):         http://localhost:8002/docs" -ForegroundColor White
 Write-Host "ms-crm:                  http://localhost:8083/health" -ForegroundColor White
 Write-Host "ms-gestion (GraphiQL):   http://localhost:8081/graphiql" -ForegroundColor White
-Write-Host "Servidor MCP:            http://localhost:4000/mcp/tools" -ForegroundColor White
+Write-Host "Servidor MCP:            http://localhost:4000/health" -ForegroundColor White
+Write-Host "Orquestador SAGA:        http://localhost:4100/health" -ForegroundColor White
 Write-Host "Keycloak:                http://localhost:8080/" -ForegroundColor White
 Write-Host "n8n:                     http://localhost:5678/" -ForegroundColor White
 Write-Host "RabbitMQ:                http://localhost:15672/" -ForegroundColor White

@@ -25,6 +25,12 @@ public class AppointmentEntity {
     @Column(name = "stylist_id", nullable = false, length = 36)
     private String stylistId;
 
+    @Column(name = "service_id", length = 36)
+    private String serviceId;
+
+    @Column(name = "saga_id", length = 36)
+    private String sagaId;
+
     @Column(name = "service_name", nullable = false, length = 100)
     private String serviceName;
 

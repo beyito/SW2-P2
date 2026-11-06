@@ -3,11 +3,30 @@
 # ====================================================================
 
 enum AppointmentStatus {
+    PENDING_PAYMENT
     SCHEDULED
     CONFIRMED
     COMPLETED
     CANCELLED
     RESCHEDULED
+}
+
+type SalonService {
+    id: ID!
+    name: String!
+    description: String!
+    durationMinutes: Int!
+    price: Float!
+}
+
+type Stylist {
+    id: ID!
+    name: String!
+}
+
+type TimeSlot {
+    start: String!
+    end: String!
 }
 
 type StylistSchedule {
@@ -24,6 +43,7 @@ type Appointment {
     id: ID!
     clientId: String!
     stylistId: String!
+    serviceId: String
     serviceName: String!
     appointmentDate: String!
     durationMinutes: Int!
@@ -46,10 +66,8 @@ type InventoryItem {
 input CreateAppointmentInput {
     clientId: String!
     stylistId: String!
-    serviceName: String!
+    serviceId: String!
     appointmentDate: String!
-    durationMinutes: Int!
-    totalPrice: Float!
     notes: String
 }
 
@@ -74,9 +92,11 @@ type Query {
     getAppointmentsByStylist(stylistId: String!, date: String): [Appointment!]!
     getAppointmentsByClient(clientId: String!): [Appointment!]!
 
-    # Estilistas y Horarios
-    getStylistAvailability(stylistId: String!, date: String!): Boolean!
+    # Catálogo, estilistas y horarios
+    getServices: [SalonService!]!
+    getStylists: [Stylist!]!
     getStylistSchedules(stylistId: String!): [StylistSchedule!]!
+    getAvailableSlots(stylistId: String!, serviceId: String!, date: String!): [TimeSlot!]!
 
     # Inventario
     getAllInventory: [InventoryItem!]!

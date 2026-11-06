@@ -13,7 +13,8 @@ spring:
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
-      ddl-auto: update
+      # El esquema lo administran las migraciones SQL de docker/postgres/migrations
+      ddl-auto: none
     show-sql: false
     properties:
       hibernate:
@@ -34,6 +35,14 @@ spring:
     port: ${SPRING_RABBITMQ_PORT:5672}
     username: ${SPRING_RABBITMQ_USERNAME:rabbit_admin}
     password: ${SPRING_RABBITMQ_PASSWORD:rabbit_secret_pass}
+    listener:
+      simple:
+        # Fallos técnicos: tres intentos y luego a la cola de mensajes muertos
+        default-requeue-rejected: false
+        retry:
+          enabled: true
+          max-attempts: 3
+          initial-interval: 1000ms
 
 # Seguridad: Keycloak y control de sesiones (RF-01, CU-01, CU-02)
 salon:

@@ -22,13 +22,19 @@ public class PostgresAppointmentRepositoryAdapter implements AppointmentReposito
     @Override
     public Appointment save(Appointment appointment) {
         AppointmentEntity entity = toEntity(appointment);
-        AppointmentEntity saved = jpaRepository.save(entity);
+        // saveAndFlush: la restricción anti-solape debe fallar aquí y no al confirmar más tarde
+        AppointmentEntity saved = jpaRepository.saveAndFlush(entity);
         return toDomain(saved);
     }
 
     @Override
     public Optional<Appointment> findById(String id) {
         return jpaRepository.findById(id).map(this::toDomain);
+    }
+
+    @Override
+    public Optional<Appointment> findBySagaId(String sagaId) {
+        return jpaRepository.findBySagaId(sagaId).map(this::toDomain);
     }
 
     @Override
@@ -50,11 +56,25 @@ public class PostgresAppointmentRepositoryAdapter implements AppointmentReposito
         return jpaRepository.existsOverlapping(stylistId, start, end);
     }
 
+    @Override
+    public boolean existsOverlappingExcluding(String appointmentId, String stylistId, LocalDateTime start, LocalDateTime end) {
+        return jpaRepository.existsOverlappingExcluding(appointmentId, stylistId, start, end);
+    }
+
+    @Override
+    public List<Appointment> findActiveBetween(String stylistId, LocalDateTime start, LocalDateTime end) {
+        return jpaRepository.findActiveBetween(stylistId, start, end).stream()
+                .map(this::toDomain)
+                .toList();
+    }
+
     private Appointment toDomain(AppointmentEntity entity) {
         return Appointment.builder()
                 .id(entity.getId())
                 .clientId(entity.getClientId())
                 .stylistId(entity.getStylistId())
+                .serviceId(entity.getServiceId())
+                .sagaId(entity.getSagaId())
                 .serviceName(entity.getServiceName())
                 .appointmentDate(entity.getAppointmentDate())
                 .durationMinutes(entity.getDurationMinutes())
@@ -69,6 +89,8 @@ public class PostgresAppointmentRepositoryAdapter implements AppointmentReposito
                 .id(domain.getId())
                 .clientId(domain.getClientId())
                 .stylistId(domain.getStylistId())
+                .serviceId(domain.getServiceId())
+                .sagaId(domain.getSagaId())
                 .serviceName(domain.getServiceName())
                 .appointmentDate(domain.getAppointmentDate())
                 .durationMinutes(domain.getDurationMinutes())

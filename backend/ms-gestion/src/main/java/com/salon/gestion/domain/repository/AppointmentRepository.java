@@ -12,7 +12,11 @@ import java.util.Optional;
 public interface AppointmentRepository {
     Appointment save(Appointment appointment);
     Optional<Appointment> findById(String id);
+    Optional<Appointment> findBySagaId(String sagaId);
     List<Appointment> findByStylistId(String stylistId);
     List<Appointment> findByClientId(String clientId);
     boolean existsOverlapping(String stylistId, LocalDateTime start, LocalDateTime end);
+    boolean existsOverlappingExcluding(String appointmentId, String stylistId, LocalDateTime start, LocalDateTime end);
+    /** Citas no canceladas del estilista que se cruzan con el intervalo. */
+    List<Appointment> findActiveBetween(String stylistId, LocalDateTime start, LocalDateTime end);
 }

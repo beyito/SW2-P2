@@ -1,12 +1,15 @@
 {
   "name": "saga-orchestrator",
-  "version": "1.0.0",
-  "description": "Orquestador de Transacciones Distribuidas SAGA para Salón de Belleza con RabbitMQ",
-  "main": "src/saga-orchestrator.js",
+  "version": "2.0.0",
+  "description": "Orquestador de la SAGA de reserva y pago con RabbitMQ, DynamoDB y Stripe",
+  "main": "src/main.js",
   "scripts": {
-    "start": "node src/saga-orchestrator.js"
+    "start": "node src/main.js",
+    "test": "node --test test/saga.test.js"
   },
   "dependencies": {
-    "amqplib": "^0.10.4"
+    "amqplib": "0.10.4",
+    "jose": "5.9.6",
+    "stripe": "23.1.0"
   }
 }

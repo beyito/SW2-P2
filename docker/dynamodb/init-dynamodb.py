@@ -59,11 +59,25 @@ def create_tables():
     res2 = send_dynamo_request("CreateTable", idempotency_table)
     print("Tabla 'IdempotencyKeys':", res2.get("TableDescription", {}).get("TableStatus", res2.get("status")))
 
-    # 3. Listar Tablas creadas
+    # 3. Tabla: SagaInstances (Estado persistente de la SAGA de reserva y pago, RF-07)
+    saga_table = {
+        "TableName": "SagaInstances",
+        "KeySchema": [
+            {"AttributeName": "sagaId", "KeyType": "HASH"}
+        ],
+        "AttributeDefinitions": [
+            {"AttributeName": "sagaId", "AttributeType": "S"}
+        ],
+        "BillingMode": "PAY_PER_REQUEST"
+    }
+    res3 = send_dynamo_request("CreateTable", saga_table)
+    print("Tabla 'SagaInstances':", res3.get("TableDescription", {}).get("TableStatus", res3.get("status")))
+
+    # 4. Listar Tablas creadas
     tables = send_dynamo_request("ListTables", {})
     print("Tablas activas en DynamoDB Local:", tables.get("TableNames", []))
 
-    # 4. Insertar item semilla en IdempotencyKeys para prueba
+    # 5. Insertar item semilla en IdempotencyKeys para prueba
     sample_item = {
         "TableName": "IdempotencyKeys",
         "Item": {

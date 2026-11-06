@@ -181,10 +181,10 @@ class TestPropiedadDeDatos:
         assert "errors" not in propias
         assert ajenas["errors"][0]["extensions"]["classification"] == "FORBIDDEN"
 
-    def test_cliente_no_agenda_a_nombre_de_otro(self):
+    def test_cliente_no_agenda_sin_pasar_por_el_pago(self):
         body = gql(
-            'mutation{scheduleAppointment(input:{clientId:"cli-002",stylistId:"x",serviceName:"x",'
-            'appointmentDate:"2030-01-01T10:00:00",durationMinutes:30,totalPrice:1}){id}}',
+            'mutation{scheduleAppointment(input:{clientId:"cli-001",stylistId:"sty-101",serviceId:"srv-03",'
+            'appointmentDate:"2031-01-06T10:00:00"}){id}}',
             login(CLIENT),
         ).json()
         assert body["errors"][0]["extensions"]["classification"] == "FORBIDDEN"
