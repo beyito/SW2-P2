@@ -3,6 +3,7 @@
  */
 const crypto = require('crypto');
 const http = require('http');
+const { STATES, CANCELLATION_STATES } = require('./saga-engine');
 const { AuthError } = require('./security');
 
 const MAX_BODY_BYTES = 1024 * 1024;
@@ -40,12 +41,15 @@ function parseBooking(raw) {
   } catch {
     throw new HttpError(400, 'INVALID_JSON', 'El cuerpo debe ser JSON válido.');
   }
-  const { serviceId, stylistId, appointmentDate } = body;
+  const { serviceId, stylistId, appointmentDate, pointsToRedeem = 0 } = body;
   const valid = [serviceId, stylistId, appointmentDate].every((value) => typeof value === 'string' && value.length > 0);
   if (!valid) {
     throw new HttpError(400, 'INVALID_BOOKING', 'Se requieren serviceId, stylistId y appointmentDate.');
   }
-  return { serviceId, stylistId, appointmentDate };
+  if (!Number.isInteger(pointsToRedeem) || pointsToRedeem < 0) {
+    throw new HttpError(400, 'INVALID_POINTS', 'pointsToRedeem debe ser un entero no negativo.');
+  }
+  return { serviceId, stylistId, appointmentDate, pointsToRedeem };
 }
 
 /** Datos de la SAGA visibles para el usuario; el secreto del cobro solo mientras se espera el pago. */
@@ -56,6 +60,10 @@ function toView(saga) {
     appointmentId: saga.appointmentId ?? null,
     serviceName: saga.serviceName ?? null,
     amountCents: saga.amountCents ?? null,
+    discountCents: saga.discountCents ?? 0,
+    pointsRedeemed: saga.pointsRedeemed ?? 0,
+    amountToPayCents: saga.amountCents != null ? saga.amountCents - (saga.discountCents ?? 0) : null,
+    cancelRejectedReason: saga.cancelRejectedReason ?? null,
     clientSecret: saga.state === 'AWAITING_PAYMENT' ? saga.clientSecret : null,
     failureReason: saga.failureReason ?? null,
     refunded: Boolean(saga.refunded),
@@ -93,7 +101,7 @@ function createApi({ authenticate, runner, repository, idempotency, gateway, pub
 
     // Si un intento anterior se cayó tras reclamar la llave, la SAGA aún no existe y se inicia aquí
     const existing = claim.claimed ? null : await repository.get(claim.sagaId);
-    const saga = existing ?? (await runner.start({ sagaId: claim.sagaId, clientId: user.id, ...booking }));
+    const saga = existing ?? (await runner.start({ sagaId: claim.sagaId, clientId: user.id, clientName: user.name, clientEmail: user.email, ...booking }));
 
     if (!claim.claimed) res.setHeader('X-Idempotent-Replay', 'true');
     send(res, claim.claimed ? 202 : 200, toView(saga));
@@ -108,6 +116,20 @@ function createApi({ authenticate, runner, repository, idempotency, gateway, pub
     const user = await authenticate(authorization);
     const saga = await findOwned(sagaId, user);
     await runner.syncPayment(saga);
+    send(res, 202, toView(saga));
+  }
+
+  /** Cancela una reserva pagada y la reembolsa (CU-07). Repetir la solicitud no tiene efecto. */
+  async function cancelBooking(res, sagaId, authorization) {
+    const user = await authenticate(authorization);
+    const saga = await findOwned(sagaId, user);
+    if (CANCELLATION_STATES.includes(saga.state)) {
+      return send(res, 200, toView(saga));
+    }
+    if (saga.state !== STATES.COMPLETED) {
+      throw new HttpError(409, 'NOT_CANCELLABLE', 'Solo se puede cancelar una reserva pagada.');
+    }
+    await publisher.publish('saga.event.cancel.requested', { sagaId });
     send(res, 202, toView(saga));
   }
 
@@ -141,14 +163,15 @@ function createApi({ authenticate, runner, repository, idempotency, gateway, pub
 
   async function route(req, res) {
     const { pathname } = new URL(req.url, 'http://localhost');
-    const bookingMatch = pathname.match(/^\/bookings\/([\w-]+)(\/sync)?$/);
+    const bookingMatch = pathname.match(/^\/bookings\/([\w-]+)(?:\/(sync|cancel))?$/);
 
     if (req.method === 'GET' && pathname === '/health') return send(res, 200, { status: 'UP', service: 'saga-orchestrator' });
     if (req.method === 'GET' && pathname === '/payments/config') return send(res, 200, { publishableKey });
     if (req.method === 'POST' && pathname === '/webhooks/stripe') return stripeWebhook(req, res);
     if (req.method === 'POST' && pathname === '/bookings') return createBooking(req, res);
     if (req.method === 'GET' && bookingMatch && !bookingMatch[2]) return getBooking(res, bookingMatch[1], req.headers.authorization);
-    if (req.method === 'POST' && bookingMatch?.[2]) return syncBooking(res, bookingMatch[1], req.headers.authorization);
+    if (req.method === 'POST' && bookingMatch?.[2] === 'sync') return syncBooking(res, bookingMatch[1], req.headers.authorization);
+    if (req.method === 'POST' && bookingMatch?.[2] === 'cancel') return cancelBooking(res, bookingMatch[1], req.headers.authorization);
     throw new HttpError(404, 'NOT_FOUND', 'Recurso no encontrado.');
   }
 

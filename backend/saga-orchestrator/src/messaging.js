@@ -7,6 +7,7 @@ const EXCHANGE = 'salon.saga';
 const DEAD_LETTER_EXCHANGE = 'salon.saga.dlx';
 const EVENTS_QUEUE = 'saga.orchestrator.events';
 const COMMANDS_QUEUE = 'gestion.saga.commands';
+const CRM_QUEUE = 'crm.saga.events';
 const DEAD_LETTER_QUEUE = 'saga.dead-letter';
 const PAYMENT_DELAY_QUEUE = 'saga.payment.delay';
 
@@ -34,6 +35,9 @@ class SagaMessaging {
     // Se declara también aquí para no perder comandos si ms-gestion aún no arrancó
     await channel.assertQueue(COMMANDS_QUEUE, { durable: true, ...deadLetters });
     await channel.bindQueue(COMMANDS_QUEUE, EXCHANGE, 'saga.command.#');
+    await channel.assertQueue(CRM_QUEUE, { durable: true, ...deadLetters });
+    await channel.bindQueue(CRM_QUEUE, EXCHANGE, 'saga.completed');
+    await channel.bindQueue(CRM_QUEUE, EXCHANGE, 'crm.command.#');
     await channel.assertQueue(DEAD_LETTER_QUEUE, { durable: true });
     await channel.bindQueue(DEAD_LETTER_QUEUE, DEAD_LETTER_EXCHANGE, '#');
 

@@ -3,29 +3,30 @@
 namespace App\Core\UseCases;
 
 use App\InterfaceAdapters\Gateways\ClientRepositoryInterface;
+use App\InterfaceAdapters\Gateways\LoyaltyLedgerInterface;
 
 /**
- * Caso de Uso: Acumular y Consultar Puntos de Fidelidad (CU-12, RF-08)
+ * Caso de Uso: Ajuste manual de puntos de fidelidad por un administrador (CU-12).
  */
 class AccumulatePointsUseCase
 {
-    private ClientRepositoryInterface $repository;
-
-    public function __construct(ClientRepositoryInterface $repository)
-    {
-        $this->repository = $repository;
+    public function __construct(
+        private ClientRepositoryInterface $clients,
+        private LoyaltyLedgerInterface $ledger
+    ) {
     }
 
-    public function execute(string $clientId, int $points): int
+    public function execute(string $clientId, int $points, string $description): int
     {
-        $client = $this->repository->findById($clientId);
-        if (!$client) {
+        if ($points <= 0) {
+            throw new \InvalidArgumentException('Los puntos a sumar deben ser mayores a cero.');
+        }
+        if (!$this->clients->findById($clientId)) {
             throw new \InvalidArgumentException("Cliente no encontrado con ID: {$clientId}");
         }
 
-        $client->addPoints($points);
-        $this->repository->save($client);
+        $this->ledger->credit($clientId, $points, 'ADJUSTMENT', $description, 'manual:' . bin2hex(random_bytes(8)));
 
-        return $client->getLoyaltyPoints();
+        return $this->ledger->balanceOf($clientId);
     }
 }

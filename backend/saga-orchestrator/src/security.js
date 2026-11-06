@@ -119,7 +119,13 @@ function createAuthenticator({ verify, sessions }) {
     }
     const roles = claims.realm_access?.roles ?? [];
     await assertSessionValid(sessions, claims, roles);
-    return { subject: claims.sub, id: claims.salon_id ?? claims.sub, roles };
+    return {
+      subject: claims.sub,
+      id: claims.salon_id ?? claims.sub,
+      name: claims.name ?? claims.preferred_username,
+      email: claims.email,
+      roles,
+    };
   };
 }
 

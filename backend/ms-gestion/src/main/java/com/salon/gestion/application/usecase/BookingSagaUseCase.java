@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.List;
@@ -28,6 +29,7 @@ public class BookingSagaUseCase {
     private final InventoryReservationRepository reservationRepository;
     private final ServiceCatalogRepository catalogRepository;
     private final AvailabilityUseCase availability;
+    private final Clock clock;
 
     /** Bloquea el turno con el precio del catálogo mientras se espera el pago. */
     @Transactional
@@ -109,6 +111,31 @@ public class BookingSagaUseCase {
                     appointment.cancel(reason);
                     appointmentRepository.save(appointment);
                 });
+    }
+
+    /**
+     * Cancela una cita pagada antes del servicio: libera el turno y devuelve los insumos (CU-07).
+     * Repetir el comando no tiene efecto.
+     *
+     * @throws BookingRejectedException si la cita ya no se puede cancelar
+     */
+    @Transactional
+    public void cancelPaidAppointment(String sagaId) {
+        Appointment appointment = appointmentOf(sagaId);
+        if (appointment.getStatus() == AppointmentStatus.CANCELLED) {
+            return;
+        }
+        boolean paid = appointment.getStatus() == AppointmentStatus.CONFIRMED
+                || appointment.getStatus() == AppointmentStatus.RESCHEDULED;
+        if (!paid) {
+            throw new BookingRejectedException("NOT_CANCELLABLE", "La cita no se puede cancelar en su estado actual");
+        }
+        if (!appointment.getAppointmentDate().isAfter(LocalDateTime.now(clock))) {
+            throw new BookingRejectedException("TOO_LATE", "La cita ya comenzó o ya pasó");
+        }
+        appointment.cancel("Cancelada por el cliente con reembolso");
+        appointmentRepository.save(appointment);
+        reservationRepository.restock(sagaId, appointment.getId());
     }
 
     private Appointment appointmentOf(String sagaId) {

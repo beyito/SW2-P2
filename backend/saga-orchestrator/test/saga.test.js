@@ -206,6 +206,114 @@ test('evento de una SAGA inexistente se ignora', async () => {
   assert.equal(await context.runner.handle({ type: 'payment.succeeded', sagaId: 'no-existe' }), null);
 });
 
+// --- Canje de puntos
+
+async function untilAwaitingPaymentWithPoints(context) {
+  await context.runner.start({ ...START, pointsToRedeem: 500 });
+  await context.runner.handle({ type: 'appointment.reserved', sagaId: 's1', appointmentId: 'apt-1', serviceName: 'Corte', amountCents: 4500 });
+  await context.runner.handle({ type: 'inventory.reserved', sagaId: 's1' });
+  assert.equal((await context.repository.get('s1')).state, S.RESERVING_POINTS);
+  await context.runner.handle({ type: 'points.reserved', sagaId: 's1', pointsRedeemed: 500, discountCents: 500 });
+}
+
+test('canje: aparta puntos antes de cobrar y cobra el monto con descuento', async () => {
+  let charged;
+  const context = setup({
+    createPayment: async ({ amountCents }) => {
+      charged = amountCents;
+      return { id: 'pi_1', clientSecret: 'secreto' };
+    },
+  });
+  await untilAwaitingPaymentWithPoints(context);
+  assert.equal(charged, 4000);
+  assert.ok(routingKeys(context.published).includes('crm.command.points.reserve'));
+  assert.equal((await context.repository.get('s1')).state, S.AWAITING_PAYMENT);
+});
+
+test('canje: saldo insuficiente devuelve el stock y libera el turno sin cobrar', async () => {
+  const context = setup();
+  await context.runner.start({ ...START, pointsToRedeem: 500 });
+  await context.runner.handle({ type: 'appointment.reserved', sagaId: 's1', appointmentId: 'apt-1', amountCents: 4500 });
+  await context.runner.handle({ type: 'inventory.reserved', sagaId: 's1' });
+  await context.runner.handle({ type: 'points.reserve_failed', sagaId: 's1', reason: 'POINTS_INSUFFICIENT' });
+  await context.runner.handle({ type: 'inventory.released', sagaId: 's1' });
+  await context.runner.handle({ type: 'appointment.released', sagaId: 's1' });
+
+  const saga = await context.repository.get('s1');
+  assert.equal(saga.state, S.COMPENSATED);
+  assert.equal(saga.failureReason, 'POINTS_INSUFFICIENT');
+  assert.equal(context.payments.created, 0);
+});
+
+test('canje: un pago rechazado devuelve puntos, luego stock y luego turno', async () => {
+  const context = setup();
+  await untilAwaitingPaymentWithPoints(context);
+  await context.runner.handle({ type: 'payment.failed', sagaId: 's1' });
+  assert.equal((await context.repository.get('s1')).state, S.COMPENSATING_POINTS);
+  await context.runner.handle({ type: 'points.released', sagaId: 's1' });
+  await context.runner.handle({ type: 'inventory.released', sagaId: 's1' });
+  await context.runner.handle({ type: 'appointment.released', sagaId: 's1' });
+
+  assert.equal((await context.repository.get('s1')).state, S.COMPENSATED);
+  const keys = routingKeys(context.published);
+  assert.ok(keys.indexOf('crm.command.points.release') < keys.indexOf('saga.command.inventory.release'));
+  assert.ok(keys.indexOf('saga.command.inventory.release') < keys.indexOf('saga.command.appointment.cancel'));
+});
+
+// --- Cancelación de una reserva pagada
+
+async function untilCompleted(context) {
+  await untilAwaitingPayment(context);
+  await context.runner.handle({ type: 'payment.succeeded', sagaId: 's1' });
+  await context.runner.handle({ type: 'appointment.confirmed', sagaId: 's1' });
+  await context.runner.handle({ type: 'inventory.committed', sagaId: 's1' });
+}
+
+test('cancelación: cita, reembolso, nota de crédito, en ese orden', async () => {
+  const context = setup();
+  await untilCompleted(context);
+  await context.runner.handle({ type: 'cancel.requested', sagaId: 's1' });
+  assert.equal(context.payments.refunds, 0);
+  await context.runner.handle({ type: 'appointment.cancelled', sagaId: 's1' });
+  assert.equal(context.payments.refunds, 1);
+  assert.equal((await context.repository.get('s1')).state, S.ISSUING_CREDIT_NOTE);
+  await context.runner.handle({ type: 'refund.applied', sagaId: 's1' });
+
+  const saga = await context.repository.get('s1');
+  assert.equal(saga.state, S.REFUNDED);
+  assert.equal(saga.refunded, true);
+  const keys = routingKeys(context.published);
+  assert.ok(keys.indexOf('saga.command.appointment.cancel_paid') < keys.indexOf('crm.command.refund.apply'));
+  assert.equal(keys.at(-1), 'saga.refunded');
+});
+
+test('cancelación rechazada: no reembolsa y la reserva sigue vigente', async () => {
+  const context = setup();
+  await untilCompleted(context);
+  await context.runner.handle({ type: 'cancel.requested', sagaId: 's1' });
+  await context.runner.handle({ type: 'appointment.cancel_rejected', sagaId: 's1', reason: 'TOO_LATE' });
+
+  const saga = await context.repository.get('s1');
+  assert.equal(saga.state, S.COMPLETED);
+  assert.equal(saga.cancelRejectedReason, 'TOO_LATE');
+  assert.equal(context.payments.refunds, 0);
+});
+
+test('no se puede pedir la cancelación de una reserva sin pagar', async () => {
+  const context = setup();
+  await untilAwaitingPayment(context);
+  await context.runner.handle({ type: 'cancel.requested', sagaId: 's1' });
+  assert.equal((await context.repository.get('s1')).state, S.AWAITING_PAYMENT);
+});
+
+test('si Stripe falla al reembolsar, el error llega al consumidor para reintentar', async () => {
+  const context = setup({ refundPayment: async () => { throw new Error('Stripe caído'); } });
+  await untilCompleted(context);
+  await context.runner.handle({ type: 'cancel.requested', sagaId: 's1' });
+  await assert.rejects(context.runner.handle({ type: 'appointment.cancelled', sagaId: 's1' }), /Stripe caído/);
+  assert.equal((await context.repository.get('s1')).state, S.REFUNDING_PAYMENT);
+});
+
 // --- API HTTP
 
 function apiContext() {
@@ -298,6 +406,19 @@ test('API: el reintento devuelve la misma SAGA sin iniciar otra', () => withApi(
 test('API: la misma llave con otros datos responde 422', () => withApi(async (base) => {
   await post(base, BOOKING);
   assert.equal((await post(base, { ...BOOKING, serviceId: 'srv-01' })).status, 422);
+}));
+
+test('API: rechaza puntos inválidos', () => withApi(async (base) => {
+  assert.equal((await post(base, { ...BOOKING, pointsToRedeem: -5 })).status, 400);
+  assert.equal((await post(base, { ...BOOKING, pointsToRedeem: 1.5 }, { key: 'k2' })).status, 400);
+}));
+
+test('API: solo se cancela una reserva pagada y solo su dueño', () => withApi(async (base, { published }) => {
+  const { sagaId } = await (await post(base, BOOKING)).json();
+  const cancel = (token) => fetch(`${base}/bookings/${sagaId}/cancel`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
+  assert.equal((await cancel('otro')).status, 403);
+  assert.equal((await cancel('cliente')).status, 409);
+  assert.ok(!routingKeys(published).includes('saga.event.cancel.requested'));
 }));
 
 test('API: un cliente no ve la reserva de otro', () => withApi(async (base) => {

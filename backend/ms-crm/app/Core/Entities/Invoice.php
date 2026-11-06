@@ -3,39 +3,33 @@
 namespace App\Core\Entities;
 
 /**
- * Entidad de Negocio: Factura Electrónica (CU-11, RF-08)
+ * Entidad de Negocio: Factura Electrónica (CU-11, RF-08).
+ * El total es lo pagado; el IVA va incluido en él.
  */
 class Invoice
 {
-    private string $id;
-    private string $appointmentId;
-    private string $clientId;
-    private string $clientName;
-    private float $totalAmount;
+    public const TAX_RATE = 0.13;
+
     private float $taxAmount;
-    private string $paymentMethod;
-    private string $status;
     private string $issuedAt;
 
     public function __construct(
-        string $id,
-        string $appointmentId,
-        string $clientId,
-        string $clientName,
-        float $totalAmount,
-        string $paymentMethod,
-        float $taxRate = 0.13, // 13% IVA estándar
-        ?string $status = 'ISSUED',
-        ?string $issuedAt = null
+        private string $id,
+        private string $appointmentId,
+        private string $clientId,
+        private string $clientName,
+        private float $totalAmount,
+        private string $paymentMethod,
+        private string $status = 'ISSUED',
+        ?string $issuedAt = null,
+        private ?string $sagaId = null,
+        private ?string $serviceName = null,
+        private ?float $subtotalAmount = null,
+        private float $discountAmount = 0.0,
+        private ?string $paymentReference = null,
+        private ?int $invoiceNumber = null
     ) {
-        $this->id = $id;
-        $this->appointmentId = $appointmentId;
-        $this->clientId = $clientId;
-        $this->clientName = $clientName;
-        $this->totalAmount = $totalAmount;
-        $this->taxAmount = round($totalAmount * $taxRate, 2);
-        $this->paymentMethod = $paymentMethod;
-        $this->status = $status ?? 'ISSUED';
+        $this->taxAmount = round($totalAmount * self::TAX_RATE, 2);
         $this->issuedAt = $issuedAt ?? date('Y-m-d H:i:s');
     }
 
@@ -48,4 +42,15 @@ class Invoice
     public function getPaymentMethod(): string { return $this->paymentMethod; }
     public function getStatus(): string { return $this->status; }
     public function getIssuedAt(): string { return $this->issuedAt; }
+    public function getSagaId(): ?string { return $this->sagaId; }
+    public function getServiceName(): ?string { return $this->serviceName; }
+    public function getSubtotalAmount(): float { return $this->subtotalAmount ?? $this->totalAmount; }
+    public function getDiscountAmount(): float { return $this->discountAmount; }
+    public function getPaymentReference(): ?string { return $this->paymentReference; }
+    public function getInvoiceNumber(): ?int { return $this->invoiceNumber; }
+
+    public function markRefunded(): void
+    {
+        $this->status = 'REFUNDED';
+    }
 }

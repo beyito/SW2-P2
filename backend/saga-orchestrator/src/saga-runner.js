@@ -14,13 +14,16 @@ class SagaRunner {
   }
 
   /** Crea la SAGA si no existe y solicita bloquear el turno. Se puede repetir sin efectos dobles. */
-  async start({ sagaId, clientId, stylistId, serviceId, appointmentDate }) {
+  async start({ sagaId, clientId, clientName, clientEmail, stylistId, serviceId, appointmentDate, pointsToRedeem = 0 }) {
     const saga = {
       sagaId,
       clientId,
+      clientName,
+      clientEmail,
       stylistId,
       serviceId,
       appointmentDate,
+      pointsRequested: pointsToRedeem,
       state: STATES.RESERVING_APPOINTMENT,
       version: 1,
       history: [{ state: STATES.RESERVING_APPOINTMENT, at: new Date().toISOString() }],
@@ -70,7 +73,8 @@ class SagaRunner {
     try {
       const payment = await this.payments.createPayment({
         sagaId: saga.sagaId,
-        amountCents: saga.amountCents,
+        // El descuento por puntos lo define el CRM al apartarlos
+        amountCents: saga.amountCents - (saga.discountCents ?? 0),
         description: saga.serviceName,
       });
       await this.handle({
@@ -101,6 +105,12 @@ class SagaRunner {
     await this.payments.refundPayment({ sagaId: saga.sagaId, paymentIntentId: saga.paymentIntentId });
     await this.repository.patch(saga, { refunded: true });
     this.logger.warn(`[SAGA] ${saga.sagaId}: cobro tardío reembolsado`);
+  }
+
+  /** Devuelve el dinero de una reserva pagada que se canceló; la llave impide un doble reembolso. */
+  async refundBooking(saga) {
+    await this.payments.refundPayment({ sagaId: saga.sagaId, paymentIntentId: saga.paymentIntentId });
+    await this.handle({ type: 'payment.refunded', sagaId: saga.sagaId });
   }
 
   /** Reconcilia con la pasarela: sirve cuando el webhook no llega. */

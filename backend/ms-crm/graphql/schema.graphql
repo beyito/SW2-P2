@@ -1,5 +1,7 @@
 # ====================================================================
-# Esquema GraphQL para ms-crm (Clientes, Puntos y Facturas)
+# Esquema GraphQL para ms-crm (Clientes, Puntos, Facturas y Notas de Crédito)
+# Las facturas y los puntos por compra no se crean desde aquí:
+# los genera el evento saga.completed cuando un pago se confirma.
 # ====================================================================
 
 type Client {
@@ -13,23 +15,37 @@ type Client {
 
 type LoyaltyTransaction {
     id: ID!
-    clientId: String!
     points: Int!
-    type: String! # ACCUMULATION | REDEMPTION
+    type: String!
     description: String!
     createdAt: String!
 }
 
 type Invoice {
     id: ID!
+    invoiceNumber: Int
     appointmentId: String!
     clientId: String!
     clientName: String!
+    serviceName: String
+    subtotalAmount: Float!
+    discountAmount: Float!
     totalAmount: Float!
     taxAmount: Float!
     paymentMethod: String!
-    status: String! # ISSUED | CANCELLED
+    status: String!
     issuedAt: String!
+}
+
+type CreditNote {
+    id: ID!
+    creditNoteNumber: Int
+    invoiceId: String!
+    clientId: String!
+    amount: Float!
+    taxAmount: Float!
+    reason: String!
+    issuedAt: String
 }
 
 input RegisterClientInput {
@@ -38,29 +54,23 @@ input RegisterClientInput {
     phone: String!
 }
 
-input AccumulatePointsInput {
-    clientId: String!
-    points: Int!
-    description: String!
-}
-
-input IssueInvoiceInput {
-    appointmentId: String!
-    clientId: String!
-    totalAmount: Float!
-    paymentMethod: String!
-}
-
 type Query {
-    getClientById(id: ID!): Client
-    getClientByEmail(email: String!): Client
-    getClientPoints(clientId: String!): Int!
-    getInvoiceById(id: ID!): Invoice
-    getInvoicesByClient(clientId: String!): [Invoice!]!
+    getClients: [Client!]! @field(resolver: "App\\InterfaceAdapters\\GraphQL\\CrmResolvers@getClients")
+    getClientById(id: ID!): Client @field(resolver: "App\\InterfaceAdapters\\GraphQL\\CrmResolvers@getClientById")
+    getClientByEmail(email: String!): Client @field(resolver: "App\\InterfaceAdapters\\GraphQL\\CrmResolvers@getClientByEmail")
+    getMyProfile: Client @field(resolver: "App\\InterfaceAdapters\\GraphQL\\CrmResolvers@getMyProfile")
+    getClientPoints(clientId: String!): Int! @field(resolver: "App\\InterfaceAdapters\\GraphQL\\CrmResolvers@getClientPoints")
+    getLoyaltyHistory(clientId: String!): [LoyaltyTransaction!]! @field(resolver: "App\\InterfaceAdapters\\GraphQL\\CrmResolvers@getLoyaltyHistory")
+    getInvoiceById(id: ID!): Invoice @field(resolver: "App\\InterfaceAdapters\\GraphQL\\CrmResolvers@getInvoiceById")
+    getInvoicesByClient(clientId: String!): [Invoice!]! @field(resolver: "App\\InterfaceAdapters\\GraphQL\\CrmResolvers@getInvoicesByClient")
+    getCreditNotesByClient(clientId: String!): [CreditNote!]! @field(resolver: "App\\InterfaceAdapters\\GraphQL\\CrmResolvers@getCreditNotesByClient")
 }
 
 type Mutation {
-    registerClient(input: RegisterClientInput!): Client!
-    accumulatePoints(input: AccumulatePointsInput!): Int!
-    issueInvoice(input: IssueInvoiceInput!): Invoice!
+    "Registro de un cliente por el personal del salón (CU-03)."
+    registerClient(input: RegisterClientInput!): Client! @field(resolver: "App\\InterfaceAdapters\\GraphQL\\CrmResolvers@registerClient")
+    "Crea o completa la ficha del usuario autenticado con los datos de su cuenta."
+    syncMyProfile(phone: String): Client! @field(resolver: "App\\InterfaceAdapters\\GraphQL\\CrmResolvers@syncMyProfile")
+    "Ajuste manual de puntos; solo para administradores."
+    accumulatePoints(clientId: String!, points: Int!, description: String!): Int! @field(resolver: "App\\InterfaceAdapters\\GraphQL\\CrmResolvers@accumulatePoints")
 }

@@ -15,6 +15,25 @@ x-auth-env: &auth-env
   DYNAMODB_ENDPOINT: http://dynamodb-local:8000
   ALLOWED_ORIGINS: http://localhost:3000,http://localhost:3001,http://localhost:3002,http://localhost:3003
 
+x-crm-env: &crm-env
+  APP_ENV: production
+  APP_DEBUG: "false"
+  APP_KEY: base64:c2Fsb24tY3JtLWNsYXZlLWxvY2FsLWRlLTMyLWJ5dGVz
+  LOG_CHANNEL: stderr
+  CACHE_STORE: array
+  SESSION_DRIVER: array
+  QUEUE_CONNECTION: sync
+  DB_CONNECTION: pgsql
+  DB_HOST: postgres
+  DB_PORT: "5432"
+  DB_DATABASE: salon_crm
+  DB_USERNAME: ${POSTGRES_USER:-salon_admin}
+  DB_PASSWORD: ${POSTGRES_PASSWORD:-salon_secret_pass}
+  RABBITMQ_HOST: rabbitmq
+  RABBITMQ_PORT: "5672"
+  RABBITMQ_USER: ${RABBITMQ_DEFAULT_USER:-rabbit_admin}
+  RABBITMQ_PASSWORD: ${RABBITMQ_DEFAULT_PASS:-rabbit_secret_pass}
+
 services:
   # ------------------------------------------------------------------
   # Base de Datos Relacional: PostgreSQL
@@ -294,7 +313,7 @@ services:
       start_period: 20s
 
   # ------------------------------------------------------------------
-  # Microservicio 3: CRM y facturación (PHP)
+  # Microservicio 3: CRM y facturación (Laravel + GraphQL)
   # ------------------------------------------------------------------
   ms-crm:
     build: ./backend/ms-crm
@@ -303,12 +322,7 @@ services:
     ports:
       - "8083:8000"
     environment:
-      DB_HOST: postgres
-      DB_PORT: "5432"
-      DB_DATABASE: salon_crm
-      DB_USERNAME: ${POSTGRES_USER:-salon_admin}
-      DB_PASSWORD: ${POSTGRES_PASSWORD:-salon_secret_pass}
-      <<: *auth-env
+      <<: [*crm-env, *auth-env]
     networks:
       - salon-network
     depends_on:
@@ -321,6 +335,30 @@ services:
       interval: 15s
       timeout: 5s
       retries: 10
+      start_period: 10s
+
+  # ------------------------------------------------------------------
+  # Worker del CRM: factura, puntos y reembolsos a partir de los eventos de la SAGA
+  # ------------------------------------------------------------------
+  ms-crm-worker:
+    build: ./backend/ms-crm
+    container_name: salon-ms-crm-worker
+    restart: unless-stopped
+    command: ["php", "artisan", "crm:consume-saga-messages"]
+    environment:
+      <<: [*crm-env, *auth-env]
+    networks:
+      - salon-network
+    depends_on:
+      db-migrate:
+        condition: service_completed_successfully
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f crm:consume-saga-messages > /dev/null || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
       start_period: 10s
 
   # ------------------------------------------------------------------

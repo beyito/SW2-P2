@@ -27,7 +27,6 @@ target/
 
 # PHP & Composer
 vendor/
-composer.lock
 
 # IDEs y SO
 .idea/

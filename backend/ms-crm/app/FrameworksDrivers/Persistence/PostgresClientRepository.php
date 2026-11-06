@@ -8,24 +8,8 @@ use PDO;
 
 class PostgresClientRepository implements ClientRepositoryInterface
 {
-    private PDO $pdo;
-
-    public function __construct(?PDO $pdo = null)
+    public function __construct(private PDO $pdo)
     {
-        if ($pdo) {
-            $this->pdo = $pdo;
-        } else {
-            $host = getenv('DB_HOST') ?: 'salon-postgres';
-            $port = getenv('DB_PORT') ?: '5432';
-            $db   = getenv('DB_DATABASE') ?: 'salon_crm';
-            $user = getenv('DB_USERNAME') ?: 'salon_admin';
-            $pass = getenv('DB_PASSWORD') ?: 'salon_secret_pass';
-            $dsn  = "pgsql:host={$host};port={$port};dbname={$db}";
-            $this->pdo = new PDO($dsn, $user, $pass, [
-                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-            ]);
-        }
     }
 
     public function save(Client $client): Client
@@ -33,83 +17,83 @@ class PostgresClientRepository implements ClientRepositoryInterface
         $stmt = $this->pdo->prepare(
             "INSERT INTO crm_clients (id, full_name, email, phone, loyalty_points, created_at, updated_at)
              VALUES (:id, :full_name, :email, :phone, :loyalty_points, :created_at, NOW())
-             ON CONFLICT (id) DO UPDATE 
+             ON CONFLICT (id) DO UPDATE
              SET full_name = EXCLUDED.full_name,
                  phone = EXCLUDED.phone,
-                 loyalty_points = EXCLUDED.loyalty_points,
                  updated_at = NOW()"
         );
-
-        $stmt->execute([
-            ':id' => $client->getId(),
-            ':full_name' => $client->getFullName(),
-            ':email' => $client->getEmail(),
-            ':phone' => $client->getPhone(),
-            ':loyalty_points' => $client->getLoyaltyPoints(),
-            ':created_at' => $client->getCreatedAt(),
-        ]);
+        $stmt->execute($this->params($client));
 
         return $client;
+    }
+
+    public function createIfAbsent(Client $client): void
+    {
+        $stmt = $this->pdo->prepare(
+            "INSERT INTO crm_clients (id, full_name, email, phone, loyalty_points, created_at, updated_at)
+             VALUES (:id, :full_name, :email, :phone, :loyalty_points, :created_at, NOW())
+             ON CONFLICT DO NOTHING"
+        );
+        $stmt->execute($this->params($client));
+    }
+
+    public function updatePhone(string $id, string $phone): void
+    {
+        $stmt = $this->pdo->prepare("UPDATE crm_clients SET phone = :phone, updated_at = NOW() WHERE id = :id");
+        $stmt->execute([':id' => $id, ':phone' => $phone]);
     }
 
     public function findById(string $id): ?Client
     {
         $stmt = $this->pdo->prepare("SELECT * FROM crm_clients WHERE id = :id");
         $stmt->execute([':id' => $id]);
-        $row = $stmt->fetch();
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if (!$row) return null;
-
-        return new Client(
-            id: $row['id'],
-            fullName: $row['full_name'],
-            email: $row['email'],
-            phone: $row['phone'],
-            loyaltyPoints: (int)$row['loyalty_points'],
-            createdAt: $row['created_at']
-        );
+        return $row ? $this->toEntity($row) : null;
     }
 
     public function findByEmail(string $email): ?Client
     {
         $stmt = $this->pdo->prepare("SELECT * FROM crm_clients WHERE LOWER(email) = LOWER(:email)");
         $stmt->execute([':email' => $email]);
-        $row = $stmt->fetch();
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if (!$row) return null;
+        return $row ? $this->toEntity($row) : null;
+    }
 
+    public function existsEmail(string $email): bool
+    {
+        return $this->findByEmail($email) !== null;
+    }
+
+    public function findAll(): array
+    {
+        $rows = $this->pdo->query("SELECT * FROM crm_clients ORDER BY created_at DESC")->fetchAll(PDO::FETCH_ASSOC);
+
+        return array_map(fn (array $row) => $this->toEntity($row), $rows);
+    }
+
+    private function params(Client $client): array
+    {
+        return [
+            ':id' => $client->getId(),
+            ':full_name' => $client->getFullName(),
+            ':email' => $client->getEmail(),
+            ':phone' => $client->getPhone(),
+            ':loyalty_points' => $client->getLoyaltyPoints(),
+            ':created_at' => $client->getCreatedAt(),
+        ];
+    }
+
+    private function toEntity(array $row): Client
+    {
         return new Client(
             id: $row['id'],
             fullName: $row['full_name'],
             email: $row['email'],
             phone: $row['phone'],
-            loyaltyPoints: (int)$row['loyalty_points'],
+            loyaltyPoints: (int) $row['loyalty_points'],
             createdAt: $row['created_at']
         );
-    }
-
-    public function existsEmail(string $email): bool
-    {
-        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM crm_clients WHERE LOWER(email) = LOWER(:email)");
-        $stmt->execute([':email' => $email]);
-        return (int)$stmt->fetchColumn() > 0;
-    }
-
-    public function findAll(): array
-    {
-        $stmt = $this->pdo->query("SELECT * FROM crm_clients ORDER BY created_at DESC");
-        $rows = $stmt->fetchAll();
-        $clients = [];
-        foreach ($rows as $row) {
-            $clients[] = new Client(
-                id: $row['id'],
-                fullName: $row['full_name'],
-                email: $row['email'],
-                phone: $row['phone'],
-                loyaltyPoints: (int)$row['loyalty_points'],
-                createdAt: $row['created_at']
-            );
-        }
-        return $clients;
     }
 }

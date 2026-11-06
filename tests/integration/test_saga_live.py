@@ -16,6 +16,7 @@ import uuid
 import httpx
 import pytest
 
+from soporte_crm import foto_de_puntos, limpiar_crm_de_pruebas
 from test_seguridad_live import ADMIN, CLIENT, STYLIST, auth, gql, login
 
 SAGA = "http://localhost:4100"
@@ -46,12 +47,16 @@ def sql(query):
     return result.stdout.strip()
 
 
+_dias_usados = set()
+
+
 def future_slot(hour=10):
-    """Día laboral aleatorio lejano, para que las ejecuciones no choquen entre sí."""
-    day = datetime.date(2036, 1, 1) + datetime.timedelta(days=random.randint(0, 3000))
-    while day.isoweekday() == 7:
-        day += datetime.timedelta(days=1)
-    return f"{day.isoformat()}T{hour:02d}:00:00"
+    """Día laboral lejano que no se repite en la ejecución, para que las pruebas no choquen entre sí."""
+    while True:
+        day = datetime.date(2036, 1, 1) + datetime.timedelta(days=random.randint(0, 20000))
+        if day.isoweekday() != 7 and day not in _dias_usados:
+            _dias_usados.add(day)
+            return f"{day.isoformat()}T{hour:02d}:00:00"
 
 
 def book(token, service=CORTE, date=None, key=None, stylist=STYLIST_ID):
@@ -111,7 +116,9 @@ def slots(token, date, service=CORTE):
 @pytest.fixture(scope="module", autouse=True)
 def limpieza():
     snapshot = sql("SELECT id || '=' || current_stock FROM inventory_items")
+    puntos = foto_de_puntos()
     yield
+    limpiar_crm_de_pruebas(puntos)
     sql("DELETE FROM inventory_logs WHERE reason='Consumo por cita confirmada' AND appointment_id IN "
         "(SELECT id FROM appointments WHERE appointment_date >= '2036-01-01')")
     sql("DELETE FROM appointments WHERE appointment_date >= '2036-01-01'")

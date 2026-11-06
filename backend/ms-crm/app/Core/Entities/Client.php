@@ -59,23 +59,4 @@ class Client
     {
         return $this->createdAt;
     }
-
-    public function addPoints(int $points): void
-    {
-        if ($points <= 0) {
-            throw new \InvalidArgumentException('Los puntos a sumar deben ser mayores a cero.');
-        }
-        $this->loyaltyPoints += $points;
-    }
-
-    public function redeemPoints(int $points): void
-    {
-        if ($points <= 0) {
-            throw new \InvalidArgumentException('Los puntos a canjear deben ser mayores a cero.');
-        }
-        if ($this->loyaltyPoints < $points) {
-            throw new \IllegalStateException('Puntos insuficientes para realizar el canje.');
-        }
-        $this->loyaltyPoints -= $points;
-    }
 }

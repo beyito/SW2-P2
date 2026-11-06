@@ -94,6 +94,32 @@ await mfe.locator('.slot-btn').first().waitFor({ timeout: 15000 });
 const afterDecline = await mfe.locator('.slot-btn').allTextContents();
 check('el turno rechazado vuelve a estar disponible', afterDecline.map((text) => text.trim()).includes(declinedSlot));
 
+// --- Cancelar una cita pagada: reembolso y turno disponible otra vez
+const refundSlot = (await mfe.locator('.slot-btn').first().textContent()).trim();
+await mfe.locator('.slot-btn').first().click();
+await mfe.locator('#btn-to-checkout').click();
+await mfe.locator('#btn-pay').waitFor({ timeout: 30000 });
+await fillCard(mfe, '4242424242424242');
+await mfe.locator('#btn-pay').click();
+await mfe.locator('#booking-success').waitFor({ timeout: 60000 });
+await mfe.locator('#btn-cancel-booking').click();
+await mfe.locator('#booking-refunded').waitFor({ timeout: 60000 });
+check('cancelar una cita pagada la reembolsa', true);
+
+await mfe.locator('#btn-new-booking').click();
+await mfe.locator('[data-service="srv-03"]').click();
+await mfe.locator('#btn-to-schedule').click();
+await mfe.locator('#booking-date').fill(date);
+await mfe.locator('#booking-date').dispatchEvent('change');
+await mfe.locator('.slot-btn').first().waitFor({ timeout: 15000 });
+const afterRefund = await mfe.locator('.slot-btn').allTextContents();
+check('el turno reembolsado vuelve a estar disponible', afterRefund.map((text) => text.trim()).includes(refundSlot));
+
+// --- Canje: los puntos ganados bajan el total a pagar
+await mfe.locator('#points-to-redeem').waitFor({ timeout: 15000 });
+await mfe.locator('#points-to-redeem').fill('100');
+check('el canje de 100 puntos descuenta $1.00', (await mfe.locator('#total-to-pay').textContent()).includes('$44.00'));
+
 await browser.close();
 console.log(fallos === 0 ? 'E2E RESERVAS: TODO OK' : `E2E RESERVAS: ${fallos} FALLOS`);
 process.exit(fallos === 0 ? 0 : 1);

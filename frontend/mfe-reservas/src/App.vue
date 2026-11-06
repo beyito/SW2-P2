@@ -103,7 +103,12 @@
           <div class="sum-row"><span>Estilista:</span> <strong>{{ selectedStylist.name }}</strong></div>
           <div class="sum-row"><span>Fecha:</span> <strong>{{ selectedDate }} {{ selectedSlot ? timeOf(selectedSlot.start) : '' }}</strong></div>
           <div class="divider"></div>
-          <div class="sum-row total"><span>Total:</span> <strong style="color: #42B883;">${{ selectedService.price.toFixed(2) }} USD</strong></div>
+          <div class="sum-row"><span>Precio:</span> <strong>${{ selectedService.price.toFixed(2) }} USD</strong></div>
+          <div v-if="myPoints > 0" class="field-group" style="margin-top: 12px;">
+            <label>Usar puntos (tienes {{ myPoints }}; cada punto vale $0.01):</label>
+            <input id="points-to-redeem" v-model.number="pointsToRedeem" type="number" min="0" :max="maxRedeemablePoints" class="input-date" />
+          </div>
+          <div class="sum-row total"><span>Total a pagar:</span> <strong id="total-to-pay" style="color: #42B883;">${{ totalToPay.toFixed(2) }} USD</strong></div>
         </div>
 
         <div class="action-buttons">
@@ -124,7 +129,7 @@
           <p class="hint">Tu turno está bloqueado durante 15 minutos mientras completas el pago.</p>
           <div id="payment-element" style="margin: 16px 0;"></div>
           <button id="btn-pay" class="btn-primary" :disabled="paying || !paymentReady" @click="pay">
-            {{ paying ? 'Procesando pago...' : `Pagar $${(booking.amountCents / 100).toFixed(2)} USD` }}
+            {{ paying ? 'Procesando pago...' : `Pagar $${(booking.amountToPayCents / 100).toFixed(2)} USD` }}
           </button>
           <p class="hint" style="margin-top: 12px;">
             Modo de prueba. Aprobada: 4242 4242 4242 4242. Rechazada: 4000 0000 0000 0002. Fecha futura y cualquier CVC.
@@ -133,7 +138,17 @@
 
         <p v-else-if="!isFinished" class="hint">Procesando tu reserva...</p>
 
-        <button v-if="isFinished" id="btn-new-booking" class="btn-primary" @click="restart">Hacer otra reserva</button>
+        <button
+          v-if="booking?.status === 'COMPLETED'"
+          id="btn-cancel-booking"
+          class="btn-outline"
+          style="margin-bottom: 10px;"
+          :disabled="cancelling"
+          @click="cancel"
+        >
+          {{ cancelling ? 'Cancelando...' : 'Cancelar la cita y reembolsar' }}
+        </button>
+        <button v-if="isFinished && !cancelling" id="btn-new-booking" class="btn-primary" @click="restart">Hacer otra reserva</button>
       </div>
 
       <div class="glass-box panel-right">
@@ -149,6 +164,12 @@
         <div v-if="isFailure" id="booking-failure" class="status-banner error">
           ⚠️ {{ failureMessage }} No se realizó ningún cobro y el turno quedó libre.
         </div>
+        <div v-if="booking?.status === 'REFUNDED'" id="booking-refunded" class="status-banner success">
+          ✅ Cita cancelada: el pago se reembolsó y se emitió una nota de crédito.
+        </div>
+        <div v-if="booking?.cancelRejectedReason" id="cancel-rejected" class="status-banner error">
+          ⚠️ {{ cancelRejectedMessage }}
+        </div>
       </div>
     </div>
   </div>
@@ -157,22 +178,29 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 import { loadStripe } from '@stripe/stripe-js';
-import { getBooking, getPublishableKey, loadCatalog, loadSlots, startBooking, syncBooking } from './api';
+import { cancelBooking, getBooking, getPublishableKey, loadCatalog, loadMyPoints, loadSlots, startBooking, syncBooking } from './api';
 
 const POLL_MS = 700;
-const TERMINAL = ['COMPLETED', 'COMPENSATED', 'FAILED'];
+const TERMINAL = ['COMPLETED', 'COMPENSATED', 'FAILED', 'REFUNDED'];
+const MINIMUM_CHARGE = 0.5;
 const STEP_LABELS = {
   RESERVING_APPOINTMENT: 'Bloqueando el turno',
   RESERVING_STOCK: 'Apartando los insumos',
+  RESERVING_POINTS: 'Aplicando tus puntos',
   CREATING_PAYMENT: 'Preparando el cobro',
   AWAITING_PAYMENT: 'Esperando el pago',
   CONFIRMING_APPOINTMENT: 'Pago recibido: confirmando la cita',
   COMMITTING_STOCK: 'Descontando los insumos',
   COMPLETED: 'Reserva completada',
+  COMPENSATING_POINTS: 'Devolviendo tus puntos',
   COMPENSATING_STOCK: 'Devolviendo los insumos',
   COMPENSATING_APPOINTMENT: 'Liberando el turno',
   COMPENSATED: 'Reserva revertida',
   FAILED: 'Reserva rechazada',
+  CANCELLING_APPOINTMENT: 'Cancelando la cita',
+  REFUNDING_PAYMENT: 'Reembolsando el pago',
+  ISSUING_CREDIT_NOTE: 'Emitiendo la nota de crédito',
+  REFUNDED: 'Pago reembolsado',
 };
 const FAILURE_MESSAGES = {
   SLOT_TAKEN: 'Ese turno acaba de ser tomado por otra persona.',
@@ -181,6 +209,8 @@ const FAILURE_MESSAGES = {
   PAYMENT_DECLINED: 'El banco rechazó el pago.',
   PAYMENT_TIMEOUT: 'Venció el tiempo para pagar.',
   PAYMENT_UNAVAILABLE: 'El servicio de pagos no está disponible.',
+  POINTS_INSUFFICIENT: 'No tienes puntos suficientes.',
+  POINTS_EXCEED_LIMIT: 'Esa cantidad de puntos supera el máximo permitido para este servicio.',
 };
 
 const loading = ref(true);
@@ -200,6 +230,9 @@ const booking = ref(null);
 const sagaBusy = ref(false);
 const paying = ref(false);
 const paymentReady = ref(false);
+const cancelling = ref(false);
+const myPoints = ref(0);
+const pointsToRedeem = ref(0);
 let idempotencyKey = null;
 let pollTimer = null;
 let stripe = null;
@@ -210,6 +243,19 @@ let paymentSecret = null;
 const isFinished = computed(() => TERMINAL.includes(booking.value?.status));
 const isFailure = computed(() => ['COMPENSATED', 'FAILED'].includes(booking.value?.status));
 const failureMessage = computed(() => FAILURE_MESSAGES[booking.value?.failureReason] ?? 'No se pudo completar la reserva.');
+
+const cancelRejectedMessage = computed(() => (
+  booking.value?.cancelRejectedReason === 'TOO_LATE'
+    ? 'La cita ya comenzó o ya pasó: no se puede cancelar.'
+    : 'Esta cita no se puede cancelar en su estado actual.'
+));
+// El cobro no puede quedar por debajo del mínimo de la pasarela
+const maxRedeemablePoints = computed(() => {
+  const limit = Math.round(((selectedService.value?.price ?? 0) - MINIMUM_CHARGE) * 100);
+  return Math.max(0, Math.min(myPoints.value, limit));
+});
+const validPoints = computed(() => Math.min(Math.max(0, Math.floor(pointsToRedeem.value || 0)), maxRedeemablePoints.value));
+const totalToPay = computed(() => (selectedService.value?.price ?? 0) - validPoints.value / 100);
 
 const initials = (name) => name.split(' ').slice(0, 2).map((part) => part[0]).join('');
 const timeOf = (iso) => iso.slice(11, 16);
@@ -254,7 +300,13 @@ async function refreshSlots() {
 
 function goToSchedule() {
   currentStep.value = 2;
+  pointsToRedeem.value = 0;
   refreshSlots();
+  loadMyPoints().then((points) => {
+    myPoints.value = points;
+  }).catch(() => {
+    myPoints.value = 0;
+  });
 }
 
 /** La llave se conserva entre reintentos del mismo intento: así un doble clic no reserva dos veces. */
@@ -268,6 +320,7 @@ async function reserve() {
         serviceId: selectedService.value.id,
         stylistId: selectedStylist.value.id,
         appointmentDate: selectedSlot.value.start,
+        pointsToRedeem: validPoints.value,
       },
       idempotencyKey,
     );
@@ -289,10 +342,28 @@ async function poll() {
   if (booking.value.status === 'AWAITING_PAYMENT' && !elements) {
     await mountPaymentForm();
   }
-  if (!isFinished.value) {
+  // Mientras se cancela, la reserva sigue en COMPLETED hasta que la SAGA procesa la solicitud
+  const waitingCancellation = cancelling.value
+    && booking.value.status !== 'REFUNDED'
+    && !booking.value.cancelRejectedReason;
+  if (!isFinished.value || waitingCancellation) {
     pollTimer = setTimeout(poll, POLL_MS);
   } else {
     idempotencyKey = null;
+    cancelling.value = false;
+  }
+}
+
+async function cancel() {
+  errorMessage.value = null;
+  cancelling.value = true;
+  booking.value = { ...booking.value, cancelRejectedReason: null };
+  try {
+    await cancelBooking(booking.value.sagaId);
+    poll();
+  } catch (error) {
+    errorMessage.value = error.message;
+    cancelling.value = false;
   }
 }
 

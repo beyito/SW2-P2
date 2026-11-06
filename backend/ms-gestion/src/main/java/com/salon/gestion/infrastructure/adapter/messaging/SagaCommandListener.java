@@ -57,6 +57,7 @@ public class SagaCommandListener {
                 booking.cancelAppointment(sagaId, command.path("reason").asText("Compensación de SAGA"));
                 publish("appointment.released", Map.of("sagaId", sagaId));
             }
+            case "saga.command.appointment.cancel_paid" -> cancelPaidAppointment(sagaId);
             default -> log.warn("Comando desconocido: {}", routingKey);
         }
     }
@@ -97,6 +98,15 @@ public class SagaCommandListener {
         // RF-03: alerta de stock crítico para las automatizaciones
         if (!critical.isEmpty()) {
             send("inventory.stock.critical", Map.of("sagaId", sagaId, "items", critical));
+        }
+    }
+
+    private void cancelPaidAppointment(String sagaId) {
+        try {
+            booking.cancelPaidAppointment(sagaId);
+            publish("appointment.cancelled", Map.of("sagaId", sagaId));
+        } catch (BookingRejectedException e) {
+            publish("appointment.cancel_rejected", Map.of("sagaId", sagaId, "reason", e.getReason()));
         }
     }
 

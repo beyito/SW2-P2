@@ -14,5 +14,7 @@ done
 $PSQL -d salon_gestion -f /migrations/01_gestion_schema.sql
 $PSQL -d salon_crm -f /migrations/02_crm_schema.sql
 $PSQL -d salon_gestion -f /migrations/03_catalogo_y_saga.sql
+$PSQL -d salon_crm -f /migrations/04_crm_facturacion.sql
+$PSQL -d salon_gestion -f /migrations/05_reembolsos_gestion.sql
 
 echo "Migraciones de PostgreSQL aplicadas correctamente."

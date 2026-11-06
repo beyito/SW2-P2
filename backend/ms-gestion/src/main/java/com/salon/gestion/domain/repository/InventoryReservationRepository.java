@@ -29,4 +29,7 @@ public interface InventoryReservationRepository {
      * @return códigos de los insumos que quedaron en nivel crítico
      */
     List<String> commit(String sagaId, String appointmentId);
+
+    /** Devuelve al inventario lo descontado por una cita pagada que se canceló antes del servicio. */
+    void restock(String sagaId, String appointmentId);
 }

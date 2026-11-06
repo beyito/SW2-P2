@@ -17,7 +17,8 @@ Guía para poner en marcha el entorno local. El avance real de cada funcionalida
 | Infraestructura | n8n | Automatización | `5678` | http://localhost:5678/healthz |
 | Backend | `ms-gestion` | Spring Boot, GraphQL | `8081` | http://localhost:8081/graphiql |
 | Backend | `ms-asesoria` | NestJS, REST | `3100` | http://localhost:3100/community |
-| Backend | `ms-crm` | PHP | `8083` | http://localhost:8083/health |
+| Backend | `ms-crm` | Laravel, GraphQL | `8083` | http://localhost:8083/health |
+| Backend | `ms-crm-worker` | Laravel, RabbitMQ | N/A | `docker compose ps ms-crm-worker` |
 | Backend | `ms-ia` | FastAPI | `8002` | http://localhost:8002/docs |
 | Backend | `mcp-server` | Node.js, JSON-RPC | `4000` | http://localhost:4000/health |
 | Backend | `saga-orchestrator` | Node.js, RabbitMQ, Stripe | `4100` | http://localhost:4100/health |
@@ -80,7 +81,7 @@ docker compose up -d --build --wait
 docker compose ps -a
 ```
 
-**Resultado esperado:** 12 servicios en estado `healthy` y `stripe-cli` en ejecución, que no define healthcheck. Las tareas `db-migrate`, `mongo-init` y `dynamodb-init` deben figurar como `Exited (0)`: crean bases, tablas, colecciones y semillas sin duplicarlas, y se ejecutan en cada arranque.
+**Resultado esperado:** 13 servicios en estado `healthy` y `stripe-cli` en ejecución, que no define healthcheck. Las tareas `db-migrate`, `mongo-init` y `dynamodb-init` deben figurar como `Exited (0)`: crean bases, tablas, colecciones y semillas sin duplicarlas, y se ejecutan en cada arranque.
 
 ### Microfrontends
 
@@ -118,8 +119,9 @@ Los clientes nuevos pueden registrarse desde la pantalla de login. La consola de
 # ms-gestion (JUnit 5 + Mockito)
 docker run --rm -v "${PWD}/backend/ms-gestion:/app" -v maven-repo:/root/.m2 -w /app maven:3.9-eclipse-temurin-21 mvn clean test
 
-# ms-crm (PHPUnit)
-docker run --rm -v "${PWD}/backend/ms-crm:/app" -w /app php:8.3-cli-alpine php phpunit.phar
+# ms-crm (php artisan test, dentro de su imagen de pruebas)
+docker build --target test -t salon-ms-crm-test backend/ms-crm
+docker run --rm salon-ms-crm-test
 
 # ms-asesoria (Jest)
 cd backend\ms-asesoria; npm test

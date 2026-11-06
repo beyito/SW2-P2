@@ -1,3 +1,4 @@
-tests/
-phpunit.phar
+vendor/
+storage/logs/*
 .phpunit.result.cache
+.env

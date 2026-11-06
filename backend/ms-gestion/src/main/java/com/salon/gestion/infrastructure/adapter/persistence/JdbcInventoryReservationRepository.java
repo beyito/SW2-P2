@@ -102,6 +102,47 @@ public class JdbcInventoryReservationRepository implements InventoryReservationR
         return critical;
     }
 
+    @Override
+    public void restock(String sagaId, String appointmentId) {
+        List<ServiceSupply> committed = jdbc.sql("""
+                        SELECT item_id, quantity FROM inventory_reservations
+                        WHERE saga_id = :saga AND status = 'COMMITTED'
+                        ORDER BY item_id
+                        """)
+                .param("saga", sagaId)
+                .query(ServiceSupply.class)
+                .list();
+
+        for (ServiceSupply supply : committed) {
+            int stock = jdbc.sql("""
+                            UPDATE inventory_items
+                            SET current_stock = current_stock + :quantity, updated_at = CURRENT_TIMESTAMP
+                            WHERE id = :item
+                            RETURNING current_stock
+                            """)
+                    .param("quantity", supply.quantity())
+                    .param("item", supply.itemId())
+                    .query(Integer.class)
+                    .single();
+
+            jdbc.sql("""
+                            INSERT INTO inventory_logs
+                                (id, item_id, quantity_change, previous_stock, new_stock, reason, appointment_id)
+                            VALUES (:id, :item, :change, :previous, :new, 'Devolución por cita cancelada', :appointment)
+                            """)
+                    .param("id", UUID.randomUUID().toString())
+                    .param("item", supply.itemId())
+                    .param("change", supply.quantity())
+                    .param("previous", stock - supply.quantity())
+                    .param("new", stock)
+                    .param("appointment", appointmentId)
+                    .update();
+        }
+        jdbc.sql("UPDATE inventory_reservations SET status = 'RESTOCKED' WHERE saga_id = :saga AND status = 'COMMITTED'")
+                .param("saga", sagaId)
+                .update();
+    }
+
     /** Lo que siga en estado RESERVED; vacío si el comando ya se aplicó antes. */
     private List<ServiceSupply> reserved(String sagaId) {
         return jdbc.sql("""

@@ -16,7 +16,7 @@ Registro oficial del desarrollo de la **Plataforma Inteligente para Salón de Be
 | **B** | Seguridad real: Keycloak, JWT, roles y sesión única | Vie 6 | **COMPLETADA** |
 | **C** | Catálogo, receta de insumos, estilistas, horarios y stock mínimo | Sáb 7 | **PARCIAL** (lo necesario para D ya está hecho; falta lo indicado abajo) |
 | **D** | Reserva y pago real: SAGA, Stripe e idempotencia | Vie 6 | **COMPLETADA** |
-| **E** | CRM: Laravel, GraphQL, factura, puntos, canje y reembolso | Dom 8 | Pendiente |
+| **E** | CRM: Laravel, GraphQL, factura, puntos, canje y reembolso | Vie 6 | **COMPLETADA** |
 | **F** | Frontends y MCP con datos reales, perfil, reseñas, avisos y moderación | Dom 8 - Lun 9 | Pendiente |
 | **G** | IA real y consentimiento biométrico | Lun 9 | Pendiente |
 | **H** | Offline, n8n, Module Federation, Testcontainers y certificación final | Lun 9 - Mar 10 | Pendiente (primera en recortarse si falta tiempo) |
@@ -112,12 +112,34 @@ La Fase D se ejecutó antes por decisión del usuario, e incorporó las piezas d
 - Los webhooks requieren internet y el contenedor `stripe-cli`; sin él, el checkout confirma con la sincronización.
 - Todos los mensajes de la cola de espera deben usar el mismo plazo, porque RabbitMQ los vence desde la cabeza.
 
-## Fase E: CRM (CU-03, CU-11, CU-12, RF-08)
-- [ ] `ms-crm` sobre Laravel real con API GraphQL, conservando Clean Architecture.
-- [ ] Factura y puntos disparados por el evento de pago, con registro en `loyalty_transactions`.
-- [ ] Canje de puntos, reembolso y nota de crédito.
+## Fase E: CRM (CU-03, CU-07, CU-11, CU-12, RF-08) (Completada)
+- [x] `ms-crm` sobre Laravel 12 y Lighthouse (GraphQL), conservando Clean Architecture. Laravel 11 está bloqueado por avisos de seguridad.
+- [x] Worker `ms-crm-worker`: el evento de pago genera factura con IVA incluido y puntos, de forma idempotente.
+- [x] Libro de puntos atómico en `loyalty_transactions`, con referencia única por movimiento.
+- [x] Canje como paso de la SAGA: aparta puntos antes de cobrar y los devuelve si el pago falla.
+- [x] Cancelación de una cita pagada: libera el turno, devuelve los insumos, reembolsa en Stripe, emite nota de crédito y revierte los puntos.
+- [x] Comprobante imprimible (`/api/invoices/{id}/comprobante`), de demostración y sin validez fiscal.
+- [x] Checkout con canje de puntos y botón de cancelar con reembolso.
 
-**Aceptación:** un pago genera factura y puntos; un reembolso los revierte.
+**Reglas de puntos (supuesto a confirmar):** se ganan 10 puntos por dólar pagado y cada punto vale $0.01, es decir, 10% de retorno. El canje no puede dejar un cobro menor a $0.50, el mínimo de Stripe.
+
+**Aceptación:** un pago genera factura y puntos; un reembolso los revierte. Ambas verificadas.
+
+**Verificación en vivo (6 de noviembre):**
+- [x] `tests/integration`: 105/105 contra Laravel, RabbitMQ, DynamoDB, PostgreSQL y Stripe reales.
+- [x] `tests/e2e`: `reservas` 9/9 y `seguridad` 14/14 en Chromium.
+- [x] Reembolso confirmado en la API de Stripe: un solo reembolso por el monto cobrado, aunque se cancele dos veces.
+- [x] Evento `saga.completed` repetido: una sola factura y sin puntos dobles.
+- [x] Dos canjes simultáneos con saldo para uno: solo uno aparta los puntos.
+- [x] Suites: `ms-gestion` 39/39, `saga-orchestrator` 31/31, `ms-crm` 29/29 (`php artisan test`), `ms-asesoria` 25/25, `ms-ia` 20/20, `mcp-server` 11/11.
+
+**Limitaciones conocidas:**
+- Si Stripe falla al reembolsar, el mensaje se reintenta una vez y pasa a `saga.dead-letter`: la SAGA queda en `REFUNDING_PAYMENT` con la cita ya cancelada y requiere intervención manual.
+- La cancelación solo se ofrece en la pantalla del checkout; el listado "Mis citas / Mis facturas" llega en la Fase F.
+- Si el cliente ya gastó los puntos ganados, la reversión deja el saldo en cero y no recupera la diferencia.
+- Solo hay reembolso total, permitido hasta el inicio de la cita.
+- Una cuenta cuyo correo ya exista en el CRM con otro ID manda su factura a `saga.dead-letter`.
+- El servidor web es `php -S` con varios procesos: es suficiente para este entorno, no para producción.
 
 ## Fase F: Frontends y MCP (CU-15, CU-17, CU-20, CU-21, RF-09, RF-11)
 - [ ] Angular real para el ERP; React conectado a `ms-asesoria`.
@@ -152,16 +174,16 @@ Estado actualizado al cierre de cada fase. ✅ completo y verificado en vivo. �
 | :---: | :--- | :---: | :---: |
 | CU-01 | Autenticar usuario (SSO y sesión única) | ✅ (web) | B |
 | CU-02 | Cerrar sesión activa | ✅ (web) | B |
-| CU-03 | Registrar cliente | 🟡 | E |
+| CU-03 | Registrar cliente | 🟡 (API lista; falta la pantalla, Fase F) | E, F |
 | CU-04 | Registrar o modificar estilista | ❌ | C |
 | CU-05 | Horarios y disponibilidad | 🟡 (consulta sí; gestión no) | C |
 | CU-06 | Agendar cita | ✅ (web) | D |
-| CU-07 | Reprogramar o cancelar cita | 🟡 (cancelar lo pagado requiere E) | D, E |
+| CU-07 | Reprogramar o cancelar cita | 🟡 (cancelar con reembolso sí; reprogramar solo por API) | D, E, F |
 | CU-08 | Registrar inventario | 🟡 | C |
 | CU-09 | Actualizar stock mínimo | ❌ | C |
 | CU-10 | Reserva y pago (SAGA e idempotencia) | ✅ (web) | D |
-| CU-11 | Emitir factura | 🟡 | E |
-| CU-12 | Puntos de fidelidad | 🟡 | E |
+| CU-11 | Emitir factura | ✅ (sin validez fiscal; listado en F) | E |
+| CU-12 | Puntos de fidelidad | ✅ (historial visible en F) | E |
 | CU-13 | Escaneo capilar y facial | ❌ | G |
 | CU-14 | Recomendaciones | 🟡 | G |
 | CU-15 | Armario virtual | 🟡 | F |

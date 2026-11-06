@@ -10,4 +10,9 @@ interface ClientRepositoryInterface
     public function findById(string $id): ?Client;
     public function findByEmail(string $email): ?Client;
     public function existsEmail(string $email): bool;
+    /** @return Client[] */
+    public function findAll(): array;
+    /** Crea el cliente si no existe; nunca modifica sus puntos ni sus datos. */
+    public function createIfAbsent(Client $client): void;
+    public function updatePhone(string $id, string $phone): void;
 }

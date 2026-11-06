@@ -15,8 +15,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.Clock;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 
@@ -38,6 +43,8 @@ class BookingSagaUseCaseTest {
     private ServiceCatalogRepository catalog;
     @Mock
     private AvailabilityUseCase availability;
+    @Spy
+    private Clock clock = Clock.fixed(Instant.parse("2030-01-01T12:00:00Z"), ZoneOffset.UTC);
     @InjectMocks
     private BookingSagaUseCase useCase;
 
@@ -134,6 +141,53 @@ class BookingSagaUseCaseTest {
 
         assertEquals(AppointmentStatus.CONFIRMED, confirmed.getStatus());
         verify(appointments, never()).save(any());
+    }
+
+    private Appointment paidAt(String date) {
+        Appointment appointment = appointment(AppointmentStatus.CONFIRMED);
+        appointment.setAppointmentDate(LocalDateTime.parse(date));
+        when(appointments.findBySagaId("s1")).thenReturn(Optional.of(appointment));
+        return appointment;
+    }
+
+    @Test
+    @DisplayName("Cancelar una cita pagada libera el turno y devuelve los insumos")
+    void cancelPaidReleasesSlotAndRestocks() {
+        Appointment paid = paidAt("2030-06-01T10:00:00");
+
+        useCase.cancelPaidAppointment("s1");
+
+        assertEquals(AppointmentStatus.CANCELLED, paid.getStatus());
+        verify(appointments).save(paid);
+        verify(reservations).restock("s1", "apt-1");
+    }
+
+    @Test
+    @DisplayName("No se puede cancelar una cita que ya comenzó")
+    void cancelPaidRejectsPastAppointment() {
+        Appointment paid = paidAt("2029-12-31T10:00:00");
+
+        assertEquals("TOO_LATE", rejectionOf(() -> useCase.cancelPaidAppointment("s1")));
+        assertEquals(AppointmentStatus.CONFIRMED, paid.getStatus());
+        verify(reservations, never()).restock(any(), any());
+    }
+
+    @Test
+    @DisplayName("Cancelar dos veces no devuelve los insumos dos veces")
+    void cancelPaidIsIdempotent() {
+        when(appointments.findBySagaId("s1")).thenReturn(Optional.of(appointment(AppointmentStatus.CANCELLED)));
+
+        useCase.cancelPaidAppointment("s1");
+
+        verify(appointments, never()).save(any());
+        verify(reservations, never()).restock(any(), any());
+    }
+
+    @Test
+    @DisplayName("Una cita sin pagar no se cancela por este flujo")
+    void cancelPaidRejectsUnpaid() {
+        when(appointments.findBySagaId("s1")).thenReturn(Optional.of(appointment(AppointmentStatus.PENDING_PAYMENT)));
+        assertEquals("NOT_CANCELLABLE", rejectionOf(() -> useCase.cancelPaidAppointment("s1")));
     }
 
     @Test
