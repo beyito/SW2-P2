@@ -95,6 +95,12 @@
 
         <h4 style="margin: 20px 0 10px; font-size: 0.95rem;">Turnos disponibles con {{ selectedStylist.name }}:</h4>
         <p v-if="slotsLoading" class="hint">Consultando disponibilidad...</p>
+        <div v-else-if="offlineMode" id="offline-booking" class="field-group">
+          <p class="hint">Sin conexión no se puede consultar la disponibilidad. Elige la hora que prefieres: se reservará al volver la conexión, si sigue libre.</p>
+          <label>Hora preferida:</label>
+          <input id="offline-time" v-model="offlineTime" type="time" step="1800" class="input-date" />
+          <p v-if="offlineSaved" id="offline-saved" class="hint" role="status">Solicitud guardada en este dispositivo. Se enviará al volver la conexión y luego podrás pagarla.</p>
+        </div>
         <p v-else-if="slots.length === 0" id="no-slots" class="hint">No hay turnos disponibles en esta fecha.</p>
         <div class="slots-grid">
           <button
@@ -126,7 +132,10 @@
 
         <div class="action-buttons">
           <button class="btn-outline" @click="currentStep = 1">← Volver</button>
-          <button id="btn-to-checkout" class="btn-primary" :disabled="!selectedSlot || sagaBusy" @click="reserve">
+          <button v-if="offlineMode" id="btn-save-offline" class="btn-primary" :disabled="!offlineTime || offlineSaved" @click="saveOfflineRequest">
+            Guardar solicitud
+          </button>
+          <button v-else id="btn-to-checkout" class="btn-primary" :disabled="!selectedSlot || sagaBusy" @click="reserve">
             {{ sagaBusy ? 'Reservando turno...' : 'Reservar y continuar al pago →' }}
           </button>
         </div>
@@ -189,9 +198,10 @@
 </template>
 
 <script setup>
+import { navigationParams, offlineStore } from './auth';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 import { loadStripe } from '@stripe/stripe-js';
-import { cancelBooking, getBooking, getPublishableKey, loadCatalog, loadMyPoints, loadSlots, loadStylistReviews, startBooking, syncBooking } from './api';
+import { cancelBooking, getBooking, getPublishableKey, loadCatalog, loadMyPoints, loadSlots, loadStylistReviews, queueBooking, startBooking, syncBooking } from './api';
 
 const POLL_MS = 700;
 const TERMINAL = ['COMPLETED', 'COMPENSATED', 'FAILED', 'REFUNDED'];
@@ -238,6 +248,9 @@ const selectedDate = ref(today);
 const slots = ref([]);
 const slotsLoading = ref(false);
 const selectedSlot = ref(null);
+const offlineMode = ref(false);
+const offlineTime = ref('');
+const offlineSaved = ref(false);
 
 const booking = ref(null);
 const sagaBusy = ref(false);
@@ -315,9 +328,16 @@ onMounted(async () => {
     services.value = catalog.services;
     stylists.value = catalog.stylists;
     // Una recomendación del Estudio IA puede abrir la reserva con su servicio ya elegido
-    const recommended = new URLSearchParams(window.location.search).get('service');
+    const { service: recommended } = navigationParams();
     selectedService.value = catalog.services.find((service) => service.id === recommended) ?? catalog.services[0] ?? null;
     selectedStylist.value = catalog.stylists[0] ?? null;
+    // Reserva enviada desde la cola local: continúa directamente en el pago
+    const { saga } = navigationParams();
+    if (saga) {
+      booking.value = { sagaId: saga, history: [] };
+      currentStep.value = 3;
+      poll();
+    }
   } catch (error) {
     errorMessage.value = error.message;
   } finally {
@@ -335,9 +355,12 @@ async function refreshSlots() {
   errorMessage.value = null;
   try {
     slots.value = await loadSlots(selectedStylist.value.id, selectedService.value.id, selectedDate.value);
+    offlineMode.value = false;
   } catch (error) {
     slots.value = [];
-    errorMessage.value = error.message;
+    // Sin conexión se ofrece guardar la solicitud; sin almacenamiento local solo se puede informar
+    offlineMode.value = Boolean(error.offline && offlineStore());
+    if (!offlineMode.value) errorMessage.value = error.message;
   } finally {
     slotsLoading.value = false;
   }
@@ -345,6 +368,8 @@ async function refreshSlots() {
 
 function goToSchedule() {
   currentStep.value = 2;
+  offlineSaved.value = false;
+  offlineTime.value = '';
   pointsToRedeem.value = 0;
   refreshSlots();
   loadMyPoints().then((points) => {
@@ -352,6 +377,25 @@ function goToSchedule() {
   }).catch(() => {
     myPoints.value = 0;
   });
+}
+
+async function saveOfflineRequest() {
+  errorMessage.value = null;
+  try {
+    await queueBooking(
+      {
+        serviceId: selectedService.value.id,
+        stylistId: selectedStylist.value.id,
+        appointmentDate: `${selectedDate.value}T${offlineTime.value}:00`,
+        pointsToRedeem: 0,
+      },
+      `Reserva de ${selectedService.value.name}, ${selectedDate.value} ${offlineTime.value}`,
+      crypto.randomUUID(),
+    );
+    offlineSaved.value = true;
+  } catch (error) {
+    errorMessage.value = error.message;
+  }
 }
 
 /** La llave se conserva entre reintentos del mismo intento: así un doble clic no reserva dos veces. */
@@ -459,301 +503,3 @@ function restart() {
   currentStep.value = 1;
 }
 </script>
-
-<style scoped>
-.mfe-reservas-container {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 24px;
-}
-.header-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 18px 24px;
-  margin-bottom: 24px;
-}
-.brand-group {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-.vue-badge {
-  background: #42B883;
-  color: #0A0E17;
-  font-weight: 800;
-  padding: 6px 12px;
-  border-radius: 8px;
-  font-size: 0.85rem;
-}
-.title {
-  margin: 0;
-  font-size: 1.4rem;
-  font-weight: 800;
-}
-.subtitle {
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-}
-.wizard-steps {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 0.85rem;
-  color: var(--text-muted);
-}
-.wizard-steps .active {
-  color: var(--gold-primary);
-  font-weight: 700;
-}
-.arrow {
-  color: var(--text-muted);
-}
-.step-layout {
-  display: grid;
-  grid-template-columns: 1.4fr 1fr;
-  gap: 24px;
-}
-.panel-left, .panel-right {
-  padding: 24px;
-}
-.section-title {
-  margin: 0 0 16px;
-  font-size: 1.15rem;
-  font-weight: 700;
-}
-.services-list, .stylist-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.service-card, .stylist-card {
-  padding: 16px;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid var(--border-glass);
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.service-card.selected, .stylist-card.selected {
-  border-color: var(--gold-primary);
-  background: rgba(212, 175, 55, 0.08);
-}
-.srv-top {
-  display: flex;
-  justify-content: space-between;
-  font-weight: 700;
-  margin-bottom: 6px;
-}
-.srv-price {
-  color: #42B883;
-}
-.srv-desc {
-  font-size: 0.82rem;
-  color: var(--text-secondary);
-  margin: 0 0 8px;
-}
-.srv-meta {
-  display: flex;
-  gap: 14px;
-  font-size: 0.75rem;
-  color: var(--text-muted);
-}
-.srv-supply {
-  color: var(--gold-primary);
-}
-.stylist-card {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-.avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #F5D061, #D4AF37);
-  color: #0A0E17;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 800;
-}
-.stylist-info {
-  flex: 1;
-}
-.stylist-name {
-  font-weight: 700;
-  font-size: 0.95rem;
-}
-.stylist-spec {
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-}
-.rating-badge {
-  color: var(--gold-primary);
-  font-weight: 700;
-  font-size: 0.85rem;
-}
-.btn-primary {
-  width: 100%;
-  padding: 14px;
-  margin-top: 18px;
-  background: linear-gradient(135deg, #F5D061, #D4AF37);
-  color: #0A0E17;
-  border: none;
-  border-radius: 10px;
-  font-weight: 700;
-  cursor: pointer;
-  font-size: 0.95rem;
-}
-.btn-outline {
-  padding: 12px;
-  background: transparent;
-  color: var(--gold-primary);
-  border: 1px solid var(--border-glass);
-  border-radius: 10px;
-  cursor: pointer;
-}
-.field-group {
-  margin-bottom: 16px;
-}
-.field-group label {
-  display: block;
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-  margin-bottom: 6px;
-}
-.input-date {
-  width: 100%;
-  padding: 12px;
-  box-sizing: border-box;
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid var(--border-glass);
-  color: #fff;
-  border-radius: 8px;
-}
-.slots-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-.slot-btn {
-  padding: 12px;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid var(--border-glass);
-  color: var(--text-secondary);
-  border-radius: 8px;
-  cursor: pointer;
-}
-.slot-btn.selected {
-  border-color: var(--gold-primary);
-  color: var(--gold-primary);
-  background: rgba(212, 175, 55, 0.15);
-}
-.summary-box {
-  background: rgba(0, 0, 0, 0.3);
-  padding: 16px;
-  border-radius: 10px;
-  border: 1px solid var(--border-glass);
-  margin-bottom: 20px;
-}
-.sum-row {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 10px;
-  font-size: 0.85rem;
-}
-.sum-row.total {
-  font-size: 1.1rem;
-}
-.divider {
-  height: 1px;
-  background: var(--border-glass);
-  margin: 12px 0;
-}
-.action-buttons {
-  display: flex;
-  gap: 12px;
-}
-.action-buttons button {
-  flex: 1;
-}
-.idem-row {
-  display: flex;
-  gap: 8px;
-}
-.input-idem {
-  flex: 1;
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid var(--border-glass);
-  color: #fff;
-  padding: 10px;
-  border-radius: 8px;
-  font-family: monospace;
-}
-.fail-toggle-box {
-  background: rgba(255, 255, 255, 0.02);
-  padding: 14px;
-  border-radius: 10px;
-  border: 1px solid var(--border-glass);
-  margin-bottom: 20px;
-}
-.checkbox-label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.85rem;
-  color: var(--crimson-alert);
-  font-weight: 600;
-  cursor: pointer;
-}
-.hint {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  margin: 6px 0 0 24px;
-}
-.console-box {
-  background: #06090F;
-  border-radius: 10px;
-  padding: 14px;
-  min-height: 240px;
-  max-height: 320px;
-  overflow-y: auto;
-  font-family: monospace;
-  font-size: 0.8rem;
-  border: 1px solid var(--border-glass);
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.console-empty {
-  color: var(--text-muted);
-  text-align: center;
-  padding: 40px 0;
-}
-.console-line {
-  line-height: 1.4;
-}
-.console-line.info { color: #60A5FA; }
-.console-line.success { color: #42B883; }
-.console-line.warning { color: #F5D061; }
-.console-line.error { color: #FF4B4B; }
-.console-line .ts { color: #4A5568; }
-.status-banner {
-  margin-top: 14px;
-  padding: 12px;
-  border-radius: 8px;
-  font-size: 0.85rem;
-  font-weight: 700;
-}
-.status-banner.success {
-  background: rgba(66, 184, 131, 0.15);
-  color: #42B883;
-  border: 1px solid rgba(66, 184, 131, 0.3);
-}
-.status-banner.error {
-  background: rgba(255, 75, 75, 0.15);
-  color: #FF4B4B;
-  border: 1px solid rgba(255, 75, 75, 0.3);
-}
-</style>

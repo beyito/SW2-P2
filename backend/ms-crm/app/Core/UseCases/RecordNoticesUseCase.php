@@ -38,9 +38,15 @@ class RecordNoticesUseCase
         $this->add($authorId, 'MODERATION', 'Publicación oculta', "Tu publicación \"{$title}\" se ocultó del muro. Motivo: {$reason}", "post:{$postId}:hidden:" . md5($reason));
     }
 
-    private function add(string $recipient, string $type, string $title, string $message, string $sourceRef): void
+    /** Aviso de una automatización. Devuelve falso si ya se había enviado, para no repetir el mensaje externo. */
+    public function automation(string $recipient, string $title, string $message, string $sourceRef): bool
     {
-        $this->notices->addOnce(new Notice(
+        return $this->add($recipient, 'AUTOMATION', $title, $message, "automation:{$sourceRef}");
+    }
+
+    private function add(string $recipient, string $type, string $title, string $message, string $sourceRef): bool
+    {
+        return $this->notices->addOnce(new Notice(
             id: 'ntc_' . bin2hex(random_bytes(8)),
             recipient: $recipient,
             type: $type,

@@ -41,7 +41,7 @@ test('toolsFor solo muestra lo que cada rol puede usar', () => {
   assert.deepEqual(names(['CLIENT']), ['listar_estilistas', 'consultar_disponibilidad_estilista']);
   assert.ok(names(['STYLIST']).includes('consultar_stock_critico'));
   assert.ok(!names(['STYLIST']).includes('obtener_metricas_negocio'));
-  assert.equal(names(['ADMIN']).length, 5);
+  assert.equal(names(["ADMIN"]).length, 6);
 });
 
 test('la disponibilidad usa el servicio más corto si no se indica uno', async () => {

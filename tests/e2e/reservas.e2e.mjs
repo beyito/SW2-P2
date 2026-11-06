@@ -1,7 +1,9 @@
 // Prueba en navegador real del checkout: reserva y pago con Stripe en modo prueba (CU-06, CU-10).
 // Requiere el backend en Docker Compose y los microfrontends shell y reservas en ejecución.
 import { chromium } from 'playwright';
-import { fotoDePuntos, limpiarCitasDePrueba } from './soporte.mjs';
+import { fotoDePuntos, limpiarCitasDePrueba, saltarCuestionarioInicial } from './soporte.mjs';
+
+saltarCuestionarioInicial();
 
 const SHELL = 'http://localhost:3000/';
 const CLIENT = ['camila.fernandez', 'Cliente#2026'];
@@ -53,7 +55,7 @@ await page.click('#kc-login');
 await page.waitForSelector('#current-user', { timeout: 20000 });
 await page.click('#tab-mfe-reservas');
 
-const mfe = page.frameLocator('#mfe-frame');
+const mfe = page.locator('#mfe-root');
 
 // --- Pago aprobado
 await mfe.locator('[data-service="srv-03"]').waitFor({ timeout: 15000 });

@@ -1,0 +1,575 @@
+{
+ "shapes": [
+  {
+   "input": [
+    1.19,
+    0.805,
+    0.84
+   ],
+   "name": "OVAL",
+   "confidence": 0.4428672825617987
+  },
+  {
+   "input": [
+    1.11,
+    0.815,
+    0.835
+   ],
+   "name": "ROUND",
+   "confidence": 0.5527428717422305
+  },
+  {
+   "input": [
+    1.16,
+    0.835,
+    0.85
+   ],
+   "name": "SQUARE",
+   "confidence": 0.5552486570691251
+  },
+  {
+   "input": [
+    1.19,
+    0.775,
+    0.875
+   ],
+   "name": "HEART",
+   "confidence": 0.7919913303985714
+  },
+  {
+   "input": [
+    1.27,
+    0.805,
+    0.84
+   ],
+   "name": "OBLONG",
+   "confidence": 0.6368459415873349
+  },
+  {
+   "input": [
+    1.249,
+    0.844,
+    0.891
+   ],
+   "name": "SQUARE",
+   "confidence": 0.6213437271113852
+  },
+  {
+   "input": [
+    1.377,
+    0.844,
+    0.909
+   ],
+   "name": "OBLONG",
+   "confidence": 0.8783165384118617
+  },
+  {
+   "input": [
+    1.012,
+    0.805,
+    0.912
+   ],
+   "name": "ROUND",
+   "confidence": 0.4865612216925219
+  },
+  {
+   "input": [
+    1.26,
+    0.866,
+    0.796
+   ],
+   "name": "SQUARE",
+   "confidence": 0.554066107078361
+  },
+  {
+   "input": [
+    1.188,
+    0.775,
+    0.856
+   ],
+   "name": "HEART",
+   "confidence": 0.5884060864677075
+  },
+  {
+   "input": [
+    1.23,
+    0.742,
+    0.81
+   ],
+   "name": "HEART",
+   "confidence": 0.4492218522000685
+  },
+  {
+   "input": [
+    1.112,
+    0.868,
+    0.887
+   ],
+   "name": "SQUARE",
+   "confidence": 0.905196868025403
+  },
+  {
+   "input": [
+    1.064,
+    0.852,
+    0.799
+   ],
+   "name": "ROUND",
+   "confidence": 0.6749787495762357
+  },
+  {
+   "input": [
+    1.247,
+    0.758,
+    0.78
+   ],
+   "name": "OBLONG",
+   "confidence": 0.5494367923907502
+  },
+  {
+   "input": [
+    1.349,
+    0.769,
+    0.81
+   ],
+   "name": "OBLONG",
+   "confidence": 0.9138785007533693
+  },
+  {
+   "input": [
+    1.393,
+    0.862,
+    0.821
+   ],
+   "name": "OBLONG",
+   "confidence": 0.9360528610346012
+  },
+  {
+   "input": [
+    1.385,
+    0.815,
+    0.875
+   ],
+   "name": "OBLONG",
+   "confidence": 0.9477034170015776
+  },
+  {
+   "input": [
+    1.082,
+    0.872,
+    0.877
+   ],
+   "name": "SQUARE",
+   "confidence": 0.8685916778333821
+  },
+  {
+   "input": [
+    1.387,
+    0.865,
+    0.822
+   ],
+   "name": "OBLONG",
+   "confidence": 0.9161319865786179
+  },
+  {
+   "input": [
+    1.144,
+    0.763,
+    0.8
+   ],
+   "name": "OVAL",
+   "confidence": 0.4975306173122038
+  },
+  {
+   "input": [
+    1.026,
+    0.782,
+    0.864
+   ],
+   "name": "ROUND",
+   "confidence": 0.659429372589836
+  },
+  {
+   "input": [
+    1.001,
+    0.835,
+    0.827
+   ],
+   "name": "ROUND",
+   "confidence": 0.8423391860532462
+  },
+  {
+   "input": [
+    1.124,
+    0.855,
+    0.847
+   ],
+   "name": "SQUARE",
+   "confidence": 0.7218385000478259
+  },
+  {
+   "input": [
+    1.126,
+    0.807,
+    0.879
+   ],
+   "name": "ROUND",
+   "confidence": 0.26485124627120205
+  },
+  {
+   "input": [
+    1.023,
+    0.877,
+    0.783
+   ],
+   "name": "ROUND",
+   "confidence": 0.6696202586866156
+  },
+  {
+   "input": [
+    1.3,
+    0.858,
+    0.783
+   ],
+   "name": "OBLONG",
+   "confidence": 0.6429576809868762
+  },
+  {
+   "input": [
+    1.315,
+    0.791,
+    0.861
+   ],
+   "name": "OBLONG",
+   "confidence": 0.7497862608663861
+  },
+  {
+   "input": [
+    1.004,
+    0.747,
+    0.805
+   ],
+   "name": "ROUND",
+   "confidence": 0.8175868067373797
+  },
+  {
+   "input": [
+    1.382,
+    0.768,
+    0.886
+   ],
+   "name": "OBLONG",
+   "confidence": 0.6179633007328377
+  },
+  {
+   "input": [
+    1.372,
+    0.872,
+    0.828
+   ],
+   "name": "OBLONG",
+   "confidence": 0.8298859939230742
+  },
+  {
+   "input": [
+    1.142,
+    0.813,
+    0.889
+   ],
+   "name": "SQUARE",
+   "confidence": 0.335621239777034
+  },
+  {
+   "input": [
+    1.043,
+    0.845,
+    0.892
+   ],
+   "name": "SQUARE",
+   "confidence": 0.6384187518638703
+  },
+  {
+   "input": [
+    1.344,
+    0.745,
+    0.912
+   ],
+   "name": "HEART",
+   "confidence": 0.9526037733192081
+  },
+  {
+   "input": [
+    1.036,
+    0.788,
+    0.866
+   ],
+   "name": "ROUND",
+   "confidence": 0.6577693088480614
+  },
+  {
+   "input": [
+    1.367,
+    0.788,
+    0.909
+   ],
+   "name": "OBLONG",
+   "confidence": 0.5473984089880323
+  },
+  {
+   "input": [
+    1.218,
+    0.784,
+    0.824
+   ],
+   "name": "OVAL",
+   "confidence": 0.4505665607124356
+  },
+  {
+   "input": [
+    1.071,
+    0.751,
+    0.801
+   ],
+   "name": "ROUND",
+   "confidence": 0.5761165117747599
+  },
+  {
+   "input": [
+    1.276,
+    0.88,
+    0.803
+   ],
+   "name": "SQUARE",
+   "confidence": 0.6988652815838109
+  },
+  {
+   "input": [
+    1.019,
+    0.878,
+    0.855
+   ],
+   "name": "SQUARE",
+   "confidence": 0.6986887179075137
+  },
+  {
+   "input": [
+    1.162,
+    0.773,
+    0.863
+   ],
+   "name": "HEART",
+   "confidence": 0.7050871577438328
+  },
+  {
+   "input": [
+    1.331,
+    0.804,
+    0.839
+   ],
+   "name": "OBLONG",
+   "confidence": 0.881425493999081
+  },
+  {
+   "input": [
+    1.022,
+    0.868,
+    0.785
+   ],
+   "name": "ROUND",
+   "confidence": 0.737706088040265
+  },
+  {
+   "input": [
+    1.197,
+    0.857,
+    0.798
+   ],
+   "name": "SQUARE",
+   "confidence": 0.6015916509572631
+  },
+  {
+   "input": [
+    1.293,
+    0.873,
+    0.868
+   ],
+   "name": "SQUARE",
+   "confidence": 0.7302276139254364
+  },
+  {
+   "input": [
+    1.315,
+    0.755,
+    0.841
+   ],
+   "name": "OBLONG",
+   "confidence": 0.5825321801120888
+  },
+  {
+   "input": [
+    9.0,
+    9.0,
+    9.0
+   ],
+   "name": "SQUARE",
+   "confidence": 1.0
+  }
+ ],
+ "undertones": [
+  {
+   "hue": -10,
+   "name": "COOL",
+   "confidence": 0.75
+  },
+  {
+   "hue": 20,
+   "name": "COOL",
+   "confidence": 0.75
+  },
+  {
+   "hue": 44.9,
+   "name": "COOL",
+   "confidence": 0.4
+  },
+  {
+   "hue": 45,
+   "name": "NEUTRAL",
+   "confidence": 0.4
+  },
+  {
+   "hue": 46,
+   "name": "NEUTRAL",
+   "confidence": 0.43
+  },
+  {
+   "hue": 54,
+   "name": "NEUTRAL",
+   "confidence": 0.72
+  },
+  {
+   "hue": 62.9,
+   "name": "NEUTRAL",
+   "confidence": 0.4
+  },
+  {
+   "hue": 63,
+   "name": "NEUTRAL",
+   "confidence": 0.4
+  },
+  {
+   "hue": 70,
+   "name": "WARM",
+   "confidence": 0.65
+  },
+  {
+   "hue": 80,
+   "name": "WARM",
+   "confidence": 0.75
+  },
+  {
+   "hue": 120,
+   "name": "WARM",
+   "confidence": 0.75
+  }
+ ],
+ "lab": [
+  {
+   "rgb": [
+    200,
+    150,
+    120
+   ],
+   "lab": [
+    169,
+    143,
+    151
+   ]
+  },
+  {
+   "rgb": [
+    10,
+    10,
+    10
+   ],
+   "lab": [
+    7,
+    128,
+    128
+   ]
+  },
+  {
+   "rgb": [
+    255,
+    255,
+    255
+   ],
+   "lab": [
+    255,
+    128,
+    128
+   ]
+  },
+  {
+   "rgb": [
+    120,
+    80,
+    60
+   ],
+   "lab": [
+    97,
+    142,
+    147
+   ]
+  },
+  {
+   "rgb": [
+    90,
+    200,
+    40
+   ],
+   "lab": [
+    184,
+    70,
+    192
+   ]
+  },
+  {
+   "rgb": [
+    30,
+    60,
+    220
+   ],
+   "lab": [
+    90,
+    177,
+    45
+   ]
+  }
+ ],
+ "palettes": {
+  "WARM": [
+   "Miel",
+   "Caramelo",
+   "Cobre",
+   "Terracota",
+   "Mostaza",
+   "Verde oliva"
+  ],
+  "COOL": [
+   "Cenizo",
+   "Chocolate frío",
+   "Perla",
+   "Azul marino",
+   "Esmeralda",
+   "Lavanda"
+  ],
+  "NEUTRAL": [
+   "Avellana",
+   "Rubio beige",
+   "Castaño natural",
+   "Beige",
+   "Verde salvia",
+   "Azul denim"
+  ]
+ }
+}

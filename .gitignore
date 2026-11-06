@@ -52,3 +52,6 @@ Thumbs.db
 
 # Caché de compilación de Angular
 .angular/
+
+# Modelos de la app móvil: se obtienen con dart run tool/fetch_models.dart
+mobile/salon_mobile/assets/models/

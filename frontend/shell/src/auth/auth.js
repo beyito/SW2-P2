@@ -27,11 +27,13 @@ export function currentUser() {
   const roles = token.realm_access?.roles ?? [];
   const role = ['ADMIN', 'STYLIST', 'CLIENT'].find((candidate) => roles.includes(candidate)) ?? 'CLIENT';
   const initials = name.split(' ').map((part) => part[0]).slice(0, 2).join('').toUpperCase();
-  return { name, role, avatar: initials };
+  return { id: token.salon_id ?? token.sub, name, role, avatar: initials };
 }
 
 /** Renueva el token si le quedan menos de 30 segundos de vida. */
 export async function freshToken() {
+  // Sin conexión no se puede renovar: las peticiones fallarán por la red y pasarán a la cola local
+  if (!navigator.onLine) return keycloak.token;
   await keycloak.updateToken(30);
   return keycloak.token;
 }

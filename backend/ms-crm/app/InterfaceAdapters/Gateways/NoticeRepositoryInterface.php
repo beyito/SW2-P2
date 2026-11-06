@@ -6,8 +6,8 @@ use App\Core\Entities\Notice;
 
 interface NoticeRepositoryInterface
 {
-    /** Guarda el aviso; si ya existe uno con la misma referencia no hace nada. */
-    public function addOnce(Notice $notice): void;
+    /** Guarda el aviso; si ya existe uno con la misma referencia no hace nada y devuelve falso. */
+    public function addOnce(Notice $notice): bool;
     /**
      * @param string[] $recipients
      * @return Notice[] Los más recientes primero.

@@ -53,7 +53,14 @@ export class BiometricsService implements IBiometricsUseCase {
     };
   }
 
-  async grantConsent(clientId: string, policyVersion: string): Promise<BiometricConsent> {
+  async grantConsent(clientId: string, policyVersion: string, declaresAdult: boolean): Promise<BiometricConsent> {
+    // Un menor no puede autorizar por sí mismo el tratamiento de sus datos biométricos
+    if (declaresAdult !== true) {
+      throw new UnprocessableEntityException({
+        code: 'ADULT_DECLARATION_REQUIRED',
+        message: 'El diagnóstico automático es solo para mayores de 18 años. Puede indicar sus rasgos a mano.',
+      });
+    }
     // Debe aceptar exactamente el texto que se le mostró
     if (policyVersion !== BIOMETRIC_POLICY_VERSION) {
       throw new UnprocessableEntityException({

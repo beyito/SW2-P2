@@ -5,7 +5,8 @@
   "description": "Microfrontend ERP y Gestión Operativa en Angular",
   "scripts": {
     "start": "ng serve --port 3003 --host 0.0.0.0",
-    "build": "ng build"
+    "build": "ng build",
+    "test": "ng test --watch=false"
   },
   "dependencies": {
     "@angular/common": "21.2.26",
@@ -20,6 +21,8 @@
     "@angular/build": "21.2.19",
     "@angular/cli": "21.2.19",
     "@angular/compiler-cli": "21.2.26",
-    "typescript": "5.9.3"
+    "jsdom": "25.0.1",
+    "typescript": "5.9.3",
+    "vitest": "4.0.8"
   }
 }

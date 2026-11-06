@@ -1,5 +1,5 @@
-import { computed, Injectable, signal } from '@angular/core';
-import { CONFIG } from './config';
+import { computed, Injectable } from '@angular/core';
+import { currentToken, freshToken, sessionLost } from './platform';
 
 interface Claims {
   salon_id?: string;
@@ -9,12 +9,12 @@ interface Claims {
 }
 
 /**
- * Puente de autenticación con el Shell: el token solo vive en memoria y se acepta únicamente
- * del Shell. Decodificarlo aquí solo decide qué se muestra; quien autoriza es cada servicio.
+ * Sesión entregada por el Shell. Decodificar el token aquí solo decide qué se muestra;
+ * quien autoriza es cada servicio.
  */
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  readonly token = signal<string | null>(null);
+  readonly token = currentToken;
   private readonly claims = computed<Claims>(() => {
     const token = this.token();
     return token ? decodeClaims(token) : {};
@@ -23,21 +23,13 @@ export class AuthService {
   readonly isAdmin = computed(() => this.roles().includes('ADMIN'));
   readonly userId = computed(() => this.claims().salon_id ?? this.claims().sub ?? '');
 
-  constructor() {
-    window.addEventListener('message', (event) => {
-      if (event.origin !== CONFIG.shellOrigin || event.source !== window.parent) return;
-      if (event.data?.type === 'SALON_AUTH' && event.data.token) {
-        this.token.set(event.data.token);
-      }
-    });
-    if (window.parent !== window) {
-      window.parent.postMessage({ type: 'SALON_READY' }, CONFIG.shellOrigin);
-    }
+  freshToken(): Promise<string> {
+    return freshToken();
   }
 
   /** Avisa al Shell de que la sesión terminó. */
   sessionLost(): void {
-    window.parent.postMessage({ type: 'SALON_UNAUTHORIZED' }, CONFIG.shellOrigin);
+    sessionLost();
   }
 }
 

@@ -1,0 +1,111 @@
+{
+  "id": "salonconfirmacion",
+  "name": "Confirmación de reserva por WhatsApp (RF-12)",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {
+        "queue": "n8n.saga.completed",
+        "options": {
+          "jsonParseBody": true,
+          "onlyContent": true,
+          "binding": {
+            "bindings": [
+              {
+                "exchange": "salon.saga",
+                "routingKey": "saga.completed"
+              }
+            ]
+          },
+          "assertQueue": true,
+          "durable": true
+        }
+      },
+      "name": "Reserva pagada (saga.completed)",
+      "type": "n8n-nodes-base.rabbitmqTrigger",
+      "typeVersion": 1.1,
+      "credentials": {
+        "rabbitmq": {
+          "id": "salonrabbitmq0001",
+          "name": "RabbitMQ del salón"
+        }
+      },
+      "id": "salonconfirmacion-0",
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const http = (options) => this.helpers.httpRequest(options);\n\nasync function serviceToken() {\n  const body = `grant_type=client_credentials&client_id=salon-agent&client_secret=${encodeURIComponent($env.SALON_AGENT_SECRET)}`;\n  const { access_token } = await http({\n    method: 'POST',\n    url: $env.KEYCLOAK_TOKEN_URL,\n    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },\n    body,\n    json: true,\n  });\n  return access_token;\n}\n\nasync function graphql(url, token, query, variables = {}) {\n  const response = await http({\n    method: 'POST',\n    url,\n    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },\n    body: { query, variables },\n    json: true,\n  });\n  if (response.errors?.length) throw new Error(response.errors[0].message);\n  return response.data;\n}\n\n// Se envía solo con WhatsApp configurado, con teléfono y con la autorización del cliente\nfunction whatsappItem(phone, text, template, parameters = []) {\n  const to = String(phone ?? '').replace(/\\D/g, '');\n  if (!$env.WHATSAPP_TOKEN || !to) return [];\n  // Meta solo admite texto libre dentro de una conversación abierta: lo demás requiere una plantilla aprobada\n  const message = template\n    ? { type: 'template', template: { name: template, language: { code: 'es' }, components: [{ type: 'body', parameters: parameters.map((value) => ({ type: 'text', text: String(value) })) }] } }\n    : { type: 'text', text: { body: text } };\n  return [{ json: { payload: { messaging_product: 'whatsapp', to, ...message } } }];\n}\n\nasync function clientContact(token, clientId) {\n  const { getClientById } = await graphql($env.CRM_GRAPHQL_URL, token, 'query ($id: ID!) { getClientById(id: $id) { fullName phone whatsappOptIn } }', { id: clientId });\n  return getClientById;\n}\n\nconst event = $input.first().json;\nconst contact = await clientContact(await serviceToken(), event.clientId);\nif (!contact?.whatsappOptIn) return [];\nconst name = contact.fullName.split(' ')[0];\nreturn whatsappItem(\n  contact.phone,\n  `¡Hola ${name}! Tu reserva de ${event.serviceName} está confirmada y pagada. Puedes ver tu cita y tu factura en ${$env.PORTAL_URL}.`,\n  $env.WHATSAPP_TEMPLATE_CONFIRMACION,\n  [name, event.serviceName],\n);"
+      },
+      "name": "Preparar confirmación",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "id": "salonconfirmacion-1",
+      "position": [
+        480,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.WHATSAPP_API_URL }}/{{ $env.WHATSAPP_PHONE_NUMBER_ID }}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.WHATSAPP_TOKEN }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.payload) }}",
+        "options": {}
+      },
+      "name": "Enviar por WhatsApp Cloud API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "id": "salonconfirmacion-2",
+      "position": [
+        720,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Reserva pagada (saga.completed)": {
+      "main": [
+        [
+          {
+            "node": "Preparar confirmación",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar confirmación": {
+      "main": [
+        [
+          {
+            "node": "Enviar por WhatsApp Cloud API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "versionId": "salonconfirmacion-v1"
+}

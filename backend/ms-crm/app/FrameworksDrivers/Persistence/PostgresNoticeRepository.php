@@ -14,7 +14,7 @@ class PostgresNoticeRepository implements NoticeRepositoryInterface
     {
     }
 
-    public function addOnce(Notice $notice): void
+    public function addOnce(Notice $notice): bool
     {
         $stmt = $this->pdo->prepare(
             "INSERT INTO notices (id, recipient, type, title, message, source_ref)
@@ -29,6 +29,7 @@ class PostgresNoticeRepository implements NoticeRepositoryInterface
             ':message' => $notice->message,
             ':source_ref' => $notice->sourceRef,
         ]);
+        return $stmt->rowCount() === 1;
     }
 
     public function forRecipients(array $recipients): array

@@ -115,14 +115,14 @@ Los clientes nuevos pueden registrarse desde la pantalla de login. La consola de
 ## 7. Pruebas
 
 ```powershell
-# ms-gestion (JUnit 5 + Mockito)
-docker run --rm -v "${PWD}/backend/ms-gestion:/app" -v maven-repo:/root/.m2 -w /app maven:3.9-eclipse-temurin-21 mvn clean test
+# ms-gestion (JUnit 5, Mockito y Testcontainers): usa el socket de Docker y las migraciones del proyecto
+docker run --rm -v "${PWD}:/workspace" -v maven-repo:/root/.m2 -v //var/run/docker.sock:/var/run/docker.sock -e TESTCONTAINERS_HOST_OVERRIDE=host.docker.internal -w /workspace/backend/ms-gestion maven:3.9-eclipse-temurin-21 mvn clean test
 
-# ms-crm (php artisan test, dentro de su imagen de pruebas)
+# ms-crm (PHPUnit y Testcontainers)
 docker build --target test -t salon-ms-crm-test backend/ms-crm
-docker run --rm salon-ms-crm-test
+docker run --rm -v //var/run/docker.sock:/var/run/docker.sock -v "${PWD}/docker/postgres/migrations:/migrations:ro" --add-host host.docker.internal:host-gateway -e TESTCONTAINERS_HOST_OVERRIDE=host.docker.internal salon-ms-crm-test
 
-# ms-asesoria (Jest)
+# ms-asesoria (Jest y Testcontainers)
 cd backend\ms-asesoria; npm test
 
 # ms-ia (PyTest): corre dentro de su imagen, porque usa los modelos reales y Python 3.11
@@ -132,40 +132,32 @@ docker compose run --rm --no-deps -v "${PWD}/backend/ms-ia/tests:/app/tests" -v 
 cd backend\mcp-server; npm test
 cd backend\saga-orchestrator; npm test
 
-# Seguridad y rendimiento en vivo: requiere el entorno levantado
-# Solo necesita httpx, PyJWT y pytest; se crea una vez con: python -m venv backend\ms-ia\.venv y pip install httpx pyjwt[crypto] pytest
+# Frontends (Vitest): shell, mfe-estudio-ia, mfe-reservas y mfe-gestion
+cd frontend\shell; npm test
+
+# Móvil
+cd mobile\salon_mobile; flutter test
+
+# Pruebas en vivo y de contrato contra todos los servicios (requieren el entorno levantado)
+# El entorno virtual se crea una vez: python -m venv backend\ms-ia\.venv; pip install httpx pyjwt[crypto] pytest graphql-core
 cd tests\integration; ..\..\backend\ms-ia\.venv\Scripts\python.exe -m pytest .
 
-# Navegador real: requiere además los microfrontends en ejecución
+# Navegador real (requieren además los cuatro microfrontends en ejecución)
 cd tests\e2e; npm install; npx playwright install chromium; npm test
-
-# Si el puerto 3003 está ocupado por otro proceso, el ERP compilado se puede probar sin liberarlo
-cd frontend\mfe-gestion; npm run build
-cd tests\e2e; $env:ERP_DESDE_DIST = '1'; npm test
 ```
 
----
+## 8. Módulos federados
 
-## 8. Cliente Móvil
+El Shell carga los tres microfrontends con Module Federation, en una sola página. Cada uno debe estar en ejecución, pero uno caído solo afecta a su pestaña. Abrir `http://localhost:3001`, `3002` o `3003` por separado no sirve: el módulo necesita la sesión del Shell.
 
-El proyecto aún no incluye las carpetas de plataforma `android/` e `ios/`, por lo que no se puede ejecutar en un dispositivo; se agregarán en la Fase H. Hoy solo admite análisis estático:
+## 9. Modo sin conexión
 
-```powershell
-cd mobile\salon_mobile
-flutter pub get
-flutter analyze
-```
+- **Web:** con la plataforma abierta, las prendas, los comentarios, las reacciones y las solicitudes de reserva se guardan en IndexedDB y se envían al volver la conexión. Una reserva enviada debe pagarse en 15 minutos. Abrir la plataforma sin conexión no es posible, porque iniciar sesión requiere Keycloak.
+- **Móvil:** ver `mobile/salon_mobile/README.md`. Puede abrirse sin conexión si ya se inició sesión.
 
----
+## 10. WhatsApp
 
-## 9. Detener el Entorno
-
-```powershell
-docker compose stop      # Detiene los contenedores y conserva los datos
-docker compose down      # Elimina los contenedores y conserva los volúmenes
-```
-
-> **Atención:** `docker compose down -v` borra también todos los datos de las bases.
+Sin credenciales, los recordatorios y las confirmaciones llegan como avisos dentro de la aplicación. Para enviarlos de verdad, cree una app en [Meta for Developers](https://developers.facebook.com/), defina en `.env` las variables `WHATSAPP_*` de `.env.example` y ejecute `docker compose up -d n8n`. El cliente debe autorizarlo en "Mi perfil". Para recibir respuestas, Meta debe poder llegar a `/webhook/whatsapp/entrante`, lo que requiere una dirección pública. Fuera de una conversación abierta, Meta solo admite plantillas aprobadas.
 
 ## Diagnóstico biométrico y voz
 

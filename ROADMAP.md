@@ -19,7 +19,7 @@ Registro oficial del desarrollo de la **Plataforma Inteligente para Salón de Be
 | **E** | CRM: Laravel, GraphQL, factura, puntos, canje y reembolso | Vie 6 | **COMPLETADA** |
 | **F** | Frontends y MCP con datos reales, perfil, reseñas, avisos y moderación | Vie 6 | **COMPLETADA** |
 | **G** | IA real y consentimiento biométrico | Vie 6 | **COMPLETADA** |
-| **H** | Offline, n8n, Module Federation, Testcontainers y certificación final | Lun 9 - Mar 10 | Pendiente (primera en recortarse si falta tiempo) |
+| **H** | Perfil de estilo, agente autónomo, n8n, offline, Module Federation, móvil, Testcontainers y certificación final | Vie 6 | **COMPLETADA** |
 
 ---
 
@@ -166,13 +166,13 @@ La Fase D se ejecutó antes por decisión del usuario, e incorporó las piezas d
 
 **Limitaciones conocidas:**
 - El E2E del ERP usó el Angular compilado (`ERP_DESDE_DIST=1`), porque el puerto 3003 seguía ocupado por el servidor estático anterior. Cerrada en la Fase G: todas las suites corren contra `ng serve`.
-- El chat del agente ofrece consultas predefinidas y reportes en lenguaje natural, pero el modelo aún no elige herramientas por sí mismo.
+- El modelo aún no elegía herramientas por sí mismo. Cerrada en la Fase H.
 - Registrar un estilista no le crea una cuenta en Keycloak. Un cliente registrado por el personal tampoco queda vinculado a una cuenta.
 - Un administrador que marca un aviso de stock como leído lo marca para todos los administradores.
 - Cada estilista tiene un solo bloque de horario por día.
 - La URL de la imagen de una publicación oculta sigue accesible, y una imagen subida que nunca se usa queda huérfana en GridFS.
 - Los comentarios y las reseñas no tienen paginación; el muro muestra las 50 publicaciones más recientes.
-- No hay pruebas unitarias de componentes de frontend (Fase H); los cubre el E2E.
+- No había pruebas de componentes de frontend. Cerrada en la Fase H.
 
 ## Fase G: IA Real (CU-13, CU-14, CU-16, CU-18, RF-04, RF-05, RF-06) (Completada)
 - [x] Consentimiento biométrico versionado en `ms-asesoria`: sin él no se analiza nada; si no se puede comprobar, tampoco. Es voluntario: se pueden indicar los rasgos a mano.
@@ -205,13 +205,38 @@ La Fase D se ejecutó antes por decisión del usuario, e incorporó las piezas d
 - El plan gratuito de Gemini permite 20 consultas diarias por modelo. Al agotarlas, los reportes y la marca personal siguen funcionando con datos reales y plantillas, y lo indican en pantalla.
 - La imagen de `ms-ia` pesa 3,9 GB y el contenedor usa unos 700 MB de memoria sin Whisper cargado.
 - El análisis se hace de uno en uno en CPU: varias peticiones simultáneas esperan su turno.
-- El agente sigue sin elegir herramientas por sí mismo (RF-11): la voz y el texto siempre usan la herramienta de reportes.
+- El agente no elegía herramientas por sí mismo (RF-11). Cerrada en la Fase H.
 
-## Fase H: Cierre (CU-19, CU-22, RF-10, RF-12)
-- [ ] Flujos n8n desplegados y disparados por eventos reales.
-- [ ] Offline web (IndexedDB) y móvil (plataformas Android/iOS, TFLite, sincronización automática e idempotente).
-- [ ] Module Federation en el Shell.
-- [ ] Testcontainers, pruebas de frontend y de contrato, y certificación final.
+## Fase H: Cierre (CU-13, CU-17, CU-19, CU-22, RF-10, RF-11, RF-12) (Completada)
+- [x] Perfil de estilo pedido por el usuario: cuestionario opcional en la primera sesión (género, rango de edad, largo, mantenimiento y estilo), editable en "Mi perfil". El catálogo se separa para hombre y mujer, y la edad orienta el resultado. Quien responde "no binario" o no responde ve todo el catálogo.
+- [x] El consentimiento biométrico exige declarar la mayoría de edad; a un menor solo se le ofrece el modo a mano.
+- [x] Agente autónomo: el modelo elige las herramientas del Servidor MCP según la pregunta, limitado a las del rol de quien pregunta. La voz y el texto usan este agente.
+- [x] Cuatro flujos de n8n que se importan y activan solos: confirmación por evento real de pago, recordatorio 24 h antes sin repetirlo, alerta de stock crítico y respuestas o reservas por WhatsApp. Exigen la autorización del cliente.
+- [x] Module Federation: React, Vue y Angular en una sola página, con React compartido y estilos aislados. Un módulo caído solo afecta a su pestaña.
+- [x] Offline web: cola en IndexedDB por usuario, con envío automático en orden, conflictos visibles y sin duplicados. Reservas guardadas sin conexión que luego se pagan con Stripe.
+- [x] Móvil: login real con Keycloak, cola en SQLite, lecturas sin conexión y diagnóstico en el dispositivo con los mismos modelos del servidor en TFLite.
+- [x] Testcontainers en `ms-gestion`, `ms-asesoria` y `ms-crm`; pruebas de contrato de todas las consultas GraphQL de los clientes; pruebas de componentes en los cuatro frontends.
+
+**Aceptación:** una operación hecha sin conexión llega una sola vez al volver la red, en web y móvil, y los recordatorios salen por eventos y horarios reales. Verificada.
+
+**Verificación en vivo (6 de noviembre):**
+- [x] `tests/integration`: 245 pruebas contra todos los servicios reales. En la corrida final fallaron 3, por errores de las propias pruebas (una lista de herramientas desactualizada y un evento incompleto que generaba mensajes muertos). Se corrigieron y se repitieron esas suites: 46/46, con 0 mensajes muertos.
+- [x] `tests/e2e` en Chromium: `seguridad` 14/14, `reservas` 9/9, `fase_f` 51/51, `fase_g` 33/33, `perfil_estilo` 15/15, `fase_h_offline` 24/24.
+- [x] Android en emulador: 4/4 con modelos y servicios reales, con el mismo diagnóstico que el servidor. Login real con Keycloak y cola con el servidor inalcanzable, comprobados a mano.
+- [x] Contrato: 48 consultas GraphQL de web, móvil, MCP y n8n, válidas contra los esquemas reales.
+- [x] Suites: `ms-gestion` 68/68, `ms-crm` 50/50, `ms-asesoria` 80/80, `ms-ia` 114/114, `mcp-server` 43/43, `saga-orchestrator` 31/31, `shell` 15/15, `mfe-estudio-ia` 23/23, `mfe-reservas` 10/10, `mfe-gestion` 14/14, móvil 17/17. Incluyen Testcontainers con PostgreSQL y MongoDB reales.
+- [x] Datos intactos tras las pruebas: stock, puntos, facturas y citas reales sin cambios; 0 mensajes muertos.
+
+**Limitaciones conocidas:**
+- **WhatsApp no se probó contra Meta:** el formato se verificó con un servidor local que imita su API. Enviar de verdad requiere una cuenta de Meta, y para escribir fuera de una conversación, plantillas aprobadas.
+- **iOS no se compiló:** requiere macOS. El código y los permisos están listos, pero no se ejecutó.
+- **Móvil:** se verificó en un emulador Android, no en un teléfono físico. La captura con cámara del móvil no se probó; el análisis sí, con una foto real. Sin conexión solo analiza fotos, no video. En 20 de 124 rostros cercanos a un límite, el cálculo manual de los puntos asignó otra forma que el servidor.
+- **Offline web:** requiere tener la plataforma abierta, porque el token solo vive en memoria y recargar sin conexión exige Keycloak. El ERP y el diagnóstico con IA necesitan conexión. Subir imágenes también.
+- **Una reserva sin conexión no conoce la disponibilidad:** se valida al enviarla, y si el turno está ocupado se informa como rechazada. No usa puntos, y debe pagarse en 15 minutos.
+- **Catálogo por género:** los dos estilos de color para hombre no tienen servicio en el catálogo y se indican como "consulta en el salón". Hasta agregarlos no se pueden reservar directamente.
+- **Cuenta de automatización:** n8n usa la cuenta de servicio `salon-agent`, con rol ADMIN. En producción convendría un rol más limitado.
+- **Frontends fuera de Docker Compose:** los cuatro se ejecutan con `npm` en el equipo.
+- La verificación de firma de los webhooks de Meta (`X-Hub-Signature-256`) no está implementada: es necesaria antes de exponer n8n a Internet.
 
 ## Funciones propuestas (sin aprobar)
 Pedidas por el usuario el 6 de noviembre. Antes de implementarlas se presentarán las opciones de IA, servicio o API para que elija, y hará falta una nueva versión de la política de datos biométricos si la foto sale hacia un tercero.
@@ -226,7 +251,7 @@ Estado actualizado al cierre de cada fase. ✅ completo y verificado en vivo. �
 
 | CU | Descripción | Estado | Fase |
 | :---: | :--- | :---: | :---: |
-| CU-01 | Autenticar usuario (SSO y sesión única) | ✅ (web) | B |
+| CU-01 | Autenticar usuario (SSO y sesión única) | ✅ (web y móvil) | B, H |
 | CU-02 | Cerrar sesión activa | ✅ (web) | B |
 | CU-03 | Registrar cliente | ✅ | E, F |
 | CU-04 | Registrar o modificar estilista | ✅ (sin crear cuenta de acceso) | C |
@@ -238,13 +263,13 @@ Estado actualizado al cierre de cada fase. ✅ completo y verificado en vivo. �
 | CU-10 | Reserva y pago (SAGA e idempotencia) | ✅ (web) | D |
 | CU-11 | Emitir factura | ✅ (sin validez fiscal) | E, F |
 | CU-12 | Puntos de fidelidad | ✅ | E, F |
-| CU-13 | Escaneo capilar y facial | ✅ (web; soporte offline en Fase H) | G, H |
+| CU-13 | Escaneo capilar y facial | ✅ (web y Android; offline con fotos) | G, H |
 | CU-14 | Recomendaciones | ✅ | G |
 | CU-15 | Armario virtual | ✅ | F |
 | CU-16 | Asesoría para redes sociales | ✅ | G |
-| CU-17 | Métricas por agente (MCP) | ✅ (consultas predefinidas; el modelo aún no elige herramientas) | F |
+| CU-17 | Métricas por agente (MCP) | ✅ | F, H |
 | CU-18 | Reportes por lenguaje natural | ✅ (texto y voz) | F, G |
-| CU-19 | Recordatorios por WhatsApp (n8n) | ❌ | H |
+| CU-19 | Recordatorios y reservas por WhatsApp | 🟡 (flujos reales; envío a Meta sin probar por falta de cuenta) | H |
 | CU-20 | Publicar look | ✅ | F |
 | CU-21 | Reaccionar y comentar | ✅ | F |
-| CU-22 | Sincronización offline | 🟡 | H |
+| CU-22 | Sincronizar cola offline | ✅ (web y Android) | H |

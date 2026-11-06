@@ -18,5 +18,6 @@ $PSQL -d salon_crm -f /migrations/04_crm_facturacion.sql
 $PSQL -d salon_gestion -f /migrations/05_reembolsos_gestion.sql
 $PSQL -d salon_gestion -f /migrations/06_estilistas_resenas_panel.sql
 $PSQL -d salon_crm -f /migrations/07_avisos_crm.sql
+$PSQL -d salon_crm -f /migrations/08_perfil_de_estilo.sql
 
 echo "Migraciones de PostgreSQL aplicadas correctamente."

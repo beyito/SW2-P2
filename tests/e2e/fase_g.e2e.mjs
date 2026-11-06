@@ -6,7 +6,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { crc32, deflateSync } from 'node:zlib';
 import { chromium } from 'playwright';
-import { iniciarSesion, usarErpCompilado } from './soporte.mjs';
+import { iniciarSesion, saltarCuestionarioInicial } from './soporte.mjs';
 
 const AQUI = dirname(fileURLToPath(import.meta.url));
 const VIDEO_CAMARA = join(AQUI, 'fixtures', 'rostro.y4m');
@@ -63,6 +63,7 @@ const limpiar = () => {
 };
 const diagnosticos = () => Number(mongo("db.biometric_diagnoses.countDocuments({clientId: 'cli-001'})"));
 
+saltarCuestionarioInicial();
 limpiar();
 const imagenesAntes = mongo("db.getCollection('media.files').countDocuments()");
 
@@ -80,7 +81,7 @@ try {
   const contexto = await browser.newContext({ viewport: { width: 1400, height: 1200 } });
   for (const origen of ORIGENES) await contexto.grantPermissions(['camera', 'microphone'], { origin: origen });
   const pagina = await iniciarSesion(contexto, SHELL, CAMILA);
-  const mfe = pagina.frameLocator('#mfe-frame');
+  const mfe = pagina.locator('#mfe-root');
 
   await mfe.locator('#consent-text').waitFor(ESPERA);
   check('sin consentimiento muestra la política', (await mfe.locator('#consent-text').textContent()).includes('se descartan'));
@@ -96,6 +97,8 @@ try {
   await mfe.locator('#pref-hair').selectOption('');
   await mfe.locator('#btn-show-consent').click();
 
+  check('sin declarar la mayoría de edad no se puede aceptar', await mfe.locator('#btn-consent').isDisabled());
+  await mfe.locator('#consent-adult').check();
   await mfe.locator('#btn-consent').click();
   await mfe.locator('#btn-camera').waitFor(ESPERA);
   check('el consentimiento queda registrado', mongo("db.biometric_consents.countDocuments({clientId: 'cli-001', revokedAt: null})") === '1');
@@ -173,7 +176,7 @@ try {
   await mfe.locator('#tab-biometrics').click();
   await mfe.locator('#recommendations').waitFor(ESPERA);
   await mfe.locator('[data-style^="color-"] .btn-book').first().click();
-  const reservas = pagina.frameLocator('#mfe-frame');
+  const reservas = pagina.locator('#mfe-root');
   await reservas.locator('.service-card.selected, .selected').first().waitFor(ESPERA);
   const elegido = await reservas.locator('.selected').first().textContent();
   check('reservar abre el portal con el servicio recomendado', elegido.includes('Balayage'), elegido.trim().slice(0, 40));
@@ -192,11 +195,10 @@ try {
 
   // --- Administrador: reporte por voz
   const contextoAdmin = await browser.newContext({ viewport: { width: 1400, height: 1200 } });
-  await usarErpCompilado(contextoAdmin);
   for (const origen of ORIGENES) await contextoAdmin.grantPermissions(['camera', 'microphone'], { origin: origen });
   const admin = await iniciarSesion(contextoAdmin, SHELL, ADMIN);
   await admin.click('#tab-mfe-gestion');
-  const erp = admin.frameLocator('#mfe-frame');
+  const erp = admin.locator('#mfe-root');
   await erp.getByRole('button', { name: /Agente/ }).click(ESPERA);
   await erp.locator('#agent-mic').waitFor(ESPERA);
   await erp.locator('#agent-mic').click();

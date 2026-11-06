@@ -20,8 +20,10 @@ RUN composer install --no-scripts --no-autoloader --no-interaction --ignore-plat
 COPY . .
 RUN composer dump-autoload --no-scripts --ignore-platform-reqs
 
-# Pruebas: docker build --target test -t salon-ms-crm-test . && docker run --rm salon-ms-crm-test
+# Pruebas: ver la sección de pruebas de MANUAL_EJECUCION.md
 FROM base AS test
+# curl lo requiere el cliente de Docker de Testcontainers
+RUN apk add --no-cache curl-dev && docker-php-ext-install curl
 COPY --from=vendor-dev /app .
 RUN mkdir -p storage/framework/cache storage/framework/views storage/framework/sessions storage/logs bootstrap/cache \
     && php artisan package:discover

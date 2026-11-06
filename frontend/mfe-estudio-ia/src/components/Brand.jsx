@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Sparkles } from 'lucide-react';
-import { iaApi } from '../api';
+import { iaApi, loadStyleProfile } from '../api';
 
 const PLATFORMS = { LINKEDIN: 'LinkedIn', INSTAGRAM: 'Instagram', TIKTOK: 'TikTok', FACEBOOK: 'Facebook' };
 
@@ -10,15 +10,26 @@ export default function Brand() {
   const [goal, setGoal] = useState('');
   const [sector, setSector] = useState('');
   const [strategy, setStrategy] = useState(null);
+  const [declared, setDeclared] = useState({});
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
+
+  useEffect(() => {
+    loadStyleProfile().then(setDeclared);
+  }, []);
 
   const submit = async (event) => {
     event.preventDefault();
     setBusy(true);
     setError(null);
     try {
-      setStrategy(await iaApi.brand({ platform, goal: goal.trim() || null, sector: sector.trim() || null }));
+      setStrategy(await iaApi.brand({
+        platform,
+        goal: goal.trim() || null,
+        sector: sector.trim() || null,
+        gender: declared.gender ?? null,
+        age_range: declared.ageRange ?? null,
+      }));
     } catch (failure) {
       setError(failure.message);
     } finally {
@@ -51,7 +62,7 @@ export default function Brand() {
         </div>
         <p style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>
           Para redactar la biografía se envían a Gemini la red, el sector, el objetivo, el look y los colores.
-          Nunca tu nombre, tu foto ni tus rasgos.
+          Nunca tu nombre, tu foto, tu edad, tu género ni tus rasgos.
         </p>
         {error && <p id="brand-error" className="studio-error" role="alert">{error}</p>}
       </form>

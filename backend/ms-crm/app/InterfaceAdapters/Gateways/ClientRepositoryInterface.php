@@ -3,6 +3,7 @@
 namespace App\InterfaceAdapters\Gateways;
 
 use App\Core\Entities\Client;
+use App\Core\Entities\StyleProfile;
 
 interface ClientRepositoryInterface
 {
@@ -15,4 +16,6 @@ interface ClientRepositoryInterface
     /** Crea el cliente si no existe; nunca modifica sus puntos ni sus datos. */
     public function createIfAbsent(Client $client): void;
     public function updatePhone(string $id, string $phone): void;
+    public function updateStyleProfile(string $id, StyleProfile $profile): void;
+    public function updateWhatsappOptIn(string $id, bool $enabled): void;
 }

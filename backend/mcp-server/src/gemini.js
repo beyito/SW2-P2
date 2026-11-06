@@ -47,4 +47,38 @@ ${prompt}`;
   };
 }
 
-module.exports = { createGeminiGenerator };
+/** Una vuelta del agente con llamada a funciones. Devuelve null si no hay clave o la API falla. */
+function createGeminiAgentModel({
+  apiKey = process.env.GEMINI_API_KEY,
+  model = process.env.GEMINI_MODEL || DEFAULT_MODEL,
+  fetchImpl = fetch,
+} = {}) {
+  return async ({ contents, declarations, instructions }) => {
+    if (!apiKey) return null;
+    try {
+      const response = await fetchImpl(`${API_BASE}/${model}:generateContent`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: instructions }] },
+          contents,
+          tools: [{ functionDeclarations: declarations }],
+          generationConfig: { temperature: 0.1, maxOutputTokens: 1000 },
+        }),
+        signal: AbortSignal.timeout(TIMEOUT_MS),
+      });
+      if (!response.ok) {
+        console.error(`[MCP] Gemini respondió ${response.status}`);
+        return null;
+      }
+      const data = await response.json();
+      const content = data.candidates?.[0]?.content;
+      return content?.parts ? { engine: `Google ${model}`, content } : null;
+    } catch (error) {
+      console.error(`[MCP] No se pudo consultar Gemini: ${error.name}`);
+      return null;
+    }
+  };
+}
+
+module.exports = { createGeminiAgentModel, createGeminiGenerator };

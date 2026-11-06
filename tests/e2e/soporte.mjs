@@ -1,48 +1,9 @@
 // Utilidades compartidas de las pruebas en navegador real.
 import { execFileSync } from 'node:child_process';
-import { existsSync, readFileSync } from 'node:fs';
-import { createServer } from 'node:http';
-import { dirname, extname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 
-const ERP_DIST = join(dirname(fileURLToPath(import.meta.url)), '../../frontend/mfe-gestion/dist/browser');
-const CONTENT_TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.txt': 'text/plain' };
-
-let servidorErp;
-
-/** Servidor local del ERP compilado, en un puerto libre; no retiene el cierre de la prueba. */
-function iniciarServidorErp() {
-  servidorErp ??= new Promise((resolve) => {
-    const server = createServer((request, response) => {
-      const path = new URL(request.url, 'http://localhost').pathname;
-      const file = join(ERP_DIST, path === '/' ? 'index.html' : path);
-      if (!existsSync(file)) {
-        response.writeHead(404).end();
-        return;
-      }
-      response.writeHead(200, { 'Content-Type': CONTENT_TYPES[extname(file)] ?? 'application/octet-stream' });
-      response.end(readFileSync(file));
-    });
-    server.listen(0, '127.0.0.1', () => {
-      server.unref();
-      resolve(`http://127.0.0.1:${server.address().port}`);
-    });
-  });
-  return servidorErp;
-}
-
-/**
- * Con ERP_DESDE_DIST=1, el navegador recibe el ERP compilado (ng build) al pedir localhost:3003.
- * Sirve cuando ese puerto está ocupado por otro proceso: el origen y los servicios siguen siendo los reales.
- */
-export async function usarErpCompilado(context) {
-  if (process.env.ERP_DESDE_DIST !== '1') return;
-  if (!existsSync(join(ERP_DIST, 'index.html'))) throw new Error('Ejecute primero: npm run build en frontend/mfe-gestion');
-  const base = await iniciarServidorErp();
-  await context.route('http://localhost:3003/**', (route) => {
-    const { pathname } = new URL(route.request().url());
-    return route.continue({ url: `${base}${pathname}` });
-  });
+/** Da por respondido el cuestionario inicial de los clientes de prueba, para llegar directo a los microfrontends. */
+export function saltarCuestionarioInicial() {
+  sql('salon_crm', "UPDATE crm_clients SET onboarded_at = COALESCE(onboarded_at, NOW()) WHERE id LIKE 'cli-00%'");
 }
 
 /** Consulta PostgreSQL dentro de su contenedor; solo para preparar y comprobar datos de prueba. */
@@ -100,6 +61,11 @@ export async function limpiarCitasDePrueba(desde, foto) {
     const [id, puntos] = linea.split('=');
     sql('salon_crm', `UPDATE crm_clients SET loyalty_points=${puntos} WHERE id='${id}'`);
   }
+  // Devuelve al stock lo que consumieron esas citas: borrar sus movimientos no lo restituye
+  sql('salon_gestion', `UPDATE inventory_items i SET current_stock = current_stock - m.total FROM (
+    SELECT item_id, SUM(quantity_change) AS total FROM inventory_logs
+    WHERE appointment_id IN (SELECT id FROM appointments WHERE appointment_date >= '${desde}') GROUP BY item_id
+  ) m WHERE i.id = m.item_id`);
   sql('salon_gestion', `DELETE FROM inventory_logs WHERE appointment_id IN (SELECT id FROM appointments WHERE appointment_date >= '${desde}')`);
   sql('salon_gestion', `DELETE FROM appointments WHERE appointment_date >= '${desde}'`);
 }

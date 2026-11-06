@@ -9,7 +9,7 @@ const { StreamableHTTPServerTransport } = require('@modelcontextprotocol/sdk/ser
 const { CallToolRequestSchema, ListToolsRequestSchema } = require('@modelcontextprotocol/sdk/types.js');
 const { AuthError, DynamoSessionRegistry, createAuthenticator, createKeycloakVerifier } = require('./security');
 const { BackendError, createBackends } = require('./backends');
-const { createGeminiGenerator } = require('./gemini');
+const { createGeminiAgentModel, createGeminiGenerator } = require('./gemini');
 const { canUseTool, createToolRunner, toolsFor } = require('./tools');
 
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'http://localhost:3000').split(',');
@@ -28,17 +28,24 @@ class McpHttpServer {
       crmUrl: process.env.CRM_GRAPHQL_URL || 'http://localhost:8083/graphql',
     }),
     generateText = createGeminiGenerator(),
+    callModel = createGeminiAgentModel(),
   } = {}) {
     this.port = port;
     this.authenticate = authenticate;
     this.backendsFor = backendsFor;
     this.generateText = generateText;
+    this.callModel = callModel;
   }
 
   /** Crea el servidor de protocolo con los permisos y los datos de quien hace la petición. */
   createProtocolServer(user, token) {
     const server = new Server({ name: 'salon-mcp', version: '2.0.0' }, { capabilities: { tools: {} } });
-    const runTool = createToolRunner({ backends: this.backendsFor(token), generateText: this.generateText });
+    const runTool = createToolRunner({
+      backends: this.backendsFor(token),
+      generateText: this.generateText,
+      callModel: this.callModel,
+      roles: user.roles,
+    });
 
     server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: toolsFor(user.roles) }));
 

@@ -11,6 +11,29 @@ type Client {
     phone: String!
     loyaltyPoints: Int!
     createdAt: String!
+    "Autorizó recibir mensajes por WhatsApp."
+    whatsappOptIn: Boolean!
+    "Solo se entrega a su dueño (getMyProfile)."
+    styleProfile: StyleProfile
+}
+
+"Preferencias declaradas por el cliente. Todas son opcionales."
+type StyleProfile {
+    gender: String
+    ageRange: String
+    preferredLength: String
+    maintenance: String
+    vibe: String
+    "Fecha en que respondió u omitió el cuestionario inicial."
+    onboardedAt: String
+}
+
+input StyleProfileInput {
+    gender: String
+    ageRange: String
+    preferredLength: String
+    maintenance: String
+    vibe: String
 }
 
 type LoyaltyTransaction {
@@ -98,6 +121,12 @@ type Mutation {
     registerClient(input: RegisterClientInput!): Client! @field(resolver: "App\\InterfaceAdapters\\GraphQL\\CrmResolvers@registerClient")
     "Crea o completa la ficha del usuario autenticado con los datos de su cuenta."
     syncMyProfile(phone: String): Client! @field(resolver: "App\\InterfaceAdapters\\GraphQL\\CrmResolvers@syncMyProfile")
+    "Guarda las preferencias del usuario autenticado; con todo vacío, registra que omitió el cuestionario."
+    updateMyStyleProfile(input: StyleProfileInput!): Client! @field(resolver: "App\\InterfaceAdapters\\GraphQL\\CrmResolvers@updateMyStyleProfile")
+    "El usuario autenticado autoriza o retira los mensajes por WhatsApp."
+    setMyWhatsappOptIn(enabled: Boolean!): Client! @field(resolver: "App\\InterfaceAdapters\\GraphQL\\CrmResolvers@setMyWhatsappOptIn")
+    "Aviso creado por una automatización; devuelve falso si esa referencia ya se había enviado."
+    recordAutomationNotice(recipient: String!, title: String!, message: String!, sourceRef: String!): Boolean! @field(resolver: "App\\InterfaceAdapters\\GraphQL\\CrmResolvers@recordAutomationNotice")
     "Ajuste manual de puntos; solo para administradores."
     accumulatePoints(clientId: String!, points: Int!, description: String!): Int! @field(resolver: "App\\InterfaceAdapters\\GraphQL\\CrmResolvers@accumulatePoints")
 }

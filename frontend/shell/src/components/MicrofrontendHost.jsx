@@ -1,14 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Sparkles, Calendar, LayoutDashboard, RefreshCw } from 'lucide-react';
 
-// Contratos de integración de los tres microfrontends
+// Contratos de integración de los tres microfrontends, cargados con Module Federation
 const MFE_CONFIGS = {
   'estudio-ia': {
     title: 'Estudio IA & Comunidad',
     framework: 'React 18',
     badgeColor: '#61DAFB',
     textColor: '#0A0E17',
-    origin: import.meta.env.VITE_MFE_ESTUDIO_URL || 'http://localhost:3001',
+    load: () => import('mfe_estudio/mount'),
     domain: 'Diagnóstico capilar y facial, clóset virtual y comunidad.',
     icon: Sparkles,
   },
@@ -17,7 +17,7 @@ const MFE_CONFIGS = {
     framework: 'Vue.js 3',
     badgeColor: '#42B883',
     textColor: '#0A0E17',
-    origin: import.meta.env.VITE_MFE_RESERVAS_URL || 'http://localhost:3002',
+    load: () => import('mfe_reservas/mount'),
     domain: 'Agendamiento de citas y pago.',
     icon: Calendar,
   },
@@ -26,7 +26,7 @@ const MFE_CONFIGS = {
     framework: 'Angular 21',
     badgeColor: '#DD0031',
     textColor: '#FFFFFF',
-    origin: import.meta.env.VITE_MFE_GESTION_URL || 'http://localhost:3003',
+    load: () => import('mfe_gestion/mount'),
     domain: 'Inventario, agenda, estilistas, clientes, moderación y agente MCP.',
     icon: LayoutDashboard,
   },
@@ -34,31 +34,60 @@ const MFE_CONFIGS = {
 
 const SERVICE_ID = /^[\w-]{1,36}$/;
 
-export default function MicrofrontendHost({ activeTab, currentUser, token, onSessionLost, bookService, onBook }) {
+export default function MicrofrontendHost({ activeTab, currentUser, getToken, onSessionLost, bookService, resumeSaga, onBook, offline }) {
   const [reloadKey, setReloadKey] = useState(0);
-  const frame = useRef(null);
+  const [loadError, setLoadError] = useState(false);
+  const container = useRef(null);
   const config = MFE_CONFIGS[activeTab] ?? MFE_CONFIGS['estudio-ia'];
   const IconComponent = config.icon;
+  // Se leen desde una referencia para que un nuevo render del Shell no vuelva a montar el microfrontend
+  const callbacks = useRef();
+  callbacks.current = { getToken, onSessionLost, onBook };
 
-  // Entrega el token solo al origen del microfrontend activo; nunca con destino "*"
-  const sendToken = () => {
-    frame.current?.contentWindow?.postMessage({ type: 'SALON_AUTH', token }, config.origin);
-  };
-
-  // Protocolo con el microfrontend: READY pide el token y UNAUTHORIZED avisa de una sesión terminada
+  // Se precargan los demás módulos: sin conexión ya no se podrían traer al cambiar de pestaña
+  const canManage = currentUser.role !== 'CLIENT';
   useEffect(() => {
-    const onMessage = (event) => {
-      if (event.origin !== config.origin || event.source !== frame.current?.contentWindow) return;
-      if (event.data?.type === 'SALON_READY') sendToken();
-      if (event.data?.type === 'SALON_UNAUTHORIZED') onSessionLost();
-      if (event.data?.type === 'SALON_BOOK' && SERVICE_ID.test(event.data.serviceId ?? '')) onBook(event.data.serviceId);
-    };
-    window.addEventListener('message', onMessage);
-    return () => window.removeEventListener('message', onMessage);
-  });
+    Object.entries(MFE_CONFIGS)
+      .filter(([tab]) => tab !== 'gestion' || canManage)
+      .forEach(([, remote]) => remote.load().catch(() => {}));
+  }, [canManage]);
 
-  // Reenvía el token cada vez que se renueva
-  useEffect(sendToken, [token]);
+  // Un microfrontend que no carga solo afecta a su pestaña: el Shell y los demás siguen funcionando
+  useEffect(() => {
+    let cancelled = false;
+    let unmount = null;
+    const element = document.createElement('div');
+    element.id = 'mfe-root';
+    container.current.append(element);
+    setLoadError(false);
+
+    (async () => {
+      try {
+        const remote = await config.load();
+        if (cancelled) return;
+        const dispose = await remote.mount(element, {
+          getToken: () => callbacks.current.getToken(),
+          onSessionLost: () => callbacks.current.onSessionLost(),
+          onBook: (serviceId) => {
+            if (SERVICE_ID.test(serviceId ?? '')) callbacks.current.onBook(serviceId);
+          },
+          params: activeTab === 'reservas' ? { service: bookService, saga: resumeSaga } : {},
+          offline,
+        });
+        if (cancelled) dispose();
+        else unmount = dispose;
+      } catch (error) {
+        console.error(`No se pudo cargar el microfrontend ${activeTab}:`, error);
+        if (!cancelled) setLoadError(true);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      unmount?.();
+      element.remove();
+    };
+  }, [activeTab, reloadKey, bookService, resumeSaga, offline]);
 
   return (
     <div style={{ maxWidth: '1240px', margin: '0 auto', padding: '0 24px' }}>
@@ -94,18 +123,12 @@ export default function MicrofrontendHost({ activeTab, currentUser, token, onSes
           Sesión de <strong style={{ color: 'var(--gold-primary)' }}>{currentUser.name} ({currentUser.role})</strong>
         </div>
 
-        <div style={{ flex: 1, position: 'relative', minHeight: '660px', borderRadius: '10px', overflow: 'hidden' }}>
-          <iframe
-            ref={frame}
-            key={`${activeTab}-${reloadKey}-${bookService ?? ''}`}
-            id="mfe-frame"
-            src={`${config.origin}/${activeTab === 'reservas' && bookService ? `?service=${encodeURIComponent(bookService)}` : ''}`}
-            // El origen es distinto al del Shell: sin este permiso, el navegador bloquea la cámara y el micrófono
-            allow="camera; microphone"
-            title={config.title}
-            style={{ width: '100%', height: '660px', border: 'none', borderRadius: '10px', backgroundColor: '#0A0E17' }}
-          />
-        </div>
+        {loadError && (
+          <div id="mfe-error" role="alert" style={{ padding: '32px', textAlign: 'center', color: 'var(--text-secondary)' }}>
+            No se pudo cargar este módulo. Verifica que su servidor esté en ejecución y pulsa "Recargar".
+          </div>
+        )}
+        <div ref={container} style={{ flex: 1, minHeight: '660px', borderRadius: '10px', backgroundColor: '#0A0E17' }} />
       </div>
     </div>
   );

@@ -1,27 +1,37 @@
 name: salon_mobile
-description: "Cliente Móvil Offline-First para Salón de Belleza y Asesoramiento IA"
+description: "Cliente móvil con soporte offline del Salón de Belleza y Asesoramiento IA"
 publish_to: "none"
 version: 1.0.0+1
 
 environment:
-  sdk: ">=3.0.0 <4.0.0"
+  sdk: ">=3.12.0 <4.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
-  sqflite: ^2.3.3+1
-  path: ^1.9.0
-  connectivity_plus: ^6.0.3
+  connectivity_plus: ^7.3.2
+  flutter_appauth: ^13.0.0
+  flutter_secure_storage: ^11.2.0
   http: ^1.2.1
+  image: ^4.12.0
+  image_picker: ^1.2.4
+  path: ^1.9.0
+  sqflite: ^2.4.5
+  tflite_flutter: ^0.12.1
   uuid: ^4.4.0
-  shared_preferences: ^2.2.3
 
 dev_dependencies:
+  archive: ^4.0.0
+  crypto: ^3.0.0
+  flutter_lints: ^6.0.0
   flutter_test:
     sdk: flutter
-  flutter_lints: ^3.0.0
+  integration_test:
+    sdk: flutter
+  sqflite_common_ffi: ^2.4.5
 
 flutter:
   uses-material-design: true
+  # Los modelos se obtienen con: dart run tool/fetch_models.dart
   assets:
     - assets/models/

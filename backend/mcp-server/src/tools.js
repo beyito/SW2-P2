@@ -2,6 +2,7 @@
  * Herramientas MCP del salón (CU-05, CU-17, CU-18, RF-03, RF-11). Todos sus datos salen de los
  * microservicios; si un servicio falla se informa el error en lugar de inventar una respuesta.
  */
+const { runAgent } = require('./agent');
 const { BackendError } = require('./backends');
 
 const DEFAULT_TIMEZONE = 'America/La_Paz';
@@ -16,7 +17,12 @@ const TOOL_ROLES = {
   consultar_stock_critico: ['ADMIN', 'STYLIST'],
   obtener_metricas_negocio: ['ADMIN'],
   generar_reporte_lenguaje_natural: ['ADMIN'],
+  preguntar_al_agente: ['ADMIN', 'STYLIST'],
 };
+
+const AGENT_TOOL = 'preguntar_al_agente';
+// El agente responde por sí mismo: no se llama a sí mismo ni delega en el generador de reportes
+const NOT_FOR_AGENT = new Set([AGENT_TOOL, 'generar_reporte_lenguaje_natural']);
 
 const TOOLS = [
   {
@@ -68,6 +74,17 @@ const TOOLS = [
       required: ['prompt'],
     },
   },
+  {
+    name: AGENT_TOOL,
+    description: 'Agente autónomo: decide qué herramientas de las permitidas al usuario necesita para responder su pregunta (CU-17, RF-11).',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        prompt: { type: 'string', description: 'Pregunta en lenguaje natural.' },
+      },
+      required: ['prompt'],
+    },
+  },
 ];
 
 function canUseTool(toolName, roles) {
@@ -111,8 +128,18 @@ function buildPlainReport({ metrics, criticalStock }) {
   ].join('\n');
 }
 
+/** Sin modelo disponible, se informa lo que el rol puede ver con datos reales, sin intentar interpretar la pregunta. */
+async function plainSummaryFor(roles, handlers) {
+  const criticalStock = await handlers.consultar_stock_critico({});
+  if (canUseTool('obtener_metricas_negocio', roles)) {
+    return buildPlainReport({ metrics: await handlers.obtener_metricas_negocio({ period: 'MONTHLY' }), criticalStock });
+  }
+  const items = criticalStock.items.map((item) => `${item.name} (${item.currentStock} de mínimo ${item.minimumStock})`).join('; ');
+  return `El asistente no está disponible. Insumos en nivel crítico: ${items || 'ninguno'}.`;
+}
+
 /** Crea el ejecutor de herramientas para los datos de una petición autenticada. */
-function createToolRunner({ backends, generateText, now = () => new Date(), timeZone = process.env.SALON_TIMEZONE || DEFAULT_TIMEZONE }) {
+function createToolRunner({ backends, generateText, callModel, roles = [], now = () => new Date(), timeZone = process.env.SALON_TIMEZONE || DEFAULT_TIMEZONE }) {
   const handlers = {
     listar_estilistas: async () => ({ stylists: await backends.stylists() }),
 
@@ -158,6 +185,25 @@ function createToolRunner({ backends, generateText, now = () => new Date(), time
         ? { query: prompt, engine: generated.engine, generatedReport: generated.text, data: context }
         : { query: prompt, engine: 'Resumen sin modelo de lenguaje', generatedReport: buildPlainReport(context), data: context };
     },
+  };
+
+  handlers[AGENT_TOOL] = async ({ prompt }) => {
+    if (typeof prompt !== 'string' || !prompt.trim()) {
+      throw new BackendError('Escriba la pregunta para el agente.');
+    }
+    const tools = toolsFor(roles).filter((tool) => !NOT_FOR_AGENT.has(tool.name));
+    const result = await runAgent({
+      prompt,
+      tools,
+      callModel,
+      runTool: (name, args) => handlers[name](args ?? {}),
+      today: localDate(now(), timeZone),
+      timeZone,
+    });
+    if (result) {
+      return { query: prompt, engine: result.engine ?? 'Agente sin respuesta', generatedReport: result.answer, toolsUsed: result.toolsUsed };
+    }
+    return { query: prompt, engine: 'Resumen sin modelo de lenguaje', generatedReport: await plainSummaryFor(roles, handlers), toolsUsed: [] };
   };
 
   return (toolName, args) => handlers[toolName](args ?? {});

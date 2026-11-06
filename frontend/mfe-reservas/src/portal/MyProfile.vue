@@ -13,6 +13,25 @@
           <label>Teléfono <input id="profile-phone" v-model="phone" maxlength="30" /></label>
           <button id="profile-save" type="submit" class="portal-btn">Guardar</button>
         </form>
+        <label class="portal-row portal-muted" style="margin-top: 10px;">
+          <input id="profile-whatsapp" type="checkbox" :checked="client.whatsappOptIn" :disabled="!phone" @change="toggleWhatsapp($event.target.checked)" />
+          Quiero recibir confirmaciones y recordatorios por WhatsApp en este teléfono
+        </label>
+      </div>
+
+      <div class="portal-card">
+        <div><strong>Para tus recomendaciones</strong></div>
+        <div class="portal-muted">Es opcional y el personal del salón no lo ve.</div>
+        <form class="portal-row portal-form" @submit.prevent="saveStyle">
+          <label v-for="question in QUESTIONS" :key="question.field">
+            {{ question.label }}
+            <select :id="`style-${question.field}`" v-model="style[question.field]">
+              <option value="">Sin responder</option>
+              <option v-for="(text, value) in question.options" :key="value" :value="value">{{ text }}</option>
+            </select>
+          </label>
+          <button id="style-save" type="submit" class="portal-btn">Guardar</button>
+        </form>
       </div>
 
       <div class="portal-card">
@@ -34,9 +53,18 @@
 
 <script setup>
 import { onMounted, ref } from 'vue';
-import { loadMyProfile, updateMyPhone } from '../api';
+import { loadMyProfile, setWhatsappOptIn, updateMyPhone, updateMyStyleProfile } from '../api';
 import { currentUser } from '../auth';
 
+const QUESTIONS = [
+  { field: 'gender', label: 'Estilos', options: { FEMALE: 'Para mujer', MALE: 'Para hombre', NON_BINARY: 'Todos (no binario)', UNDISCLOSED: 'Todos (prefiero no decirlo)' } },
+  { field: 'ageRange', label: 'Edad', options: { UNDER_18: 'Menos de 18', '18_29': '18 a 29', '30_44': '30 a 44', '45_59': '45 a 59', '60_PLUS': '60 o más' } },
+  { field: 'preferredLength', label: 'Largo', options: { SHORT: 'Corto', MEDIUM: 'Medio', LONG: 'Largo' } },
+  { field: 'maintenance', label: 'Mantenimiento', options: { LOW: 'Bajo', MEDIUM: 'Medio', HIGH: 'Alto' } },
+  { field: 'vibe', label: 'Estilo', options: { NATURAL: 'Natural', PROFESSIONAL: 'Profesional', TRENDY: 'En tendencia', BOLD: 'Atrevido' } },
+];
+
+const style = ref({ gender: '', ageRange: '', preferredLength: '', maintenance: '', vibe: '' });
 const client = ref(null);
 const history = ref([]);
 const phone = ref('');
@@ -50,6 +78,33 @@ async function load() {
   client.value = profile.client;
   history.value = profile.history;
   phone.value = profile.client.phone;
+  const saved = profile.client.styleProfile ?? {};
+  for (const { field } of QUESTIONS) style.value[field] = saved[field] ?? '';
+}
+
+async function toggleWhatsapp(enabled) {
+  error.value = null;
+  saved.value = null;
+  try {
+    await setWhatsappOptIn(enabled);
+    client.value = { ...client.value, whatsappOptIn: enabled };
+    saved.value = enabled ? 'Recibirás mensajes por WhatsApp.' : 'Ya no recibirás mensajes por WhatsApp.';
+  } catch (failure) {
+    error.value = failure.message;
+  }
+}
+
+async function saveStyle() {
+  error.value = null;
+  saved.value = null;
+  try {
+    // Lo que queda sin responder se guarda vacío, no como texto en blanco
+    const input = Object.fromEntries(Object.entries(style.value).filter(([, value]) => value));
+    await updateMyStyleProfile(input);
+    saved.value = 'Preferencias actualizadas.';
+  } catch (failure) {
+    error.value = failure.message;
+  }
 }
 
 async function savePhone() {

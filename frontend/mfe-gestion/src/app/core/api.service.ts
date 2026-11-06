@@ -11,7 +11,7 @@ export class ApiService {
   private readonly auth = inject(AuthService);
 
   private async send(url: string, init: RequestInit): Promise<Response> {
-    const headers = { ...init.headers, Authorization: `Bearer ${this.auth.token()}` };
+    const headers = { ...init.headers, Authorization: `Bearer ${await this.auth.freshToken()}` };
     let response: Response;
     try {
       response = await fetch(url, { ...init, headers });

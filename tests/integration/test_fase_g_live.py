@@ -56,7 +56,7 @@ def escanear(token, contenido=None):
 
 def aceptar(token):
     version = httpx.get(CONSENT, headers=auth(token)).json()["policyVersion"]
-    response = httpx.post(CONSENT, headers=auth(token), json={"policyVersion": version})
+    response = httpx.post(CONSENT, headers=auth(token), json={"policyVersion": version, "declaresAdult": True})
     assert response.status_code == 201, response.text
 
 
@@ -101,8 +101,15 @@ class TestConsentimiento:
         assert httpx.post(SCAN, files={"file": ("foto", foto())}).status_code == 401
 
     def test_version_de_politica_antigua_da_422(self, cliente):
-        response = httpx.post(CONSENT, headers=auth(cliente), json={"policyVersion": "antigua"})
+        response = httpx.post(CONSENT, headers=auth(cliente), json={"policyVersion": "antigua", "declaresAdult": True})
         assert response.status_code == 422
+        assert httpx.get(CONSENT, headers=auth(cliente)).json()["granted"] is False
+
+    def test_sin_declarar_la_mayoria_de_edad_da_422(self, cliente):
+        version = httpx.get(CONSENT, headers=auth(cliente)).json()["policyVersion"]
+        response = httpx.post(CONSENT, headers=auth(cliente), json={"policyVersion": version})
+        assert response.status_code == 422
+        assert response.json()["code"] == "ADULT_DECLARATION_REQUIRED"
         assert httpx.get(CONSENT, headers=auth(cliente)).json()["granted"] is False
 
     def test_nadie_puede_guardar_un_diagnostico_sin_consentimiento(self, cliente):
@@ -219,7 +226,7 @@ class TestPropiedadYBorrado:
 
 class TestRecomendaciones:
     def test_funciona_sin_consentimiento_con_rasgos_a_mano(self, cliente):
-        response = httpx.post(STYLES, headers=auth(cliente), json={"hair_type": "CURLY", "face_shape": "OVAL"}, timeout=15)
+        response = httpx.post(STYLES, headers=auth(cliente), json={"hair_type": "CURLY", "face_shape": "OVAL", "gender": "FEMALE"}, timeout=15)
         assert response.status_code == 200, response.text
         assert response.json()[0]["style_id"] in ("cut-rizos", "cut-shag")
 

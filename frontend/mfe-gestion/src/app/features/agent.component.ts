@@ -16,7 +16,7 @@ interface Message {
   failed?: boolean;
 }
 
-const REPORT_TOOL = 'generar_reporte_lenguaje_natural';
+const AGENT_TOOL = 'preguntar_al_agente';
 const MAX_RECORDING_MS = 30000;
 
 /** Consultas predefinidas; solo se ofrecen las herramientas que el rol tiene permitidas. */
@@ -52,8 +52,11 @@ function describe(tool: string, data: any): { text: string; note?: string } {
     }
     case 'listar_estilistas':
       return { text: data.stylists.map((stylist: any) => `- ${stylist.name}${stylist.specialty ? ` (${stylist.specialty})` : ''}`).join('\n') };
-    case REPORT_TOOL:
-      return { text: data.generatedReport, note: `Motor: ${data.engine}` };
+    case AGENT_TOOL:
+      return {
+        text: data.generatedReport,
+        note: data.toolsUsed.length ? `Motor: ${data.engine}. Consultó: ${data.toolsUsed.join(', ')}.` : `Motor: ${data.engine}`,
+      };
     default:
       return { text: JSON.stringify(data) };
   }
@@ -98,7 +101,7 @@ export class AgentComponent implements OnInit, OnDestroy {
   private readonly api = inject(ApiService);
   private readonly tools = signal<string[]>([]);
   readonly presets = computed(() => PRESETS.filter((preset) => this.tools().includes(preset.tool)));
-  readonly canReport = computed(() => this.tools().includes(REPORT_TOOL));
+  readonly canReport = computed(() => this.tools().includes(AGENT_TOOL));
   readonly messages = signal<Message[]>([]);
   readonly busy = signal(false);
   readonly loadError = signal('');
@@ -159,7 +162,7 @@ export class AgentComponent implements OnInit, OnDestroy {
     this.busy.set(true);
     try {
       const question = await this.api.transcribe(audio);
-      await this.ask(REPORT_TOOL, { prompt: question }, question);
+      await this.ask(AGENT_TOOL, { prompt: question }, question);
     } catch (error) {
       this.messages.update((all) => [...all, { from: 'agent', text: messageOf(error), failed: true }]);
     } finally {
@@ -171,7 +174,7 @@ export class AgentComponent implements OnInit, OnDestroy {
     const question = this.prompt.trim();
     if (!question) return;
     this.prompt = '';
-    void this.ask(REPORT_TOOL, { prompt: question }, question);
+    void this.ask(AGENT_TOOL, { prompt: question }, question);
   }
 
   async ask(tool: string, args: object, label: string): Promise<void> {

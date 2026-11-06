@@ -60,7 +60,7 @@ describe('BiometricsService', () => {
     service = new BiometricsService(repository);
   });
 
-  const grant = () => service.grantConsent('cli-1', BIOMETRIC_POLICY_VERSION);
+  const grant = () => service.grantConsent('cli-1', BIOMETRIC_POLICY_VERSION, true);
 
   it('empieza sin consentimiento y muestra el texto de la política', async () => {
     const status = await service.getConsent('cli-1');
@@ -70,7 +70,15 @@ describe('BiometricsService', () => {
   });
 
   it('rechaza aceptar una versión de política que no es la vigente', async () => {
-    await expect(service.grantConsent('cli-1', 'antigua')).rejects.toThrow(UnprocessableEntityException);
+    await expect(service.grantConsent('cli-1', 'antigua', true)).rejects.toThrow(UnprocessableEntityException);
+    expect((await service.getConsent('cli-1')).granted).toBe(false);
+  });
+
+  it('rechaza el consentimiento sin declarar la mayoría de edad', async () => {
+    await expect(service.grantConsent('cli-1', BIOMETRIC_POLICY_VERSION, false)).rejects.toThrow(UnprocessableEntityException);
+    await expect(service.grantConsent('cli-1', BIOMETRIC_POLICY_VERSION, undefined as unknown as boolean)).rejects.toThrow(
+      UnprocessableEntityException,
+    );
     expect((await service.getConsent('cli-1')).granted).toBe(false);
   });
 
@@ -125,7 +133,7 @@ describe('BiometricsService', () => {
 
   it('revocar borra todos los resultados del cliente y solo los suyos', async () => {
     await grant();
-    await service.grantConsent('cli-2', BIOMETRIC_POLICY_VERSION);
+    await service.grantConsent('cli-2', BIOMETRIC_POLICY_VERSION, true);
     await service.saveDiagnosis('cli-1', VALID);
     await service.saveDiagnosis('cli-1', VALID);
     await service.saveDiagnosis('cli-2', VALID);

@@ -21,7 +21,27 @@ final class CrmPresenter
             'phone' => $client->getPhone(),
             'loyaltyPoints' => $client->getLoyaltyPoints(),
             'createdAt' => $client->getCreatedAt(),
+            'whatsappOptIn' => $client->acceptsWhatsapp(),
         ] : null;
+    }
+
+    /** Ficha con el perfil de estilo: solo para su dueño, nunca para los listados del personal. */
+    public static function ownClient(?Client $client): ?array
+    {
+        if (!$client) {
+            return null;
+        }
+        $profile = $client->getStyleProfile();
+        return self::client($client) + [
+            'styleProfile' => [
+                'gender' => $profile->gender,
+                'ageRange' => $profile->ageRange,
+                'preferredLength' => $profile->preferredLength,
+                'maintenance' => $profile->maintenance,
+                'vibe' => $profile->vibe,
+                'onboardedAt' => $profile->onboardedAt,
+            ],
+        ];
     }
 
     public static function invoice(?Invoice $invoice): ?array

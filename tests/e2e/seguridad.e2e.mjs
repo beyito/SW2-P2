@@ -1,6 +1,8 @@
 // Prueba de extremo a extremo en un navegador real: login, roles, token en MFE, sesión única y logout.
 import { chromium } from 'playwright';
-import { usarErpCompilado } from './soporte.mjs';
+import { saltarCuestionarioInicial } from './soporte.mjs';
+
+saltarCuestionarioInicial();
 
 const SHELL = 'http://localhost:3000/';
 const ADMIN = ['admin.salon', 'Admin#2026'];
@@ -25,7 +27,6 @@ const browser = await chromium.launch();
 
 // --- Cliente
 const ctxCliente = await browser.newContext();
-await usarErpCompilado(ctxCliente);
 const cliente = await ctxCliente.newPage();
 const pedidos = [];
 cliente.on('request', (r) => {
@@ -43,7 +44,7 @@ check('cliente ve su nombre real', (await cliente.textContent('#current-user')).
 check('cliente no ve la pestaña ERP', (await cliente.locator('#tab-mfe-gestion').count()) === 0);
 check('no existe el botón de alternar rol', (await cliente.locator('[title="Alternar rol de sesión"]').count()) === 0);
 
-const mfe = cliente.frameLocator('#mfe-frame');
+const mfe = cliente.locator('#mfe-root');
 // Pide recomendaciones a ms-ia; a mano si todavía no hay consentimiento biométrico
 await mfe.locator('#btn-manual, #btn-camera').first().waitFor({ timeout: 20000 });
 if (await mfe.locator('#btn-manual').count()) await mfe.locator('#btn-manual').click();
@@ -61,7 +62,6 @@ check('tras el logout no hay sesión SSO', await cliente.locator('#username').is
 
 // --- Admin: sesión única entre dos navegadores
 const ctxA = await browser.newContext();
-await usarErpCompilado(ctxA);
 const adminA = await ctxA.newPage();
 await login(adminA, ADMIN);
 check('admin ve la pestaña ERP', (await adminA.locator('#tab-mfe-gestion').count()) === 1);
@@ -72,7 +72,7 @@ adminA.on('response', (r) => {
 });
 await adminA.click('#tab-mfe-gestion');
 await adminA.waitForTimeout(1500);
-const erp = adminA.frameLocator('#mfe-frame');
+const erp = adminA.locator('#mfe-root');
 await erp.getByRole('button', { name: /Agente|MCP|Asistente/i }).first().click();
 await erp.locator('.btn-preset').first().click();
 await adminA.waitForTimeout(2500);
@@ -80,7 +80,6 @@ check('el ERP llama a MCP con token real', rpcEstados.length > 0 && rpcEstados.e
 
 await adminA.waitForTimeout(1200);
 const ctxB = await browser.newContext();
-await usarErpCompilado(ctxB);
 const adminB = await ctxB.newPage();
 await login(adminB, ADMIN);
 await adminB.waitForTimeout(500);

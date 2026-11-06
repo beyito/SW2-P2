@@ -1,7 +1,9 @@
 // Prueba en navegador real de la Fase F: ERP en Angular, comunidad y clóset en React, portal del cliente en Vue.
 // Requiere el backend en Docker Compose y los microfrontends en ejecución. Borra lo que crea al terminar.
 import { chromium } from 'playwright';
-import { borrarPublicacionesDePrueba, fotoDePuntos, iniciarSesion, limpiarCitasDePrueba, sql, usarErpCompilado } from './soporte.mjs';
+import { borrarPublicacionesDePrueba, fotoDePuntos, iniciarSesion, limpiarCitasDePrueba, saltarCuestionarioInicial, sql } from './soporte.mjs';
+
+saltarCuestionarioInicial();
 
 const SHELL = 'http://localhost:3000/';
 const ADMIN = ['admin.salon', 'Admin#2026'];
@@ -40,7 +42,7 @@ function ahoraLocal() {
 
 async function abrirModulo(page, tab) {
   await page.click(tab);
-  return page.frameLocator('#mfe-frame');
+  return page.locator('#mfe-root');
 }
 
 const browser = await chromium.launch();
@@ -51,7 +53,6 @@ const citaHoy = crypto.randomUUID();
 try {
   // ------------------------------------------------------------ Cliente: clóset y comunidad (React)
   const ctxCamila = await browser.newContext();
-  await usarErpCompilado(ctxCamila);
   const camila = await iniciarSesion(ctxCamila, SHELL, CAMILA);
   const estudio = await abrirModulo(camila, '#tab-mfe-estudio-ia');
 
@@ -76,7 +77,7 @@ try {
 
   // La prueba de que no es estado local: sobrevive a recargar el módulo
   await camila.getByRole('button', { name: 'Recargar' }).click();
-  const estudio2 = camila.frameLocator('#mfe-frame');
+  const estudio2 = camila.locator('#mfe-root');
   await estudio2.getByRole('button', { name: /Clóset/ }).click();
   await estudio2.locator(`.closet-item[data-name="${prenda}"] .closet-detail`, { hasText: 'Negro' }).waitFor(ESPERA);
   check('la prenda sigue ahí tras recargar: viene del servidor', true);
@@ -146,7 +147,6 @@ try {
   );
 
   const ctxAdmin = await browser.newContext();
-  await usarErpCompilado(ctxAdmin);
   const admin = await iniciarSesion(ctxAdmin, SHELL, ADMIN);
   const erp = await abrirModulo(admin, '#tab-mfe-gestion');
 
@@ -257,7 +257,7 @@ try {
   await admin.getByRole('button', { name: 'Recargar' }).click();
 
   // Agente MCP
-  const erp2 = admin.frameLocator('#mfe-frame');
+  const erp2 = admin.locator('#mfe-root');
   await erp2.locator('#erp-tab-agent').click();
   await erp2.locator('.btn-preset').first().waitFor(ESPERA);
   await erp2.getByRole('button', { name: 'Stock crítico' }).click();
@@ -275,14 +275,14 @@ try {
 
   // ------------------------------------------------------------ Efecto de la moderación
   await alejandro.getByRole('button', { name: 'Recargar' }).click();
-  const estudioAle2 = alejandro.frameLocator('#mfe-frame');
+  const estudioAle2 = alejandro.locator('#mfe-root');
   await estudioAle2.getByRole('button', { name: /Comunidad/ }).click();
   await estudioAle2.locator('#post-title').waitFor(ESPERA);
   await alejandro.waitForTimeout(1500);
   check('la publicación oculta desaparece para los demás', (await estudioAle2.locator(`.post-card[data-title="${titulo}"]`).count()) === 0);
 
   await camila.getByRole('button', { name: 'Recargar' }).click();
-  const estudio3 = camila.frameLocator('#mfe-frame');
+  const estudio3 = camila.locator('#mfe-root');
   await estudio3.getByRole('button', { name: /Comunidad/ }).click();
   const propia = estudio3.locator(`.post-card[data-title="${titulo}"]`);
   await propia.locator('.post-hidden', { hasText: 'Incumple las normas' }).waitFor(ESPERA);

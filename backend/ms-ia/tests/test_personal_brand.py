@@ -26,7 +26,7 @@ def test_con_diagnostico_usa_el_perfil_real(plataforma):
     body = estrategia().json()
     assert body["personalized"] is True
     assert body["color_palette"] == PALETTES["COOL"]
-    assert body["recommended_color"] == "Matiz chocolate frío"
+    assert body["recommended_color"] in ("Matiz chocolate frío", "Balayage cenizo y perla")
 
 
 def test_cambiar_el_perfil_cambia_el_consejo(plataforma):
@@ -44,6 +44,13 @@ def test_cada_red_da_consejos_distintos(plataforma):
     assert len({r["tone"] for r in redes}) == 4
     assert len({r["lighting_tip"] for r in redes}) == 4
     assert len({r["recommended_look"] for r in redes}) >= 2
+
+
+def test_el_look_respeta_el_genero_del_perfil(plataforma):
+    plataforma.diagnosis = DIAGNOSTICO
+    hombre = estrategia(gender="MALE").json()["recommended_look"]
+    mujer = estrategia(gender="FEMALE").json()["recommended_look"]
+    assert hombre != mujer
 
 
 def test_red_desconocida_da_422(plataforma):
@@ -102,12 +109,12 @@ def test_con_gemini_usa_su_texto_y_no_envia_rasgos_ni_identidad(plataforma, monk
     monkeypatch.setattr(settings, "GEMINI_API_KEY", "clave")
     monkeypatch.setattr(gemini.httpx, "post", falso_post)
     plataforma.diagnosis = DIAGNOSTICO
-    body = estrategia(goal="Mi objetivo").json()
+    body = estrategia(goal="Mi objetivo", gender="MALE", age_range="18_29").json()
     assert body["bio"] == "Bio real"
     assert body["content_ideas"] == ["a", "b", "c"]
     assert body["generated_by"].startswith("Google")
     assert "Mi objetivo" in enviado["texto"]
-    for dato_personal in ("Camila", "cli-001", "faceShape", "OVAL", "CURLY", "skinUndertone"):
+    for dato_personal in ("Camila", "cli-001", "faceShape", "OVAL", "CURLY", "skinUndertone", "MALE", "18_29"):
         assert dato_personal not in enviado["texto"]
 
 

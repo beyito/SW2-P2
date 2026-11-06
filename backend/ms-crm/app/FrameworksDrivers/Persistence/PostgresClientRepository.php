@@ -3,6 +3,7 @@
 namespace App\FrameworksDrivers\Persistence;
 
 use App\Core\Entities\Client;
+use App\Core\Entities\StyleProfile;
 use App\InterfaceAdapters\Gateways\ClientRepositoryInterface;
 use PDO;
 
@@ -41,6 +42,33 @@ class PostgresClientRepository implements ClientRepositoryInterface
     {
         $stmt = $this->pdo->prepare("UPDATE crm_clients SET phone = :phone, updated_at = NOW() WHERE id = :id");
         $stmt->execute([':id' => $id, ':phone' => $phone]);
+    }
+
+    public function updateStyleProfile(string $id, StyleProfile $profile): void
+    {
+        $stmt = $this->pdo->prepare(
+            "UPDATE crm_clients
+             SET gender = :gender, age_range = :age_range, preferred_length = :preferred_length,
+                 maintenance = :maintenance, style_vibe = :style_vibe, onboarded_at = :onboarded_at, updated_at = NOW()
+             WHERE id = :id"
+        );
+        $stmt->execute([
+            ':id' => $id,
+            ':gender' => $profile->gender,
+            ':age_range' => $profile->ageRange,
+            ':preferred_length' => $profile->preferredLength,
+            ':maintenance' => $profile->maintenance,
+            ':style_vibe' => $profile->vibe,
+            ':onboarded_at' => $profile->onboardedAt,
+        ]);
+    }
+
+    public function updateWhatsappOptIn(string $id, bool $enabled): void
+    {
+        $stmt = $this->pdo->prepare("UPDATE crm_clients SET whatsapp_opt_in = :enabled, updated_at = NOW() WHERE id = :id");
+        $stmt->bindValue(':enabled', $enabled, PDO::PARAM_BOOL);
+        $stmt->bindValue(':id', $id);
+        $stmt->execute();
     }
 
     public function findById(string $id): ?Client
@@ -93,7 +121,16 @@ class PostgresClientRepository implements ClientRepositoryInterface
             email: $row['email'],
             phone: $row['phone'],
             loyaltyPoints: (int) $row['loyalty_points'],
-            createdAt: $row['created_at']
+            createdAt: $row['created_at'],
+            styleProfile: new StyleProfile(
+                $row['gender'] ?? null,
+                $row['age_range'] ?? null,
+                $row['preferred_length'] ?? null,
+                $row['maintenance'] ?? null,
+                $row['style_vibe'] ?? null,
+                $row['onboarded_at'] ?? null
+            ),
+            whatsappOptIn: filter_var($row['whatsapp_opt_in'] ?? false, FILTER_VALIDATE_BOOLEAN)
         );
     }
 }

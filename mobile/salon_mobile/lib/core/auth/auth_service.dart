@@ -1,0 +1,77 @@
+import 'package:flutter_appauth/flutter_appauth.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
+import '../config.dart';
+import 'session.dart';
+
+/// Inicio de sesión con Keycloak por authorization code + PKCE (CU-01).
+/// Los tokens se guardan cifrados por el sistema: la app puede abrir sin conexión.
+class AuthService implements TokenProvider {
+  static const _access = 'access_token';
+  static const _refresh = 'refresh_token';
+  static const _id = 'id_token';
+  static const _margin = Duration(seconds: 30);
+
+  final FlutterAppAuth _appAuth = const FlutterAppAuth();
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+
+  Future<Session?> restore() async {
+    final token = await _storage.read(key: _access);
+    return token == null ? null : Session.fromToken(token);
+  }
+
+  Future<Session> login() async {
+    final result = await _appAuth.authorizeAndExchangeCode(
+      AuthorizationTokenRequest(
+        Config.clientId,
+        Config.redirectUrl,
+        issuer: Config.keycloakIssuer,
+        scopes: const ['openid', 'profile'],
+        // Keycloak local no usa HTTPS: solo aplica en desarrollo
+        allowInsecureConnections: Config.keycloakIssuer.startsWith('http://'),
+      ),
+    );
+    await _save(result.accessToken!, result.refreshToken, result.idToken);
+    return Session.fromToken(result.accessToken!);
+  }
+
+  Future<void> logout() async {
+    await _storage.deleteAll();
+  }
+
+  /// Token vigente; si no se puede renovar, por ejemplo sin red, entrega el que tiene:
+  /// la petición fallará por la red y la operación pasará a la cola local.
+  @override
+  Future<String?> token() async {
+    final access = await _storage.read(key: _access);
+    if (access == null || !_expiresSoon(access)) return access;
+    final refresh = await _storage.read(key: _refresh);
+    if (refresh == null) return access;
+    try {
+      final result = await _appAuth.token(
+        TokenRequest(
+          Config.clientId,
+          Config.redirectUrl,
+          issuer: Config.keycloakIssuer,
+          refreshToken: refresh,
+          allowInsecureConnections: Config.keycloakIssuer.startsWith('http://'),
+        ),
+      );
+      await _save(result.accessToken!, result.refreshToken ?? refresh, result.idToken);
+      return result.accessToken;
+    } catch (_) {
+      return access;
+    }
+  }
+
+  bool _expiresSoon(String token) {
+    final expiry = expiryOf(token);
+    return expiry == null || DateTime.now().add(_margin).isAfter(expiry);
+  }
+
+  Future<void> _save(String access, String? refresh, String? id) async {
+    await _storage.write(key: _access, value: access);
+    if (refresh != null) await _storage.write(key: _refresh, value: refresh);
+    if (id != null) await _storage.write(key: _id, value: id);
+  }
+}

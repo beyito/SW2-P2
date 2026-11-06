@@ -5,7 +5,9 @@ namespace App\InterfaceAdapters\GraphQL;
 use App\Core\Entities\Client;
 use App\Core\Entities\Notice;
 use App\Core\UseCases\AccumulatePointsUseCase;
+use App\Core\UseCases\RecordNoticesUseCase;
 use App\Core\UseCases\RegisterClientUseCase;
+use App\Core\UseCases\UpdateStyleProfileUseCase;
 use App\InterfaceAdapters\Gateways\ClientRepositoryInterface;
 use App\InterfaceAdapters\Gateways\CrmMetricsInterface;
 use App\InterfaceAdapters\Gateways\InvoiceRepositoryInterface;
@@ -25,7 +27,9 @@ class CrmResolvers
         private RegisterClientUseCase $registerClient,
         private AccumulatePointsUseCase $accumulatePoints,
         private NoticeRepositoryInterface $notices,
-        private CrmMetricsInterface $metrics
+        private CrmMetricsInterface $metrics,
+        private UpdateStyleProfileUseCase $updateStyleProfile,
+        private RecordNoticesUseCase $recordNotices
     ) {
     }
 
@@ -49,7 +53,7 @@ class CrmResolvers
 
     public function getMyProfile($root, array $args, GraphQLContext $context): ?array
     {
-        return CrmPresenter::client($this->clients->findById($this->userId($context)));
+        return CrmPresenter::ownClient($this->clients->findById($this->userId($context)));
     }
 
     public function getClientPoints($root, array $args, GraphQLContext $context): int
@@ -96,16 +100,34 @@ class CrmResolvers
         }
     }
 
+    public function updateMyStyleProfile($root, array $args, GraphQLContext $context): array
+    {
+        try {
+            return CrmPresenter::ownClient($this->updateStyleProfile->execute($this->accountData($context), $args['input']));
+        } catch (\InvalidArgumentException $error) {
+            throw new CrmForbidden($error->getMessage(), 'BAD_REQUEST');
+        }
+    }
+
+    public function setMyWhatsappOptIn($root, array $args, GraphQLContext $context): array
+    {
+        $this->clients->createIfAbsent($this->accountData($context));
+        $this->clients->updateWhatsappOptIn($this->userId($context), $args['enabled']);
+        return CrmPresenter::ownClient($this->clients->findById($this->userId($context)));
+    }
+
+    public function recordAutomationNotice($root, array $args, GraphQLContext $context): bool
+    {
+        if (!in_array('ADMIN', $this->roles($context), true)) {
+            throw new CrmForbidden('Solo una cuenta de automatización puede crear estos avisos.');
+        }
+        return $this->recordNotices->automation($args['recipient'], $args['title'], $args['message'], $args['sourceRef']);
+    }
+
     public function syncMyProfile($root, array $args, GraphQLContext $context): array
     {
-        $claims = $this->claims($context);
         $id = $this->userId($context);
-        $this->clients->createIfAbsent(new Client(
-            id: $id,
-            fullName: $claims['name'] ?? $claims['preferred_username'] ?? 'Cliente',
-            email: $claims['email'] ?? "{$id}@sin-correo.local",
-            phone: $args['phone'] ?? ''
-        ));
+        $this->clients->createIfAbsent($this->accountData($context, $args['phone'] ?? ''));
         if (isset($args['phone'])) {
             $this->clients->updatePhone($id, $args['phone']);
         }
@@ -167,6 +189,19 @@ class CrmResolvers
     private function claims(GraphQLContext $context): array
     {
         return $context->request()->attributes->get('claims', []);
+    }
+
+    /** Ficha nueva con los datos de la cuenta, para quien todavía no la tiene en el CRM. */
+    private function accountData(GraphQLContext $context, string $phone = ''): Client
+    {
+        $claims = $this->claims($context);
+        $id = $this->userId($context);
+        return new Client(
+            id: $id,
+            fullName: $claims['name'] ?? $claims['preferred_username'] ?? 'Cliente',
+            email: $claims['email'] ?? "{$id}@sin-correo.local",
+            phone: $phone
+        );
     }
 
     private function roles(GraphQLContext $context): array

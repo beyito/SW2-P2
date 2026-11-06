@@ -14,6 +14,8 @@ class BrandStrategyRequest(BaseModel):
     platform: Literal["LINKEDIN", "INSTAGRAM", "TIKTOK", "FACEBOOK"]
     goal: Optional[str] = Field(default=None, max_length=200)
     sector: Optional[str] = Field(default=None, max_length=80)
+    gender: Optional[Literal["FEMALE", "MALE", "NON_BINARY", "UNDISCLOSED"]] = None
+    age_range: Optional[Literal["UNDER_18", "18_29", "30_44", "45_59", "60_PLUS"]] = None
 
 
 @router.post("/strategy")
@@ -25,5 +27,7 @@ def get_brand_strategy(req: BrandStrategyRequest, platform: PlatformClient = Dep
         closet=platform.closet(),
         goal=req.goal,
         sector=req.sector,
+        gender=req.gender,
+        age_range=req.age_range,
         generate_copy=generate_brand_copy,
     )

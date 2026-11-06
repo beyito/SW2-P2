@@ -1,4 +1,6 @@
-:root {
+/* Todo queda dentro de .mfe-gestion: este microfrontend comparte la página con los demás. */
+.mfe-gestion {
+&{
   --bg: #0a0e17;
   --surface: #141a29;
   --border: rgba(212, 175, 55, 0.25);
@@ -13,7 +15,7 @@
 
 * { box-sizing: border-box; }
 
-body {
+&{
   margin: 0;
   background: var(--bg);
   color: var(--text);
@@ -77,3 +79,4 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 .bubble.agent { background: rgba(255, 255, 255, 0.05); }
 .bubble.failed { color: var(--danger); }
 .bubble small { display: block; color: var(--muted); margin-top: 6px; }
+}

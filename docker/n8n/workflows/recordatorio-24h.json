@@ -1,0 +1,126 @@
+{
+  "id": "salonrecordatorio",
+  "name": "Recordatorio de cita 24 h antes (CU-19)",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 15
+            }
+          ]
+        }
+      },
+      "name": "Cada 15 minutos",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        240,
+        200
+      ],
+      "id": "salonrecordatorio-0"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "recordatorios/ejecutar",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "name": "Ejecutar ahora",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "webhookId": "salon-recordatorios",
+      "position": [
+        240,
+        400
+      ],
+      "id": "salonrecordatorio-1"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const http = (options) => this.helpers.httpRequest(options);\n\nasync function serviceToken() {\n  const body = `grant_type=client_credentials&client_id=salon-agent&client_secret=${encodeURIComponent($env.SALON_AGENT_SECRET)}`;\n  const { access_token } = await http({\n    method: 'POST',\n    url: $env.KEYCLOAK_TOKEN_URL,\n    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },\n    body,\n    json: true,\n  });\n  return access_token;\n}\n\nasync function graphql(url, token, query, variables = {}) {\n  const response = await http({\n    method: 'POST',\n    url,\n    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },\n    body: { query, variables },\n    json: true,\n  });\n  if (response.errors?.length) throw new Error(response.errors[0].message);\n  return response.data;\n}\n\n// Se envía solo con WhatsApp configurado, con teléfono y con la autorización del cliente\nfunction whatsappItem(phone, text, template, parameters = []) {\n  const to = String(phone ?? '').replace(/\\D/g, '');\n  if (!$env.WHATSAPP_TOKEN || !to) return [];\n  // Meta solo admite texto libre dentro de una conversación abierta: lo demás requiere una plantilla aprobada\n  const message = template\n    ? { type: 'template', template: { name: template, language: { code: 'es' }, components: [{ type: 'body', parameters: parameters.map((value) => ({ type: 'text', text: String(value) })) }] } }\n    : { type: 'text', text: { body: text } };\n  return [{ json: { payload: { messaging_product: 'whatsapp', to, ...message } } }];\n}\n\nasync function clientContact(token, clientId) {\n  const { getClientById } = await graphql($env.CRM_GRAPHQL_URL, token, 'query ($id: ID!) { getClientById(id: $id) { fullName phone whatsappOptIn } }', { id: clientId });\n  return getClientById;\n}\n\n// La ejecución manual exige la clave de automatización\nconst manual = $input.first().json.headers;\nif (manual && manual['x-automation-key'] !== $env.N8N_AUTOMATION_KEY) throw new Error('Clave de automatización incorrecta.');\nconst now = DateTime.now().setZone($env.GENERIC_TIMEZONE);\nconst format = (value) => value.toFormat(\"yyyy-MM-dd'T'HH:mm:ss\");\nconst from = now.plus({ hours: 23 });\nconst to = now.plus({ hours: 24 });\nconst token = await serviceToken();\nconst { getPanelAgenda } = await graphql(\n  $env.GESTION_GRAPHQL_URL,\n  token,\n  'query ($from: String!, $to: String!) { getPanelAgenda(from: $from, to: $to) { id clientId stylistName serviceName appointmentDate status } }',\n  { from: from.toFormat('yyyy-MM-dd'), to: to.toFormat('yyyy-MM-dd') },\n);\nconst due = getPanelAgenda.filter(({ status, appointmentDate }) => {\n  const date = DateTime.fromISO(appointmentDate, { zone: $env.GENERIC_TIMEZONE });\n  return status === 'CONFIRMED' && date >= from && date < to;\n});\n\nconst items = [];\nfor (const appointment of due) {\n  const date = DateTime.fromISO(appointment.appointmentDate, { zone: $env.GENERIC_TIMEZONE });\n  const when = date.setLocale('es').toFormat(\"cccc d 'de' LLLL 'a las' HH:mm\");\n  const text = `Recordatorio: tu cita de ${appointment.serviceName} con ${appointment.stylistName} es el ${when}.`;\n  // La referencia única evita repetir el recordatorio: el flujo corre varias veces dentro de la misma hora\n  const { recordAutomationNotice: isNew } = await graphql(\n    $env.CRM_GRAPHQL_URL,\n    token,\n    'mutation ($recipient: String!, $title: String!, $message: String!, $sourceRef: String!) { recordAutomationNotice(recipient: $recipient, title: $title, message: $message, sourceRef: $sourceRef) }',\n    { recipient: appointment.clientId, title: 'Recordatorio de cita', message: text, sourceRef: `reminder:${appointment.id}` },\n  );\n  if (!isNew) continue;\n  const contact = await clientContact(token, appointment.clientId);\n  if (contact?.whatsappOptIn) {\n    items.push(...whatsappItem(\n      contact.phone,\n      `${text} Responde 1 para confirmar o 2 para reprogramar.`,\n      $env.WHATSAPP_TEMPLATE_RECORDATORIO,\n      [appointment.serviceName, appointment.stylistName, when],\n    ));\n  }\n}\nreturn items;"
+      },
+      "name": "Buscar citas y avisar",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "id": "salonrecordatorio-2",
+      "position": [
+        520,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.WHATSAPP_API_URL }}/{{ $env.WHATSAPP_PHONE_NUMBER_ID }}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.WHATSAPP_TOKEN }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.payload) }}",
+        "options": {}
+      },
+      "name": "Enviar por WhatsApp Cloud API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "id": "salonrecordatorio-3",
+      "position": [
+        760,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Cada 15 minutos": {
+      "main": [
+        [
+          {
+            "node": "Buscar citas y avisar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ejecutar ahora": {
+      "main": [
+        [
+          {
+            "node": "Buscar citas y avisar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar citas y avisar": {
+      "main": [
+        [
+          {
+            "node": "Enviar por WhatsApp Cloud API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "versionId": "salonrecordatorio-v1"
+}

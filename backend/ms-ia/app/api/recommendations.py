@@ -17,6 +17,8 @@ class RecommendationRequest(BaseModel):
     length: Optional[Literal["SHORT", "MEDIUM", "LONG"]] = None
     maintenance: Optional[Literal["LOW", "MEDIUM", "HIGH"]] = None
     vibe: Optional[Literal["NATURAL", "PROFESSIONAL", "TRENDY", "BOLD"]] = None
+    age_range: Optional[Literal["UNDER_18", "18_29", "30_44", "45_59", "60_PLUS"]] = None
+    gender: Optional[Literal["FEMALE", "MALE", "NON_BINARY", "UNDISCLOSED"]] = None
 
     @model_validator(mode="after")
     def requires_attribute(self):
@@ -37,6 +39,8 @@ def get_recommendations(req: RecommendationRequest, platform: PlatformClient = D
             "length": req.length,
             "maintenance": req.maintenance,
             "vibe": req.vibe,
+            "age": req.age_range,
         },
         services=platform.services(),
+        gender=req.gender,
     )

@@ -1,6 +1,10 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import Navbar from './components/Navbar';
 import MicrofrontendHost from './components/MicrofrontendHost';
+import OfflineBanner from './components/OfflineBanner';
+import Onboarding from './components/Onboarding';
+import { createOfflineStore } from './offline/queue';
+import { needsOnboarding } from './auth/profile';
 import { Layers } from 'lucide-react';
 import { currentUser, freshToken, initAuth, isSessionActive, keycloak, logout, restartLogin } from './auth/auth';
 
@@ -23,15 +27,21 @@ function StatusScreen({ title, message, action }) {
 export default function App() {
   const [status, setStatus] = useState('loading'); // loading | ready | error | ended
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
   const [activeTab, setActiveTab] = useState('estudio-ia'); // estudio-ia | reservas | gestion
   // Servicio elegido en una recomendación; se olvida al cambiar de pestaña a mano
   const [bookService, setBookService] = useState(null);
+  const [onboarding, setOnboarding] = useState('checking'); // checking | pending | done
+  const [offlineStore, setOfflineStore] = useState(null);
+  const [storageFailed, setStorageFailed] = useState(false);
+  // Reserva guardada sin conexión que ya se envió y falta pagar
+  const [resumeSaga, setResumeSaga] = useState(null);
   const changeTab = (tab) => {
     setBookService(null);
+    setResumeSaga(null);
     setActiveTab(tab);
   };
   const openBooking = (serviceId) => {
+    setResumeSaga(null);
     setBookService(serviceId);
     setActiveTab('reservas');
   };
@@ -42,7 +52,6 @@ export default function App() {
       .then((authenticated) => {
         if (!authenticated) return;
         setUser(currentUser());
-        setToken(keycloak.token);
         setStatus('ready');
       })
       .catch(() => setStatus('error'));
@@ -50,11 +59,40 @@ export default function App() {
 
   const onSessionLost = useCallback(() => setStatus('ended'), []);
 
-  // Mantiene el token vigente y lo entrega a los microfrontends
+  const payOfflineBooking = (sagaId) => {
+    setBookService(null);
+    setResumeSaga(sagaId);
+    setActiveTab('reservas');
+  };
+
+  // Si IndexedDB no está disponible, la plataforma funciona igual, sin modo offline
+  useEffect(() => {
+    if (status !== 'ready') return;
+    createOfflineStore({ userId: user.id, getToken: freshToken, onSessionLost })
+      .then(setOfflineStore)
+      .catch((error) => {
+        console.error('Sin almacenamiento local:', error);
+        setStorageFailed(true);
+      });
+  }, [status, user, onSessionLost]);
+
+  // El cuestionario inicial es solo para clientes; un fallo del CRM no debe impedir usar la plataforma
+  useEffect(() => {
+    if (status !== 'ready') return;
+    if (user.role !== 'CLIENT') {
+      setOnboarding('done');
+      return;
+    }
+    needsOnboarding()
+      .then((pending) => setOnboarding(pending ? 'pending' : 'done'))
+      .catch(() => setOnboarding('done'));
+  }, [status, user]);
+
+  // Renueva el token antes de que venza; si ya no se puede, la sesión terminó
   useEffect(() => {
     if (status !== 'ready') return undefined;
     const interval = setInterval(() => {
-      freshToken().then(setToken).catch(onSessionLost);
+      freshToken().catch(onSessionLost);
     }, TOKEN_REFRESH_MS);
     return () => clearInterval(interval);
   }, [status, onSessionLost]);
@@ -93,6 +131,7 @@ export default function App() {
   }
 
   const canManage = user.role === 'ADMIN' || user.role === 'STYLIST';
+  const offlineReady = offlineStore !== null || storageFailed;
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
@@ -105,8 +144,12 @@ export default function App() {
       />
 
       <main style={{ flex: 1, padding: '20px 0' }}>
-        <div className="fade-in">
-          <MicrofrontendHost activeTab={activeTab} currentUser={user} token={token} onSessionLost={onSessionLost} bookService={bookService} onBook={openBooking} />
+        {offlineStore && <OfflineBanner store={offlineStore} onPay={payOfflineBooking} />}
+        <div className="fade-in" style={{ marginTop: '12px' }}>
+          {onboarding === 'pending' && <Onboarding onDone={() => setOnboarding('done')} />}
+          {onboarding === 'done' && offlineReady && (
+            <MicrofrontendHost activeTab={activeTab} currentUser={user} getToken={freshToken} onSessionLost={onSessionLost} bookService={bookService} resumeSaga={resumeSaga} onBook={openBooking} offline={offlineStore} />
+          )}
         </div>
       </main>
 

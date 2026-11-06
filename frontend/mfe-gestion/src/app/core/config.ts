@@ -1,6 +1,5 @@
 /** Direcciones de los servicios en el entorno local. */
 export const CONFIG = {
-  shellOrigin: 'http://localhost:3000',
   gestionUrl: 'http://localhost:8081/graphql',
   crmUrl: 'http://localhost:8083/graphql',
   asesoriaUrl: 'http://localhost:3100',

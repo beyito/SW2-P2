@@ -23,8 +23,8 @@ export class BiometricsController {
   }
 
   @Post('consent')
-  grantConsent(@Body() body: { policyVersion: string }, @CurrentUser() user: AuthenticatedUser) {
-    return this.biometrics.grantConsent(user.id, body?.policyVersion);
+  grantConsent(@Body() body: { policyVersion: string; declaresAdult: boolean }, @CurrentUser() user: AuthenticatedUser) {
+    return this.biometrics.grantConsent(user.id, body?.policyVersion, body?.declaresAdult);
   }
 
   @Delete('consent')

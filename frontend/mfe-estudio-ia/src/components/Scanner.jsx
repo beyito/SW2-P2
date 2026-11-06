@@ -1,12 +1,15 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Camera, Check, Sparkles, Upload, Video } from 'lucide-react';
-import { biometricsApi, iaApi } from '../api';
-import { askShell } from '../auth';
-import { FACE_SHAPES, HAIR_TONES, HAIR_TYPES, LENGTHS, MAINTENANCE, UNDERTONES, VIBES } from '../labels';
+import { biometricsApi, iaApi, loadStyleProfile } from '../api';
+import { openBooking } from '../auth';
+import { AGE_RANGES, FACE_SHAPES, GENDERS, HAIR_TONES, HAIR_TYPES, LENGTHS, MAINTENANCE, UNDERTONES, VIBES } from '../labels';
 
 const RECORD_MS = 4000;
 const VIDEO_TYPES = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm', 'video/mp4'];
-const EMPTY_PROFILE = { face_shape: '', hair_type: '', hair_tone: '', skin_undertone: '', length: '', maintenance: '', vibe: '' };
+const EMPTY_PROFILE = { gender: '', age_range: '', face_shape: '', hair_type: '', hair_tone: '', skin_undertone: '', length: '', maintenance: '', vibe: '' };
+const NO_DIAGNOSIS = { face_shape: '', hair_type: '', hair_tone: '', skin_undertone: '' };
+// Otras respuestas de género ven todos los estilos, igual que "sin indicar"
+const fromDeclaredGender = (gender) => (gender in GENDERS ? gender : '');
 
 const percent = (value) => `${Math.round(value * 100)}%`;
 
@@ -29,6 +32,8 @@ export default function Scanner() {
   const [diagnosis, setDiagnosis] = useState(null);
   const [profile, setProfile] = useState(EMPTY_PROFILE);
   const [recommendations, setRecommendations] = useState([]);
+  const [isMinor, setIsMinor] = useState(false);
+  const [declaresAdult, setDeclaresAdult] = useState(false);
   const [cameraOn, setCameraOn] = useState(false);
   const [busy, setBusy] = useState('');
   const [error, setError] = useState(null);
@@ -57,6 +62,16 @@ export default function Scanner() {
   useEffect(() => {
     (async () => {
       try {
+        const declared = await loadStyleProfile();
+        setIsMinor(declared.ageRange === 'UNDER_18');
+        setProfile((current) => ({
+          ...current,
+          gender: fromDeclaredGender(declared.gender),
+          age_range: declared.ageRange ?? '',
+          length: declared.preferredLength ?? '',
+          maintenance: declared.maintenance ?? '',
+          vibe: declared.vibe ?? '',
+        }));
         const status = await biometricsApi.consent();
         setConsent(status);
         if (status.granted) {
@@ -170,7 +185,7 @@ export default function Scanner() {
         showDiagnosis(previous);
       } else {
         setDiagnosis(null);
-        setProfile(EMPTY_PROFILE);
+        setProfile((current) => ({ ...current, ...NO_DIAGNOSIS }));
       }
     } catch (failure) {
       setError(failure.message);
@@ -183,8 +198,9 @@ export default function Scanner() {
       await biometricsApi.revoke();
       stopCamera();
       setDiagnosis(null);
-      setProfile(EMPTY_PROFILE);
+      setProfile((current) => ({ ...current, ...NO_DIAGNOSIS }));
       setConfirmingRevoke(false);
+      setDeclaresAdult(false);
       setManual(false);
       setConsent(await biometricsApi.consent());
     } catch (failure) {
@@ -208,9 +224,21 @@ export default function Scanner() {
 
           {!canScan && !manual && (
             <div id="consent-panel">
-              <p style={{ fontSize: '0.9rem', lineHeight: 1.55, color: 'var(--text-secondary)' }} id="consent-text">{consent.policyText}</p>
+              {isMinor ? (
+                <p id="consent-minor" style={{ fontSize: '0.9rem', lineHeight: 1.55, color: 'var(--text-secondary)' }}>
+                  El diagnóstico automático es solo para mayores de 18 años. Puedes recibir recomendaciones indicando tus rasgos a mano.
+                </p>
+              ) : (
+                <>
+                  <p style={{ fontSize: '0.9rem', lineHeight: 1.55, color: 'var(--text-secondary)' }} id="consent-text">{consent.policyText}</p>
+                  <label style={{ display: 'flex', gap: '8px', fontSize: '0.88rem', alignItems: 'center' }}>
+                    <input id="consent-adult" type="checkbox" checked={declaresAdult} onChange={(event) => setDeclaresAdult(event.target.checked)} />
+                    Soy mayor de 18 años
+                  </label>
+                </>
+              )}
               <div className="studio-actions">
-                <button id="btn-consent" className="studio-primary" onClick={accept}><Check size={16} /> Acepto</button>
+                {!isMinor && <button id="btn-consent" className="studio-primary" disabled={!declaresAdult} onClick={accept}><Check size={16} /> Acepto</button>}
                 <button id="btn-manual" className="studio-secondary" onClick={() => setManual(true)}>Prefiero indicar mis rasgos a mano</button>
               </div>
             </div>
@@ -302,17 +330,17 @@ export default function Scanner() {
 
       <section className="glass-panel" style={{ padding: '24px', minWidth: 0 }}>
         <h3 className="gold-gradient-text" style={{ margin: '0 0 14px', fontSize: '1.15rem' }}>Recomendaciones de estilo</h3>
-        {(canScan || manual) && (
-          <div className="studio-filters">
-            <Select id="pref-face" label="Rostro" value={profile.face_shape} options={FACE_SHAPES} onChange={change('face_shape')} />
-            <Select id="pref-hair" label="Cabello" value={profile.hair_type} options={HAIR_TYPES} onChange={change('hair_type')} />
-            <Select id="pref-tone" label="Tono" value={profile.hair_tone} options={HAIR_TONES} onChange={change('hair_tone')} />
-            <Select id="pref-undertone" label="Subtono" value={profile.skin_undertone} options={UNDERTONES} onChange={change('skin_undertone')} />
-            <Select id="pref-length" label="Largo" value={profile.length} options={LENGTHS} onChange={change('length')} />
-            <Select id="pref-maintenance" label="Mantenimiento" value={profile.maintenance} options={MAINTENANCE} onChange={change('maintenance')} />
-            <Select id="pref-vibe" label="Estilo" value={profile.vibe} options={VIBES} onChange={change('vibe')} />
-          </div>
-        )}
+        <div className="studio-filters">
+          <Select id="pref-gender" label="Estilos para" value={profile.gender} options={GENDERS} onChange={change('gender')} />
+          <Select id="pref-age" label="Edad" value={profile.age_range} options={AGE_RANGES} onChange={change('age_range')} />
+          <Select id="pref-face" label="Rostro" value={profile.face_shape} options={FACE_SHAPES} onChange={change('face_shape')} />
+          <Select id="pref-hair" label="Cabello" value={profile.hair_type} options={HAIR_TYPES} onChange={change('hair_type')} />
+          <Select id="pref-tone" label="Tono" value={profile.hair_tone} options={HAIR_TONES} onChange={change('hair_tone')} />
+          <Select id="pref-undertone" label="Subtono" value={profile.skin_undertone} options={UNDERTONES} onChange={change('skin_undertone')} />
+          <Select id="pref-length" label="Largo" value={profile.length} options={LENGTHS} onChange={change('length')} />
+          <Select id="pref-maintenance" label="Mantenimiento" value={profile.maintenance} options={MAINTENANCE} onChange={change('maintenance')} />
+          <Select id="pref-vibe" label="Estilo" value={profile.vibe} options={VIBES} onChange={change('vibe')} />
+        </div>
         {recommendations.length === 0 ? (
           <p id="no-recommendations" style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '32px 0', fontSize: '0.9rem' }}>
             Haz un diagnóstico o indica tus rasgos para ver recomendaciones.
@@ -329,10 +357,11 @@ export default function Scanner() {
                 {style.matched_factors.length > 0 && (
                   <p style={{ fontSize: '0.76rem', color: 'var(--text-muted)', margin: '6px 0 0' }}>Según {style.matched_factors.join(', ')}.</p>
                 )}
+                {!style.service && <p className="service-consult" style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: '8px 0 0' }}>Consulta este servicio en el salón.</p>}
                 {style.service && (
                   <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '8px', marginTop: '10px' }}>
                     <span style={{ fontSize: '0.8rem' }}>{style.service.name}: ${Number(style.service.price).toFixed(2)}</span>
-                    <button className="studio-secondary btn-book" onClick={() => askShell({ type: 'SALON_BOOK', serviceId: style.service.id })}>Reservar</button>
+                    <button className="studio-secondary btn-book" onClick={() => openBooking(style.service.id)}>Reservar</button>
                   </div>
                 )}
               </article>

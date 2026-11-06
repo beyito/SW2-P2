@@ -27,7 +27,7 @@ export interface ConsentStatus {
 
 export interface IBiometricsUseCase {
   getConsent(clientId: string): Promise<ConsentStatus>;
-  grantConsent(clientId: string, policyVersion: string): Promise<BiometricConsent>;
+  grantConsent(clientId: string, policyVersion: string, declaresAdult: boolean): Promise<BiometricConsent>;
   /** Retira el consentimiento y borra todos los resultados del cliente. */
   revokeConsent(clientId: string): Promise<{ deletedDiagnoses: number }>;
   saveDiagnosis(clientId: string, dto: SaveDiagnosisDto): Promise<BiometricDiagnosis>;

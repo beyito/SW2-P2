@@ -1,4 +1,6 @@
-:root {
+/* Todo queda dentro de .mfe-estudio: este microfrontend comparte la página con los demás. */
+.mfe-estudio {
+&{
   --bg-primary: #0A0E17;
   --bg-surface: #141A29;
   --bg-glass: rgba(20, 26, 41, 0.75);
@@ -11,7 +13,7 @@
   --text-muted: #718096;
 }
 
-body {
+&{
   margin: 0;
   padding: 0;
   background-color: var(--bg-primary);
@@ -19,7 +21,6 @@ body {
   font-family: 'Plus Jakarta Sans', sans-serif;
   background-image: radial-gradient(circle at 10% 20%, rgba(212, 175, 55, 0.05) 0%, transparent 40%),
                     radial-gradient(circle at 90% 80%, rgba(97, 218, 251, 0.04) 0%, transparent 40%);
-  min-height: 100vh;
 }
 
 .gold-gradient-text {
@@ -91,3 +92,4 @@ body {
 .studio-field { display: flex; flex-direction: column; gap: 4px; font-size: 0.76rem; color: var(--text-secondary); min-width: 0; }
 .studio-field select, .studio-field input { background: #0A0E17; color: var(--text-primary); border: 1px solid var(--border-glass); border-radius: 8px; padding: 8px; font: inherit; font-size: 0.85rem; min-width: 0; }
 .studio-style { padding: 14px; border-radius: 10px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-glass); }
+}

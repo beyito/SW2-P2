@@ -1,4 +1,4 @@
-import { authFetch } from './auth';
+import { authFetch, offlineStore } from './auth';
 
 const GESTION_URL = import.meta.env.VITE_GESTION_URL || 'http://localhost:8081/graphql';
 const SAGA_URL = import.meta.env.VITE_SAGA_URL || 'http://localhost:4100';
@@ -26,8 +26,18 @@ async function graphqlAt(url, query, variables) {
 
 /** Catálogo y estilistas reales del salón. */
 export async function loadCatalog() {
-  const data = await gestion('{ getServices { id name description durationMinutes price } getStylists { id name specialty rating { average count } } }');
-  return { services: data.getServices, stylists: data.getStylists };
+  const store = offlineStore();
+  try {
+    const data = await gestion('{ getServices { id name description durationMinutes price } getStylists { id name specialty rating { average count } } }');
+    const catalog = { services: data.getServices, stylists: data.getStylists };
+    await store?.cachePut('catalog', catalog);
+    return catalog;
+  } catch (failure) {
+    // Sin conexión se muestra el último catálogo visto; al enviarse la reserva, el servidor valida precio y turno
+    const saved = failure.offline ? await store?.cacheGet('catalog') : undefined;
+    if (!saved) throw failure;
+    return saved;
+  }
 }
 
 export async function loadSlots(stylistId, serviceId, date) {
@@ -91,7 +101,7 @@ export async function openReceipt(invoiceId) {
 
 /** Datos del perfil; crea la ficha del CRM si la cuenta todavía no la tiene. */
 export async function loadMyProfile(clientId) {
-  const profile = 'id fullName email phone loyaltyPoints';
+  const profile = 'id fullName email phone loyaltyPoints whatsappOptIn styleProfile { gender ageRange preferredLength maintenance vibe }';
   const { getMyProfile } = await crm(`{ getMyProfile { ${profile} } }`);
   const client = getMyProfile ?? (await crm(`mutation { syncMyProfile { ${profile} } }`)).syncMyProfile;
   const { getLoyaltyHistory } = await crm(
@@ -99,6 +109,14 @@ export async function loadMyProfile(clientId) {
     { id: clientId },
   );
   return { client, history: getLoyaltyHistory };
+}
+
+export async function setWhatsappOptIn(enabled) {
+  await crm('mutation ($enabled: Boolean!) { setMyWhatsappOptIn(enabled: $enabled) { id } }', { enabled });
+}
+
+export async function updateMyStyleProfile(input) {
+  await crm('mutation ($input: StyleProfileInput!) { updateMyStyleProfile(input: $input) { id } }', { input });
 }
 
 export async function updateMyPhone(phone) {
@@ -117,6 +135,19 @@ async function sagaResponse(response) {
   const body = await response.json();
   if (!response.ok) throw new Error(body.message || `La reserva respondió ${response.status}.`);
   return body;
+}
+
+/** Guarda una solicitud de reserva para enviarla al volver la conexión (CU-22). Conserva su llave de idempotencia. */
+export function queueBooking(booking, label, idempotencyKey) {
+  return offlineStore().enqueue({
+    kind: 'BOOKING',
+    label,
+    url: `${SAGA_URL}/bookings`,
+    method: 'POST',
+    body: booking,
+    idempotencyKey,
+    keepResult: true,
+  });
 }
 
 /** Inicia la reserva; repetirla con la misma llave devuelve la misma SAGA (RNF-04). */

@@ -237,14 +237,39 @@ services:
     restart: unless-stopped
     ports:
       - "${N8N_PORT:-5678}:5678"
+    entrypoint: ["sh", "/seed/start.sh"]
     environment:
       N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY:-clave_local_de_desarrollo_n8n}
       N8N_SECURE_COOKIE: "false"
-      GENERIC_TIMEZONE: America/La_Paz
+      GENERIC_TIMEZONE: ${SALON_TIMEZONE:-America/La_Paz}
+      RABBIT_USER: ${RABBITMQ_DEFAULT_USER:-rabbit_admin}
+      RABBIT_PASS: ${RABBITMQ_DEFAULT_PASS:-rabbit_secret_pass}
+      KEYCLOAK_TOKEN_URL: http://keycloak:8080/realms/salon/protocol/openid-connect/token
+      SALON_AGENT_SECRET: ${SALON_AGENT_SECRET:-salon-agent-secret-local}
+      GESTION_GRAPHQL_URL: http://ms-gestion:8081/graphql
+      CRM_GRAPHQL_URL: http://ms-crm:8000/graphql
+      PORTAL_URL: ${PORTAL_URL:-http://localhost:3000}
+      N8N_AUTOMATION_KEY: ${N8N_AUTOMATION_KEY:-clave-local-de-automatizacion}
+      # WhatsApp es opcional: sin token, los avisos solo se muestran dentro de la aplicación
+      WHATSAPP_API_URL: ${WHATSAPP_API_URL:-https://graph.facebook.com/v21.0}
+      WHATSAPP_TOKEN: ${WHATSAPP_TOKEN:-}
+      WHATSAPP_PHONE_NUMBER_ID: ${WHATSAPP_PHONE_NUMBER_ID:-}
+      WHATSAPP_VERIFY_TOKEN: ${WHATSAPP_VERIFY_TOKEN:-}
+      WHATSAPP_ADMIN_PHONE: ${WHATSAPP_ADMIN_PHONE:-}
+      WHATSAPP_TEMPLATE_CONFIRMACION: ${WHATSAPP_TEMPLATE_CONFIRMACION:-}
+      WHATSAPP_TEMPLATE_RECORDATORIO: ${WHATSAPP_TEMPLATE_RECORDATORIO:-}
+      WHATSAPP_TEMPLATE_STOCK: ${WHATSAPP_TEMPLATE_STOCK:-}
     volumes:
       - n8n_data:/home/node/.n8n
+      - ./docker/n8n:/seed:ro
+    # Permite que las pruebas sustituyan a la API de WhatsApp por un servidor local
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - salon-network
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:5678/healthz || exit 1"]
       interval: 15s

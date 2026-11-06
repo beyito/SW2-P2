@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Heart, MessageCircle } from 'lucide-react';
 import { communityApi, imageSource, uploadImage } from '../api';
+import { offlineStore } from '../auth';
 import { currentUser } from '../auth';
 
 const MAX_DEPTH = 3;
@@ -82,8 +83,9 @@ function PostCard({ post, user, onChanged, onError }) {
     onError(null);
     try {
       const result = await communityApi.like(post.id);
-      setLiked(result.liked);
-      setLikes(result.totalLikes);
+      // Sin conexión se refleja de inmediato; al sincronizar, el muro trae el valor real
+      setLiked(result.queued ? !liked : result.liked);
+      setLikes(result.queued ? likes + (liked ? -1 : 1) : result.totalLikes);
     } catch (failure) {
       onError(failure.message);
     }
@@ -172,6 +174,9 @@ export default function Community() {
   const [error, setError] = useState(null);
 
   const reload = async () => setPosts(await communityApi.wall());
+
+  // Cuando la cola local termina de enviar, el muro debe mostrar lo que quedó en el servidor
+  useEffect(() => offlineStore()?.subscribe(() => reload().catch(() => {})), []);
 
   useEffect(() => {
     (async () => {

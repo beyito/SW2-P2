@@ -76,11 +76,13 @@ class BrandService:
         goal: Optional[str],
         sector: Optional[str],
         generate_copy: Callable[[dict], Optional[dict]],
+        gender: Optional[str] = None,
+        age_range: Optional[str] = None,
     ) -> dict:
         rules = PLATFORMS[platform]
         undertone = (diagnosis or {}).get("skinUndertone") or _DEFAULT_UNDERTONE
         palette = PALETTES[undertone]
-        attributes = {"vibe": rules["vibe"]}
+        attributes = {"vibe": rules["vibe"], "age": age_range}
         if diagnosis:
             attributes |= {
                 "face": diagnosis.get("faceShape"),
@@ -88,7 +90,7 @@ class BrandService:
                 "tone": diagnosis.get("hairTone"),
                 "undertone": undertone,
             }
-        styles = RecommendationService.recommend(attributes, limits={CUT: 1, COLOR: 1})
+        styles = RecommendationService.recommend(attributes, limits={CUT: 1, COLOR: 1}, gender=gender)
         by_category = {style["category"]: style for style in styles}
         look = by_category[CUT]["style_name"]
         color = by_category[COLOR]["style_name"]

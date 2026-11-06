@@ -1,10 +1,2 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import App from './App.jsx';
-import './style.css';
-
-ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
+// Este microfrontend se monta desde el Shell (src/mount). Abierto por separado no tiene sesión.
+document.getElementById('root').textContent = 'Abre este módulo desde la plataforma: http://localhost:3000';

@@ -7,14 +7,19 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest run"
   },
   "dependencies": {
     "@stripe/stripe-js": "7.9.0",
     "vue": "^3.4.38"
   },
   "devDependencies": {
+    "@module-federation/vite": "1.23.5",
     "@vitejs/plugin-vue": "^5.1.2",
-    "vite": "^5.4.11"
+    "@vue/test-utils": "2.4.6",
+    "jsdom": "25.0.1",
+    "vite": "^5.4.11",
+    "vitest": "2.1.9"
   }
 }

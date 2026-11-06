@@ -1,0 +1,164 @@
+{
+  "id": "salonentrante",
+  "name": "Respuestas y reservas por WhatsApp (CU-19)",
+  "active": true,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "whatsapp/entrante",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "name": "Mensaje de WhatsApp",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "webhookId": "salon-whatsapp-post",
+      "position": [
+        240,
+        200
+      ],
+      "id": "salonentrante-0"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const http = (options) => this.helpers.httpRequest(options);\n\nasync function serviceToken() {\n  const body = `grant_type=client_credentials&client_id=salon-agent&client_secret=${encodeURIComponent($env.SALON_AGENT_SECRET)}`;\n  const { access_token } = await http({\n    method: 'POST',\n    url: $env.KEYCLOAK_TOKEN_URL,\n    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },\n    body,\n    json: true,\n  });\n  return access_token;\n}\n\nasync function graphql(url, token, query, variables = {}) {\n  const response = await http({\n    method: 'POST',\n    url,\n    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },\n    body: { query, variables },\n    json: true,\n  });\n  if (response.errors?.length) throw new Error(response.errors[0].message);\n  return response.data;\n}\n\n// Se envía solo con WhatsApp configurado, con teléfono y con la autorización del cliente\nfunction whatsappItem(phone, text, template, parameters = []) {\n  const to = String(phone ?? '').replace(/\\D/g, '');\n  if (!$env.WHATSAPP_TOKEN || !to) return [];\n  // Meta solo admite texto libre dentro de una conversación abierta: lo demás requiere una plantilla aprobada\n  const message = template\n    ? { type: 'template', template: { name: template, language: { code: 'es' }, components: [{ type: 'body', parameters: parameters.map((value) => ({ type: 'text', text: String(value) })) }] } }\n    : { type: 'text', text: { body: text } };\n  return [{ json: { payload: { messaging_product: 'whatsapp', to, ...message } } }];\n}\n\nasync function clientContact(token, clientId) {\n  const { getClientById } = await graphql($env.CRM_GRAPHQL_URL, token, 'query ($id: ID!) { getClientById(id: $id) { fullName phone whatsappOptIn } }', { id: clientId });\n  return getClientById;\n}\n\nconst incoming = $input.first().json.body?.entry?.[0]?.changes?.[0]?.value?.messages?.[0];\n// Meta también avisa de entregas y lecturas: solo se responde a los mensajes de texto\nif (incoming?.type !== 'text') return [];\nconst text = incoming.text.body.trim().toLowerCase();\n\nif (text === '1') return whatsappItem(incoming.from, '¡Gracias! Te esperamos en tu cita.');\nif (text === '2') return whatsappItem(incoming.from, `Puedes reprogramar tu cita en \"Mis citas\": ${$env.PORTAL_URL}`);\nif (!/reserv|cita|turno|precio|servicio/.test(text)) {\n  return whatsappItem(incoming.from, 'Hola, soy el asistente del salón. Escribe \"reservar\" para ver nuestros servicios.');\n}\nconst { getServices } = await graphql($env.GESTION_GRAPHQL_URL, await serviceToken(), '{ getServices { name price durationMinutes } }');\nconst list = getServices.map(({ name, price, durationMinutes }) => `- ${name}: $${price.toFixed(2)} (${durationMinutes} min)`).join('\\n');\nreturn whatsappItem(incoming.from, `Nuestros servicios:\\n${list}\\n\\nReserva y paga tu cita en ${$env.PORTAL_URL}`);"
+      },
+      "name": "Preparar respuesta",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "id": "salonentrante-1",
+      "position": [
+        480,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.WHATSAPP_API_URL }}/{{ $env.WHATSAPP_PHONE_NUMBER_ID }}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.WHATSAPP_TOKEN }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.payload) }}",
+        "options": {}
+      },
+      "name": "Enviar por WhatsApp Cloud API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "id": "salonentrante-2",
+      "position": [
+        720,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "whatsapp/entrante",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "name": "Verificación de Meta",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "webhookId": "salon-whatsapp-get",
+      "position": [
+        240,
+        500
+      ],
+      "id": "salonentrante-3"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const { query } = $input.first().json;\nif (!$env.WHATSAPP_VERIFY_TOKEN || query['hub.verify_token'] !== $env.WHATSAPP_VERIFY_TOKEN) throw new Error('Token de verificación incorrecto.');\nreturn [{ json: { challenge: query['hub.challenge'] } }];"
+      },
+      "name": "Comprobar token",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        500
+      ],
+      "id": "salonentrante-4"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.challenge }}",
+        "options": {}
+      },
+      "name": "Responder a Meta",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        720,
+        500
+      ],
+      "id": "salonentrante-5"
+    }
+  ],
+  "connections": {
+    "Mensaje de WhatsApp": {
+      "main": [
+        [
+          {
+            "node": "Preparar respuesta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar respuesta": {
+      "main": [
+        [
+          {
+            "node": "Enviar por WhatsApp Cloud API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verificación de Meta": {
+      "main": [
+        [
+          {
+            "node": "Comprobar token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Comprobar token": {
+      "main": [
+        [
+          {
+            "node": "Responder a Meta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "versionId": "salonentrante-v1"
+}

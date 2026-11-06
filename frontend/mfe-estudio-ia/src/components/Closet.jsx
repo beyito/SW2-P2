@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { closetApi, imageSource, uploadImage } from '../api';
-import { currentUser } from '../auth';
+import { currentUser, offlineStore } from '../auth';
 
 const CATEGORIES = { TOP: 'Parte superior', BOTTOM: 'Parte inferior', SHOES: 'Calzado', ACCESSORY: 'Accesorio', OUTERWEAR: 'Abrigo' };
 const SEASONS = { SPRING: 'Primavera', SUMMER: 'Verano', AUTUMN: 'Otoño', WINTER: 'Invierno', ALL_SEASON: 'Todo el año' };
@@ -33,6 +33,12 @@ export default function Closet() {
       }
     })();
   }, []);
+
+  // Cuando la cola local termina de enviar, la lista debe mostrar lo que quedó en el servidor
+  useEffect(() => {
+    if (!clientId) return undefined;
+    return offlineStore()?.subscribe(() => reload(clientId).catch(() => {}));
+  }, [clientId]);
 
   const resetForm = () => {
     setDraft(EMPTY);

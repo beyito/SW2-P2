@@ -6,6 +6,7 @@ use App\Core\Entities\Client;
 use App\Core\Entities\CreditNote;
 use App\Core\Entities\Invoice;
 use App\Core\Entities\Notice;
+use App\Core\Entities\StyleProfile;
 use App\InterfaceAdapters\Gateways\ClientRepositoryInterface;
 use App\InterfaceAdapters\Gateways\InvoiceRepositoryInterface;
 use App\InterfaceAdapters\Gateways\LoyaltyLedgerInterface;
@@ -54,6 +55,24 @@ class FakeClients implements ClientRepositoryInterface
 
     public function updatePhone(string $id, string $phone): void
     {
+    }
+
+    public function updateWhatsappOptIn(string $id, bool $enabled): void
+    {
+    }
+
+    public function updateStyleProfile(string $id, StyleProfile $profile): void
+    {
+        $client = $this->items[$id];
+        $this->items[$id] = new Client(
+            $client->getId(),
+            $client->getFullName(),
+            $client->getEmail(),
+            $client->getPhone(),
+            $client->getLoyaltyPoints(),
+            $client->getCreatedAt(),
+            $profile
+        );
     }
 }
 
@@ -159,9 +178,13 @@ class FakeNotices implements NoticeRepositoryInterface
     /** @var array<string, Notice> */
     public array $items = [];
 
-    public function addOnce(Notice $notice): void
+    public function addOnce(Notice $notice): bool
     {
-        $this->items[$notice->sourceRef] ??= $notice;
+        if (isset($this->items[$notice->sourceRef])) {
+            return false;
+        }
+        $this->items[$notice->sourceRef] = $notice;
+        return true;
     }
 
     public function forRecipients(array $recipients): array
