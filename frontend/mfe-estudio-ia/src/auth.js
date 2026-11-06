@@ -42,6 +42,11 @@ export async function authFetch(url, options = {}) {
   return response;
 }
 
+/** Envía un mensaje al Shell, por ejemplo para abrir una reserva. */
+export function askShell(message) {
+  window.parent.postMessage(message, SHELL_ORIGIN);
+}
+
 /** Espera el token de la sesión y devuelve quién es el usuario. Solo sirve para decidir qué mostrar. */
 export async function currentUser() {
   if (!token) {

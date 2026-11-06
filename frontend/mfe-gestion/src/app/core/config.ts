@@ -5,6 +5,7 @@ export const CONFIG = {
   crmUrl: 'http://localhost:8083/graphql',
   asesoriaUrl: 'http://localhost:3100',
   mcpUrl: 'http://localhost:4000/mcp',
+  iaUrl: 'http://localhost:8002/api/v1',
 };
 
 /** Fecha local en formato AAAA-MM-DD. */

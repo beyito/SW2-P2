@@ -3,9 +3,13 @@ uvicorn[standard]>=0.32.0
 pydantic>=2.9.2
 pydantic-settings>=2.6.0
 python-multipart>=0.0.12
-numpy>=1.26.0
-scikit-learn>=1.5.0
-opencv-python-headless>=4.10.0
 pytest>=8.3.0
 httpx>=0.27.0
 PyJWT[crypto]>=2.9.0
+# Versiones fijas: mediapipe exige numpy<2 y protobuf<5, y opencv 4.12 ya exige numpy>=2
+numpy==1.26.4
+mediapipe==0.10.21
+opencv-contrib-python==4.10.0.84
+tensorflow-cpu==2.18.1
+scikit-learn==1.6.1
+faster-whisper==1.1.1

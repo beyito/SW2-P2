@@ -56,6 +56,16 @@ export class ApiService {
     return payload;
   }
 
+  /** Convierte en texto una pregunta hablada, con Whisper en ms-ia. */
+  async transcribe(audio: Blob): Promise<string> {
+    const form = new FormData();
+    form.append('file', audio, 'pregunta');
+    const response = await this.send(`${CONFIG.iaUrl}/speech/transcribe`, { method: 'POST', body: form });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(payload.detail?.message ?? `El servicio respondió ${response.status}.`);
+    return payload.text;
+  }
+
   /** Llamada JSON-RPC al Servidor MCP. */
   async mcp<T>(method: string, params: object = {}): Promise<T> {
     const response = await this.send(CONFIG.mcpUrl, {

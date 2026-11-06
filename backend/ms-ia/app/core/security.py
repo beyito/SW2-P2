@@ -147,3 +147,24 @@ def get_current_user(credentials: Optional[HTTPAuthorizationCredentials] = Depen
     )
     assert_session_valid(user, int(claims.get("auth_time", 0)))
     return user
+
+
+def get_bearer_token(credentials: Optional[HTTPAuthorizationCredentials] = Depends(_bearer)) -> str:
+    """Token de quien llama, para consultar a otros servicios con sus mismos permisos."""
+    if credentials is None:
+        raise _unauthorized("TOKEN_MISSING", "Token de acceso no proporcionado.")
+    return credentials.credentials
+
+
+def require_roles(*roles: str):
+    """Dependencia que exige al menos uno de los roles indicados."""
+
+    def check(user: AuthenticatedUser = Depends(get_current_user)) -> AuthenticatedUser:
+        if not set(roles) & set(user.roles):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail={"code": "FORBIDDEN", "message": "No tiene permiso para esta acción."},
+            )
+        return user
+
+    return check

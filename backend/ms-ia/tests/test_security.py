@@ -49,7 +49,7 @@ def token(llave=LLAVE, rol="CLIENT", sid="s1", auth_time=100, **cambios):
 
 
 def peticion(valor):
-    return client.post(ENDPOINT, json={}, headers={"Authorization": f"Bearer {valor}"})
+    return client.post(ENDPOINT, json={"face_shape": "OVAL"}, headers={"Authorization": f"Bearer {valor}"})
 
 
 @pytest.fixture(autouse=True)

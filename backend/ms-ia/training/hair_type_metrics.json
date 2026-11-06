@@ -1,0 +1,60 @@
+{
+  "dataset": "Figaro-1k (partición de prueba original)",
+  "with_production_segmenter": {
+    "images": 118,
+    "accuracy": 0.873,
+    "recall_per_class": {
+      "STRAIGHT": 1.0,
+      "WAVY": 0.6,
+      "CURLY": 0.948
+    },
+    "confusion_matrix_rows_real": [
+      [
+        30,
+        0,
+        0
+      ],
+      [
+        8,
+        18,
+        4
+      ],
+      [
+        1,
+        2,
+        55
+      ]
+    ]
+  },
+  "with_ground_truth_masks": {
+    "images": 120,
+    "accuracy": 0.908,
+    "recall_per_class": {
+      "STRAIGHT": 1.0,
+      "WAVY": 0.733,
+      "CURLY": 0.95
+    },
+    "confusion_matrix_rows_real": [
+      [
+        30,
+        0,
+        0
+      ],
+      [
+        4,
+        22,
+        4
+      ],
+      [
+        0,
+        3,
+        57
+      ]
+    ]
+  },
+  "classes": [
+    "STRAIGHT",
+    "WAVY",
+    "CURLY"
+  ]
+}

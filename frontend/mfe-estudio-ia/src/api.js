@@ -1,6 +1,7 @@
 import { authFetch } from './auth';
 
 const ASESORIA_URL = import.meta.env.VITE_ASESORIA_URL || 'http://localhost:3100';
+const IA_URL = import.meta.env.VITE_IA_URL || 'http://localhost:8002/api/v1';
 
 async function request(path, method = 'GET', body) {
   const response = await authFetch(`${ASESORIA_URL}${path}`, {
@@ -29,6 +30,48 @@ export async function uploadImage(file) {
 
 /** Las imágenes propias se guardan como ruta interna; los datos antiguos pueden tener una URL completa. */
 export const imageSource = (url) => (url?.startsWith('/media/') ? `${ASESORIA_URL}${url}` : url);
+
+/** Error de ms-ia con su código, para que la pantalla pueda reaccionar a cada caso. */
+async function iaRequest(path, options) {
+  let response;
+  try {
+    response = await authFetch(`${IA_URL}${path}`, options);
+  } catch (failure) {
+    throw new Error(failure.message === 'Failed to fetch' ? 'El servicio de diagnóstico no responde.' : failure.message);
+  }
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const detail = typeof payload.detail === 'object' && !Array.isArray(payload.detail) ? payload.detail : {};
+    const error = new Error(detail.message ?? `El servicio respondió ${response.status}.`);
+    error.code = detail.code;
+    throw error;
+  }
+  return payload;
+}
+
+const jsonRequest = (body) => ({
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(body),
+});
+
+export const iaApi = {
+  scan: (file) => {
+    const form = new FormData();
+    form.append('file', file);
+    return iaRequest('/biometrics/scan', { method: 'POST', body: form });
+  },
+  recommend: (attributes) => iaRequest('/recommendations/styles', jsonRequest(attributes)),
+  brand: (request) => iaRequest('/brand/strategy', jsonRequest(request)),
+};
+
+export const biometricsApi = {
+  consent: () => request('/biometrics/consent'),
+  grant: (policyVersion) => request('/biometrics/consent', 'POST', { policyVersion }),
+  revoke: () => request('/biometrics/consent', 'DELETE'),
+  diagnoses: () => request('/biometrics/diagnoses'),
+  deleteDiagnosis: (id) => request(`/biometrics/diagnoses/${id}`, 'DELETE'),
+};
 
 export const closetApi = {
   list: (clientId) => request(`/closet/client/${clientId}`),

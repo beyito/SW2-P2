@@ -1,4 +1,4 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../core/api.service';
 import { messageOf } from '../core/config';
@@ -17,6 +17,7 @@ interface Message {
 }
 
 const REPORT_TOOL = 'generar_reporte_lenguaje_natural';
+const MAX_RECORDING_MS = 30000;
 
 /** Consultas predefinidas; solo se ofrecen las herramientas que el rol tiene permitidas. */
 const PRESETS = [
@@ -86,13 +87,14 @@ function describe(tool: string, data: any): { text: string; note?: string } {
       @if (canReport()) {
         <form class="row" (ngSubmit)="askReport()">
           <input id="agent-prompt" class="wide" style="flex: 1;" name="prompt" placeholder="Pregunte sobre la operación del salón" [(ngModel)]="prompt" required>
-          <button class="primary" type="submit" id="agent-send" [disabled]="busy()">Preguntar</button>
+          <button class="primary" type="submit" id="agent-send" [disabled]="busy() || recording()">Preguntar</button>
+          <button type="button" class="secondary" id="agent-mic" [disabled]="busy()" (click)="toggleRecording()">{{ recording() ? 'Detener y enviar' : 'Preguntar por voz' }}</button>
         </form>
       }
     </section>
   `,
 })
-export class AgentComponent implements OnInit {
+export class AgentComponent implements OnInit, OnDestroy {
   private readonly api = inject(ApiService);
   private readonly tools = signal<string[]>([]);
   readonly presets = computed(() => PRESETS.filter((preset) => this.tools().includes(preset.tool)));
@@ -100,13 +102,69 @@ export class AgentComponent implements OnInit {
   readonly messages = signal<Message[]>([]);
   readonly busy = signal(false);
   readonly loadError = signal('');
+  readonly recording = signal(false);
   prompt = '';
+  private recorder: MediaRecorder | null = null;
+  private recordingTimer?: ReturnType<typeof setTimeout>;
 
   ngOnInit(): void {
     this.api
       .mcp<{ tools: { name: string }[] }>('tools/list')
       .then(({ tools }) => this.tools.set(tools.map((tool) => tool.name)))
       .catch((error) => this.loadError.set(messageOf(error)));
+  }
+
+  ngOnDestroy(): void {
+    // Al salir de la pantalla se apaga el micrófono y se descarta lo grabado
+    if (this.recorder) {
+      this.recorder.onstop = null;
+      this.releaseMicrophone();
+    }
+  }
+
+  async toggleRecording(): Promise<void> {
+    if (this.recorder) {
+      this.recorder.stop();
+      return;
+    }
+    let stream: MediaStream;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch {
+      this.messages.update((all) => [...all, { from: 'agent', text: 'No se pudo abrir el micrófono. Revise el permiso del navegador.', failed: true }]);
+      return;
+    }
+    const chunks: Blob[] = [];
+    const recorder = new MediaRecorder(stream);
+    this.recorder = recorder;
+    recorder.ondataavailable = (event) => chunks.push(event.data);
+    recorder.onstop = () => {
+      this.releaseMicrophone();
+      void this.askByVoice(new Blob(chunks, { type: recorder.mimeType }));
+    };
+    recorder.start();
+    this.recording.set(true);
+    this.recordingTimer = setTimeout(() => recorder.stop(), MAX_RECORDING_MS);
+  }
+
+  private releaseMicrophone(): void {
+    clearTimeout(this.recordingTimer);
+    this.recorder?.stream.getTracks().forEach((track) => track.stop());
+    this.recorder = null;
+    this.recording.set(false);
+  }
+
+  /** La voz solo se convierte en la misma pregunta de texto: el reporte sigue pasando por el Servidor MCP. */
+  private async askByVoice(audio: Blob): Promise<void> {
+    this.busy.set(true);
+    try {
+      const question = await this.api.transcribe(audio);
+      await this.ask(REPORT_TOOL, { prompt: question }, question);
+    } catch (error) {
+      this.messages.update((all) => [...all, { from: 'agent', text: messageOf(error), failed: true }]);
+    } finally {
+      this.busy.set(false);
+    }
   }
 
   askReport(): void {

@@ -299,6 +299,7 @@ services:
       MONGO_URI: mongodb://${MONGO_INITDB_ROOT_USERNAME:-mongo_admin}:${MONGO_INITDB_ROOT_PASSWORD:-mongo_secret_pass}@mongodb:27017/${MONGO_DATABASE:-salon_asesoria}?authSource=admin
       RABBITMQ_URL: amqp://${RABBITMQ_DEFAULT_USER:-rabbit_admin}:${RABBITMQ_DEFAULT_PASS:-rabbit_secret_pass}@rabbitmq:5672
       <<: *auth-env
+      BIOMETRIC_RETENTION_DAYS: ${BIOMETRIC_RETENTION_DAYS:-365}
     networks:
       - salon-network
     depends_on:
@@ -373,6 +374,10 @@ services:
       - "8002:8002"
     environment:
       <<: *auth-env
+      ASESORIA_URL: http://ms-asesoria:3100
+      GESTION_GRAPHQL_URL: http://ms-gestion:8081/graphql
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash}
     networks:
       - salon-network
     depends_on:
@@ -383,7 +388,7 @@ services:
       interval: 15s
       timeout: 5s
       retries: 10
-      start_period: 20s
+      start_period: 60s
 
   # ------------------------------------------------------------------
   # Servidor MCP para agentes de IA

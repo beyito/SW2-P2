@@ -32,7 +32,9 @@ const MFE_CONFIGS = {
   },
 };
 
-export default function MicrofrontendHost({ activeTab, currentUser, token, onSessionLost }) {
+const SERVICE_ID = /^[\w-]{1,36}$/;
+
+export default function MicrofrontendHost({ activeTab, currentUser, token, onSessionLost, bookService, onBook }) {
   const [reloadKey, setReloadKey] = useState(0);
   const frame = useRef(null);
   const config = MFE_CONFIGS[activeTab] ?? MFE_CONFIGS['estudio-ia'];
@@ -49,6 +51,7 @@ export default function MicrofrontendHost({ activeTab, currentUser, token, onSes
       if (event.origin !== config.origin || event.source !== frame.current?.contentWindow) return;
       if (event.data?.type === 'SALON_READY') sendToken();
       if (event.data?.type === 'SALON_UNAUTHORIZED') onSessionLost();
+      if (event.data?.type === 'SALON_BOOK' && SERVICE_ID.test(event.data.serviceId ?? '')) onBook(event.data.serviceId);
     };
     window.addEventListener('message', onMessage);
     return () => window.removeEventListener('message', onMessage);
@@ -94,9 +97,11 @@ export default function MicrofrontendHost({ activeTab, currentUser, token, onSes
         <div style={{ flex: 1, position: 'relative', minHeight: '660px', borderRadius: '10px', overflow: 'hidden' }}>
           <iframe
             ref={frame}
-            key={`${activeTab}-${reloadKey}`}
+            key={`${activeTab}-${reloadKey}-${bookService ?? ''}`}
             id="mfe-frame"
-            src={`${config.origin}/`}
+            src={`${config.origin}/${activeTab === 'reservas' && bookService ? `?service=${encodeURIComponent(bookService)}` : ''}`}
+            // El origen es distinto al del Shell: sin este permiso, el navegador bloquea la cámara y el micrófono
+            allow="camera; microphone"
             title={config.title}
             style={{ width: '100%', height: '660px', border: 'none', borderRadius: '10px', backgroundColor: '#0A0E17' }}
           />

@@ -125,14 +125,15 @@ docker run --rm salon-ms-crm-test
 # ms-asesoria (Jest)
 cd backend\ms-asesoria; npm test
 
-# ms-ia (PyTest): crea el entorno virtual la primera vez con python -m venv .venv
-cd backend\ms-ia; .\.venv\Scripts\python.exe -m pytest tests
+# ms-ia (PyTest): corre dentro de su imagen, porque usa los modelos reales y Python 3.11
+docker compose run --rm --no-deps -v "${PWD}/backend/ms-ia/tests:/app/tests" -v "${PWD}/backend/ms-ia/training:/app/training" ms-ia python -m pytest tests
 
 # Servidor MCP y orquestador SAGA (node:test)
 cd backend\mcp-server; npm test
 cd backend\saga-orchestrator; npm test
 
 # Seguridad y rendimiento en vivo: requiere el entorno levantado
+# Solo necesita httpx, PyJWT y pytest; se crea una vez con: python -m venv backend\ms-ia\.venv y pip install httpx pyjwt[crypto] pytest
 cd tests\integration; ..\..\backend\ms-ia\.venv\Scripts\python.exe -m pytest .
 
 # Navegador real: requiere además los microfrontends en ejecución
@@ -165,3 +166,18 @@ docker compose down      # Elimina los contenedores y conserva los volúmenes
 ```
 
 > **Atención:** `docker compose down -v` borra también todos los datos de las bases.
+
+## Diagnóstico biométrico y voz
+
+- La cámara y el micrófono solo funcionan en `localhost` o por HTTPS, y el navegador pide permiso la primera vez.
+- La primera construcción de `ms-ia` descarga unos 1,5 GB entre bibliotecas y modelos. Sus huellas se verifican: si un modelo cambia, la construcción falla.
+- El clasificador de cabello ya viene en `backend/ms-ia/models/hair_type.tflite`. Para reentrenarlo, siga las instrucciones de `backend/ms-ia/training/train_hair_type.py`.
+
+### Cupo de Gemini
+El plan gratuito permite 20 consultas diarias por modelo, y cada corrida completa de pruebas gasta varias. Si se agota, los reportes y la marca personal siguen funcionando con datos reales y plantillas, y lo indican en pantalla. Para usar otro modelo con su propio cupo, defina en `.env`:
+
+```
+GEMINI_MODEL=gemini-3.1-flash-lite
+```
+
+y ejecute `docker compose up -d mcp-server ms-ia`.

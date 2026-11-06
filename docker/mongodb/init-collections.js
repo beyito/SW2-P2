@@ -26,9 +26,14 @@ salonDb.community_posts.createIndex({ createdAt: -1 }, { name: 'idx_posts_create
 salonDb.community_posts.createIndex({ authorId: 1 }, { name: 'idx_posts_authorId' });
 salonDb.community_posts.createIndex({ likes: 1 }, { name: 'idx_posts_likes' });
 
-// 3. Colección: styling_consultations (CU-13, CU-14)
-asegurarColeccion('styling_consultations');
-salonDb.styling_consultations.createIndex({ clientId: 1, createdAt: -1 }, { name: 'idx_consultations_client_date' });
+// 3. Consentimiento y resultados biométricos (CU-13). Nunca guardan imágenes ni video.
+asegurarColeccion('biometric_consents');
+salonDb.biometric_consents.createIndex({ clientId: 1 }, { unique: true, name: 'clientId_1' });
+asegurarColeccion('biometric_diagnoses');
+salonDb.biometric_diagnoses.createIndex({ id: 1 }, { unique: true, name: 'id_1' });
+salonDb.biometric_diagnoses.createIndex({ clientId: 1, createdAt: -1 }, { name: 'clientId_1_createdAt_-1' });
+// Política de retención: MongoDB borra el documento al llegar a expiresAt
+salonDb.biometric_diagnoses.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0, name: 'expiresAt_1' });
 
 // Datos semilla: se insertan solo si el documento no existe
 salonDb.virtual_closet_items.updateOne(

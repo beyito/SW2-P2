@@ -80,7 +80,7 @@ SERVICIOS = {
     "ms-gestion": lambda t: gql("{getCriticalStockItems{code}}", t),
     "ms-asesoria": lambda t: httpx.get(f"{ASESORIA}/community", headers=auth(t)),
     "ms-crm": lambda t: httpx.get(f"{CRM}/api/clients", headers=auth(t)),
-    "ms-ia": lambda t: httpx.post(f"{IA}/api/v1/recommendations/styles", json={}, headers=auth(t)),
+    "ms-ia": lambda t: httpx.post(f"{IA}/api/v1/recommendations/styles", json={"face_shape": "OVAL"}, headers=auth(t)),
     "mcp-server": lambda t: rpc("tools/list", {}, t),
 }
 servicios = pytest.mark.parametrize("servicio", SERVICIOS)

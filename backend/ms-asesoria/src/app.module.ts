@@ -3,6 +3,17 @@ import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ClosetController } from './adapters/inbound/rest/closet.controller';
 import { MediaController } from './adapters/inbound/rest/media.controller';
+import { BiometricsController } from './adapters/inbound/rest/biometrics.controller';
+import { BiometricsService } from './adapters/inbound/services/biometrics.service';
+import { MongoBiometricsRepository } from './adapters/outbound/persistence/mongo-biometrics.repository';
+import {
+  BiometricConsentMongo,
+  BiometricConsentSchema,
+  BiometricDiagnosisMongo,
+  BiometricDiagnosisSchema,
+} from './adapters/outbound/persistence/schemas/biometrics.schema';
+import { BIOMETRICS_USE_CASE } from './ports/inbound/biometrics.use-case.port';
+import { BIOMETRICS_REPOSITORY } from './ports/outbound/biometrics-repository.port';
 import { CommunityController } from './adapters/inbound/rest/community.controller';
 import { ClosetService } from './adapters/inbound/services/closet.service';
 import { CommunityService } from './adapters/inbound/services/community.service';
@@ -44,9 +55,11 @@ const MONGO_URI =
     MongooseModule.forFeature([
       { name: ClosetItemMongo.name, schema: ClosetItemSchema },
       { name: CommunityPostMongo.name, schema: CommunityPostSchema },
+      { name: BiometricConsentMongo.name, schema: BiometricConsentSchema },
+      { name: BiometricDiagnosisMongo.name, schema: BiometricDiagnosisSchema },
     ]),
   ],
-  controllers: [ClosetController, CommunityController, MediaController, AuthController, HealthController],
+  controllers: [ClosetController, CommunityController, MediaController, BiometricsController, AuthController, HealthController],
   providers: [
     DynamoHttpClient,
     MediaService,
@@ -57,6 +70,8 @@ const MONGO_URI =
     // Toda ruta exige un token válido salvo las marcadas con @Public()
     { provide: APP_GUARD, useClass: AuthGuard },
     { provide: APP_INTERCEPTOR, useClass: IdempotencyInterceptor },
+    { provide: BIOMETRICS_USE_CASE, useClass: BiometricsService },
+    { provide: BIOMETRICS_REPOSITORY, useClass: MongoBiometricsRepository },
     {
       provide: CLOSET_USE_CASE,
       useClass: ClosetService,

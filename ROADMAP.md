@@ -17,8 +17,8 @@ Registro oficial del desarrollo de la **Plataforma Inteligente para Salón de Be
 | **C** | Catálogo, receta de insumos, estilistas, horarios y stock mínimo | Vie 6 | **COMPLETADA** |
 | **D** | Reserva y pago real: SAGA, Stripe e idempotencia | Vie 6 | **COMPLETADA** |
 | **E** | CRM: Laravel, GraphQL, factura, puntos, canje y reembolso | Vie 6 | **COMPLETADA** |
-| **F** | Frontends y MCP con datos reales, perfil, reseñas, avisos y moderación | Vie 6 | **COMPLETADA** (el diagnóstico biométrico sigue simulado hasta la Fase G) |
-| **G** | IA real y consentimiento biométrico | Lun 9 | Pendiente |
+| **F** | Frontends y MCP con datos reales, perfil, reseñas, avisos y moderación | Vie 6 | **COMPLETADA** |
+| **G** | IA real y consentimiento biométrico | Vie 6 | **COMPLETADA** |
 | **H** | Offline, n8n, Module Federation, Testcontainers y certificación final | Lun 9 - Mar 10 | Pendiente (primera en recortarse si falta tiempo) |
 
 ---
@@ -153,7 +153,7 @@ La Fase D se ejecutó antes por decisión del usuario, e incorporó las piezas d
 - [x] Reportes con `gemini-2.5-flash`; sin clave o si la API falla, se arma un resumen con los mismos datos reales.
 - [x] DataLoader (`@BatchMapping`) y Read Model (`panel_appointments_view`) para el panel empresarial (RNF-01).
 
-**Aceptación:** ninguna pantalla ni herramienta MCP usa datos fijos. Verificada, con una excepción prevista: el escáner biométrico sigue llamando al diagnóstico simulado de `ms-ia` hasta la Fase G.
+**Aceptación:** ninguna pantalla ni herramienta MCP usa datos fijos. Verificada, con una excepción prevista, ya cerrada: el escáner biométrico llamaba al diagnóstico simulado de `ms-ia` hasta la Fase G.
 
 **Verificación en vivo (6 de noviembre):**
 - [x] `tests/integration`: 188/188 contra todos los servicios reales.
@@ -165,8 +165,8 @@ La Fase D se ejecutó antes por decisión del usuario, e incorporó las piezas d
 - [x] Suites: `ms-gestion` 61/61, `ms-crm` 33/33, `ms-asesoria` 47/47, `mcp-server` 30/30, `saga-orchestrator` 31/31, `ms-ia` 20/20.
 
 **Limitaciones conocidas:**
-- El E2E del ERP usó el Angular compilado (`ERP_DESDE_DIST=1`), porque el puerto 3003 seguía ocupado por el servidor estático anterior. `ng serve` se comprobó aparte: compila y arranca.
-- El chat del agente ofrece consultas predefinidas y reportes en lenguaje natural, pero el modelo aún no elige herramientas por sí mismo. La voz (Whisper) llega en la Fase G.
+- El E2E del ERP usó el Angular compilado (`ERP_DESDE_DIST=1`), porque el puerto 3003 seguía ocupado por el servidor estático anterior. Cerrada en la Fase G: todas las suites corren contra `ng serve`.
+- El chat del agente ofrece consultas predefinidas y reportes en lenguaje natural, pero el modelo aún no elige herramientas por sí mismo.
 - Registrar un estilista no le crea una cuenta en Keycloak. Un cliente registrado por el personal tampoco queda vinculado a una cuenta.
 - Un administrador que marca un aviso de stock como leído lo marca para todos los administradores.
 - Cada estilista tiene un solo bloque de horario por día.
@@ -174,19 +174,49 @@ La Fase D se ejecutó antes por decisión del usuario, e incorporó las piezas d
 - Los comentarios y las reseñas no tienen paginación; el muro muestra las 50 publicaciones más recientes.
 - No hay pruebas unitarias de componentes de frontend (Fase H); los cubre el E2E.
 
-## Fase G: IA Real (CU-13, CU-14, CU-16, CU-18, RF-04, RF-05, RF-06)
-- [ ] Consentimiento biométrico, política de retención y borrado de datos.
-- [ ] Análisis real de imagen y video de 3 a 5 segundos con MediaPipe y TensorFlow; error 422 si no hay rostro.
-- [ ] Recomendador con Scikit-Learn; marca personal que use el perfil del cliente.
-- [ ] Reportes por voz con Whisper y modelo de Gemini vigente.
+## Fase G: IA Real (CU-13, CU-14, CU-16, CU-18, RF-04, RF-05, RF-06) (Completada)
+- [x] Consentimiento biométrico versionado en `ms-asesoria`: sin él no se analiza nada; si no se puede comprobar, tampoco. Es voluntario: se pueden indicar los rasgos a mano.
+- [x] Retención y borrado: la foto o el video se descartan al terminar, solo se guarda el resultado, MongoDB lo borra a los 365 días (`BIOMETRIC_RETENTION_DAYS`) y revocar lo borra todo. Ni el personal del salón puede leer los resultados de un cliente.
+- [x] Análisis real de foto y de video de 3 a 5 segundos: MediaPipe Face Landmarker para el rostro y dos redes en TensorFlow Lite para el cabello. Rechaza con 422 y su motivo: sin rostro, varias personas, de perfil, lejos, borroso o mal iluminado.
+- [x] Clasificador de tipo de cabello propio (MobileNetV2, `training/train_hair_type.py`), entrenado y medido con Figaro-1k.
+- [x] Cámara y grabación en el navegador, o subida de un archivo validado por su contenido.
+- [x] Recomendador con Scikit-Learn (filtrado por contenido con similitud de coseno), unido al catálogo real, con el motivo de cada sugerencia y un botón para reservar el servicio.
+- [x] Marca personal que usa el último diagnóstico y el clóset del cliente. Gemini redacta los textos sin recibir su nombre, su foto ni sus rasgos.
+- [x] Reportes por voz: Whisper local transcribe la pregunta y el reporte sigue pasando por el Servidor MCP.
 
-**Aceptación:** una imagen sin rostro se rechaza; los datos biométricos se pueden borrar.
+**Aceptación:** una imagen sin rostro se rechaza y los datos biométricos se pueden borrar. Verificada en vivo y en navegador.
+
+**Medición de los modelos:**
+- Tipo de cabello, sobre las 118 fotos de prueba de Figaro-1k que el modelo no vio, con el segmentador de producción: exactitud 87,3% (liso 100%, ondulado 60%, rizado 95%). Detalle en `backend/ms-ia/training/hair_type_metrics.json`.
+- Forma de rostro y subtono: sus umbrales se calibraron con 1128 rostros frontales de LFW. Con 408 rostros aceptados de otra muestra, las cinco formas aparecen entre el 12% y el 32%. **No hay un conjunto etiquetado, así que su exactitud no está medida.**
+
+**Verificación en vivo (6 de noviembre):**
+- [x] `tests/integration`: 214/214 contra todos los servicios reales, con `ms-asesoria` detenido a propósito para comprobar que `ms-ia` no analiza sin poder revisar el consentimiento.
+- [x] `tests/e2e` en Chromium, contra `ng serve` real: `fase_g` 33/33 con cámara y micrófono alimentados por un video y un audio reales, `fase_f` 51/51, `reservas` 9/9, `seguridad` 14/14.
+- [x] Un video WebM real grabado por el navegador, sin duración en su cabecera, se mide y se analiza.
+- [x] Voz a reporte con Gemini real (`gemini-3.1-flash-lite`, por el cupo agotado de `gemini-2.5-flash`). Marca personal con ambos modelos.
+- [x] Suites: `ms-ia` 103/103 con los modelos reales, `ms-asesoria` 68/68, `ms-gestion` 61/61, `ms-crm` 33/33, `mcp-server` 30/30, `saga-orchestrator` 31/31.
+
+**Limitaciones conocidas:**
+- El diagnóstico es una estimación orientativa, y la pantalla lo indica. El subtono depende de la luz de la foto.
+- LFW y Figaro-1k no representan por igual a todas las personas: no se midió el comportamiento por tono de piel o etnia. Las trenzas y las rastas no se entrenaron; una foto con ellas recibe igualmente una de las tres clases.
+- Ondulado es la clase menos fiable, con 60% de acierto.
+- Figaro-1k se publicó para investigación, aunque su espejo indique licencia MIT. Sirve para este proyecto académico; un uso comercial requiere revisar sus condiciones o reentrenar con datos propios.
+- El plan gratuito de Gemini permite 20 consultas diarias por modelo. Al agotarlas, los reportes y la marca personal siguen funcionando con datos reales y plantillas, y lo indican en pantalla.
+- La imagen de `ms-ia` pesa 3,9 GB y el contenedor usa unos 700 MB de memoria sin Whisper cargado.
+- El análisis se hace de uno en uno en CPU: varias peticiones simultáneas esperan su turno.
+- El agente sigue sin elegir herramientas por sí mismo (RF-11): la voz y el texto siempre usan la herramienta de reportes.
 
 ## Fase H: Cierre (CU-19, CU-22, RF-10, RF-12)
 - [ ] Flujos n8n desplegados y disparados por eventos reales.
 - [ ] Offline web (IndexedDB) y móvil (plataformas Android/iOS, TFLite, sincronización automática e idempotente).
 - [ ] Module Federation en el Shell.
 - [ ] Testcontainers, pruebas de frontend y de contrato, y certificación final.
+
+## Funciones propuestas (sin aprobar)
+Pedidas por el usuario el 6 de noviembre. Antes de implementarlas se presentarán las opciones de IA, servicio o API para que elija, y hará falta una nueva versión de la política de datos biométricos si la foto sale hacia un tercero.
+- [ ] Generar imágenes del cliente con los cortes recomendados.
+- [ ] Generar imágenes del cliente con la ropa de su clóset.
 
 ---
 
@@ -208,12 +238,12 @@ Estado actualizado al cierre de cada fase. ✅ completo y verificado en vivo. �
 | CU-10 | Reserva y pago (SAGA e idempotencia) | ✅ (web) | D |
 | CU-11 | Emitir factura | ✅ (sin validez fiscal) | E, F |
 | CU-12 | Puntos de fidelidad | ✅ | E, F |
-| CU-13 | Escaneo capilar y facial | ❌ | G |
-| CU-14 | Recomendaciones | 🟡 | G |
+| CU-13 | Escaneo capilar y facial | ✅ (web; soporte offline en Fase H) | G, H |
+| CU-14 | Recomendaciones | ✅ | G |
 | CU-15 | Armario virtual | ✅ | F |
-| CU-16 | Asesoría para redes sociales | 🟡 | G |
+| CU-16 | Asesoría para redes sociales | ✅ | G |
 | CU-17 | Métricas por agente (MCP) | ✅ (consultas predefinidas; el modelo aún no elige herramientas) | F |
-| CU-18 | Reportes por lenguaje natural | 🟡 (texto sí; voz en Fase G) | F, G |
+| CU-18 | Reportes por lenguaje natural | ✅ (texto y voz) | F, G |
 | CU-19 | Recordatorios por WhatsApp (n8n) | ❌ | H |
 | CU-20 | Publicar look | ✅ | F |
 | CU-21 | Reaccionar y comentar | ✅ | F |

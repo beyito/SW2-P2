@@ -314,7 +314,9 @@ onMounted(async () => {
     const catalog = await loadCatalog();
     services.value = catalog.services;
     stylists.value = catalog.stylists;
-    selectedService.value = catalog.services[0] ?? null;
+    // Una recomendación del Estudio IA puede abrir la reserva con su servicio ya elegido
+    const recommended = new URLSearchParams(window.location.search).get('service');
+    selectedService.value = catalog.services.find((service) => service.id === recommended) ?? catalog.services[0] ?? null;
     selectedStylist.value = catalog.stylists[0] ?? null;
   } catch (error) {
     errorMessage.value = error.message;

@@ -69,3 +69,25 @@ body {
 .post-actions { border-top: 1px solid var(--border-glass); padding-top: 10px; }
 .comments { margin: 10px 0; display: flex; flex-direction: column; gap: 6px; }
 .comment { background: rgba(0, 0, 0, 0.2); padding: 8px 10px; border-radius: 6px; font-size: 0.8rem; overflow-wrap: anywhere; }
+
+/* Diagnóstico y marca personal */
+.studio-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+.studio-primary, .studio-secondary, .studio-danger { display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 10px; font-weight: 700; font-size: 0.86rem; cursor: pointer; font-family: inherit; }
+.studio-primary { background: linear-gradient(135deg, #F5D061, #D4AF37); color: #0A0E17; border: none; }
+.studio-secondary { background: transparent; color: var(--text-primary); border: 1px solid var(--border-glass); }
+.studio-secondary.disabled, .studio-primary:disabled, .studio-secondary:disabled { opacity: 0.5; cursor: not-allowed; }
+.studio-danger { background: #B91C1C; color: #fff; border: none; }
+.studio-link { background: none; border: none; padding: 0; color: var(--gold-primary); cursor: pointer; font: inherit; font-size: 0.85rem; text-decoration: underline; text-align: left; }
+.studio-error { color: #FCA5A5; font-size: 0.87rem; }
+.studio-camera { background: #06090F; border-radius: 12px; overflow: hidden; }
+.studio-camera video { display: block; width: 100%; transform: scaleX(-1); }
+.studio-result { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 6px 14px; margin: 0; font-size: 0.88rem; }
+.studio-result dt { color: var(--text-secondary); }
+.studio-result dd { margin: 0; font-weight: 600; }
+.studio-result small { color: var(--text-muted); font-weight: 400; }
+.studio-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.studio-chips span { font-size: 0.76rem; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--border-glass); color: var(--gold-glow); }
+.studio-filters { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; margin-bottom: 16px; }
+.studio-field { display: flex; flex-direction: column; gap: 4px; font-size: 0.76rem; color: var(--text-secondary); min-width: 0; }
+.studio-field select, .studio-field input { background: #0A0E17; color: var(--text-primary); border: 1px solid var(--border-glass); border-radius: 8px; padding: 8px; font: inherit; font-size: 0.85rem; min-width: 0; }
+.studio-style { padding: 14px; border-radius: 10px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-glass); }

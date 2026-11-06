@@ -25,6 +25,16 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
   const [activeTab, setActiveTab] = useState('estudio-ia'); // estudio-ia | reservas | gestion
+  // Servicio elegido en una recomendación; se olvida al cambiar de pestaña a mano
+  const [bookService, setBookService] = useState(null);
+  const changeTab = (tab) => {
+    setBookService(null);
+    setActiveTab(tab);
+  };
+  const openBooking = (serviceId) => {
+    setBookService(serviceId);
+    setActiveTab('reservas');
+  };
 
   // Inicio de sesión real contra Keycloak (CU-01)
   useEffect(() => {
@@ -88,7 +98,7 @@ export default function App() {
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <Navbar
         activeTab={activeTab}
-        setActiveTab={setActiveTab}
+        setActiveTab={changeTab}
         currentUser={user}
         canManage={canManage}
         onLogout={logout}
@@ -96,7 +106,7 @@ export default function App() {
 
       <main style={{ flex: 1, padding: '20px 0' }}>
         <div className="fade-in">
-          <MicrofrontendHost activeTab={activeTab} currentUser={user} token={token} onSessionLost={onSessionLost} />
+          <MicrofrontendHost activeTab={activeTab} currentUser={user} token={token} onSessionLost={onSessionLost} bookService={bookService} onBook={openBooking} />
         </div>
       </main>
 

@@ -1,150 +1,100 @@
-import cv2
-import numpy as np
-from typing import Dict, Any, List
+"""Diagnóstico biométrico real a partir de una foto o un video de 3 a 5 segundos (CU-13, RF-04)."""
+from collections import Counter
+from statistics import median
 
-try:
-    import mediapipe as mp
-    mp_face_mesh = mp.solutions.face_mesh
-    HAS_MEDIAPIPE = True
-except Exception:
-    HAS_MEDIAPIPE = False
+import numpy as np
+
+from app.vision.errors import BiometricRejection
+from app.vision.face import FaceReading, classify_shape, classify_undertone, read_face
+from app.vision.hair import read_hair
+from app.vision.media import IMAGE, decode_image, detect_kind, read_video
+
+METHOD = "MediaPipe Face Landmarker + TF Lite Multiclass"
+_MAX_SHAPE_CONFIDENCE = 0.95
+_MIN_VALID_FRAMES = 2
+_MIN_VALID_RATIO = 0.5
+_MAX_MULTIFACE_RATIO = 0.2
+_MAX_HAIR_FRAMES = 3
+
+# Tonos para el cabello y la ropa según el subtono
+PALETTES = {
+    "WARM": ["Miel", "Caramelo", "Cobre", "Terracota", "Mostaza", "Verde oliva"],
+    "COOL": ["Cenizo", "Chocolate frío", "Perla", "Azul marino", "Esmeralda", "Lavanda"],
+    "NEUTRAL": ["Avellana", "Rubio beige", "Castaño natural", "Beige", "Verde salvia", "Azul denim"],
+}
+
 
 class BiometricsService:
-    """
-    Servicio de diagnóstico biométrico facial y capilar con Google MediaPipe (CU-13, RF-04)
-    Extrae 468 puntos antropométricos para clasificar la morfología facial y colorimetría.
-    """
+    @classmethod
+    def analyze(cls, content: bytes) -> dict:
+        """Analiza los bytes recibidos. No los guarda: el resultado solo contiene atributos derivados."""
+        kind = detect_kind(content)
+        if kind == IMAGE:
+            image = decode_image(content)
+            return cls._build(kind, [image], [read_face(image)])
+        frames, readings = cls._read_video_frames(read_video(content).frames)
+        return cls._build(kind, frames, readings)
+
+    @staticmethod
+    def _read_video_frames(frames: list[np.ndarray]) -> tuple[list[np.ndarray], list[FaceReading]]:
+        valid_frames, readings, rejections = [], [], []
+        for frame in frames:
+            try:
+                readings.append(read_face(frame))
+                valid_frames.append(frame)
+            except BiometricRejection as rejection:
+                rejections.append(rejection)
+
+        codes = Counter(rejection.code for rejection in rejections)
+        if codes["MULTIPLE_FACES"] > _MAX_MULTIFACE_RATIO * len(frames):
+            raise next(r for r in rejections if r.code == "MULTIPLE_FACES")
+        if len(readings) < max(_MIN_VALID_FRAMES, _MIN_VALID_RATIO * len(frames)):
+            if rejections:
+                most_common = codes.most_common(1)[0][0]
+                raise next(r for r in rejections if r.code == most_common)
+            raise BiometricRejection("INVALID_VIDEO", "El video no tiene suficientes fotogramas.")
+        return valid_frames, readings
 
     @classmethod
-    def analyze_scan(cls, image_bytes: bytes = None, filename: str = "") -> Dict[str, Any]:
-        if not image_bytes or len(image_bytes) == 0:
-            return cls._fallback_response("No se proporcionó imagen válida")
-
-        try:
-            # Decodificar bytes de imagen con OpenCV
-            np_arr = np.frombuffer(image_bytes, np.uint8)
-            img = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
-
-            if img is None:
-                return cls._fallback_response("Formato de imagen incompatible")
-
-            height, width, _ = img.shape
-
-            # Si MediaPipe está disponible, ejecutar Face Mesh sobre la imagen
-            if HAS_MEDIAPIPE:
-                rgb_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-                with mp_face_mesh.FaceMesh(
-                    static_image_mode=True,
-                    max_num_faces=1,
-                    refine_landmarks=True,
-                    min_detection_confidence=0.5
-                ) as face_mesh:
-                    results = face_mesh.process(rgb_img)
-
-                    if results.multi_face_landmarks:
-                        landmarks = results.multi_face_landmarks[0].landmark
-                        return cls._calculate_morphology(landmarks, img, width, height)
-
-            # Fallback visagista si no se detectaron rostros en los píxeles
-            return cls._fallback_response("Rostro no detectado con suficiente contraste, estimación visagista aplicada")
-
-        except Exception as e:
-            return cls._fallback_response(f"Estimación visagista por excepción: {str(e)}")
-
-    @classmethod
-    def _calculate_morphology(cls, landmarks, img, width: int, height: int) -> Dict[str, Any]:
-        """Calcula proporciones geométricas a partir de landmarks faciales de MediaPipe"""
-        def get_point(idx):
-            lm = landmarks[idx]
-            return np.array([lm.x * width, lm.y * height])
-
-        # Landmarks clave de visagismo
-        p_top = get_point(10)     # Frente / límite capilar
-        p_chin = get_point(152)   # Mentón
-        p_l_cheek = get_point(234)# Pómulo izquierdo
-        p_r_cheek = get_point(454)# Pómulo derecho
-        p_l_jaw = get_point(132)  # Ángulo mandibular izquierdo
-        p_r_jaw = get_point(361)  # Ángulo mandibular derecho
-
-        # Distancias euclidianas
-        face_length = float(np.linalg.norm(p_top - p_chin))
-        cheek_width = float(np.linalg.norm(p_l_cheek - p_r_cheek))
-        jaw_width = float(np.linalg.norm(p_l_jaw - p_r_jaw))
-
-        ratio_lw = face_length / cheek_width if cheek_width > 0 else 1.35
-        ratio_jaw = jaw_width / cheek_width if cheek_width > 0 else 0.75
-
-        # Clasificación Morfológica de Visagismo
-        if ratio_lw > 1.45:
-            face_shape = "OBLONG" if ratio_jaw > 0.82 else "OVAL"
-        elif 1.20 <= ratio_lw <= 1.45:
-            if ratio_jaw >= 0.82:
-                face_shape = "SQUARE"
-            elif ratio_jaw <= 0.72:
-                face_shape = "HEART"
-            else:
-                face_shape = "OVAL"
-        else:
-            face_shape = "SQUARE" if ratio_jaw >= 0.80 else "ROUND"
-
-        # Análisis de colorimetría en la zona central de la mejilla
-        undertone, palette = cls._estimate_skin_tone(img, p_l_cheek, p_r_cheek)
-
+    def _build(cls, source: str, frames: list[np.ndarray], readings: list[FaceReading]) -> dict:
+        shape, probability = classify_shape(
+            median(r.length_to_width for r in readings),
+            median(r.jaw_to_cheek for r in readings),
+            median(r.forehead_to_cheek for r in readings),
+        )
+        # En un video, la confianza baja si los fotogramas no coinciden entre sí
+        votes = [classify_shape(r.length_to_width, r.jaw_to_cheek, r.forehead_to_cheek)[0] for r in readings]
+        stability = votes.count(shape) / len(votes)
+        undertone, undertone_confidence = classify_undertone(median(r.skin_hue for r in readings))
+        hair = cls._read_hair(frames, readings)
         return {
-            "face_shape": face_shape,
-            "confidence_face": 0.96,
-            "anthropometric_metrics": {
-                "face_length_px": round(face_length, 1),
-                "cheekbone_width_px": round(cheek_width, 1),
-                "jaw_width_px": round(jaw_width, 1),
-                "length_to_width_ratio": round(ratio_lw, 2),
-                "landmarks_detected": 468
-            },
-            "hair_type": "WAVY_2B",
-            "hair_density": "HIGH",
-            "hair_porosity": "MEDIUM",
-            "skin_undertone": undertone,
-            "recommended_palette": palette,
-            "detection_method": "MEDIAPIPE_FACE_MESH_468",
-            "status": "ANALYZED_SUCCESSFULLY"
+            "source": source,
+            "faceShape": shape,
+            "faceShapeConfidence": round(min(probability * max(stability, 0.5), _MAX_SHAPE_CONFIDENCE), 2),
+            "skinUndertone": undertone,
+            "undertoneConfidence": undertone_confidence,
+            "recommendedPalette": PALETTES[undertone],
+            "hairType": hair["type"],
+            "hairTypeConfidence": hair["confidence"],
+            "hairTone": hair["tone"],
+            "framesAnalyzed": len(readings),
+            "method": METHOD,
         }
 
-    @classmethod
-    def _estimate_skin_tone(cls, img, p_left, p_right) -> tuple[str, List[str]]:
-        """Determina el undertone en espacio de color Lab a partir de la piel facial"""
-        try:
-            cx = int((p_left[0] + p_right[0]) / 2)
-            cy = int((p_left[1] + p_right[1]) / 2)
-            h, w, _ = img.shape
-
-            # Ventana de 30x30 alrededor del centro
-            y1, y2 = max(0, cy - 15), min(h, cy + 15)
-            x1, x2 = max(0, cx - 15), min(w, cx + 15)
-            roi = img[y1:y2, x1:x2]
-
-            if roi.size > 0:
-                lab = cv2.cvtColor(roi, cv2.COLOR_BGR2LAB)
-                b_mean = float(np.mean(lab[:, :, 2])) # Canal b* (amarillo/cálido vs azul/frío)
-                if b_mean > 138:
-                    return "WARM", ["Golden Blonde", "Caramel Brown", "Warm Copper", "Miel Avellana"]
-                elif b_mean < 126:
-                    return "COOL", ["Ash Blonde", "Espresso", "Platinum Silver", "Bordeaux"]
-
-            return "WARM", ["Golden Blonde", "Caramel Brown", "Warm Copper"]
-        except Exception:
-            return "WARM", ["Golden Blonde", "Caramel Brown", "Warm Copper"]
-
-    @classmethod
-    def _fallback_response(cls, reason: str) -> Dict[str, Any]:
+    @staticmethod
+    def _read_hair(frames: list[np.ndarray], readings: list[FaceReading]) -> dict:
+        step = max(len(frames) // _MAX_HAIR_FRAMES, 1)
+        results = [
+            reading
+            for frame, face in list(zip(frames, readings))[::step][:_MAX_HAIR_FRAMES]
+            if (reading := read_hair(frame, face.face_width_px)) is not None
+        ]
+        if not results:
+            return {"type": None, "confidence": None, "tone": None}
+        hair_type = Counter(r.hair_type for r in results).most_common(1)[0][0]
+        same_type = [r for r in results if r.hair_type == hair_type]
         return {
-            "face_shape": "OVAL",
-            "confidence_face": 0.94,
-            "hair_type": "WAVY_2B",
-            "hair_density": "HIGH",
-            "hair_porosity": "MEDIUM",
-            "skin_undertone": "WARM",
-            "recommended_palette": ["Golden Blonde", "Caramel Brown", "Warm Copper"],
-            "detection_method": "ESTIMACION_VISAGISTA_DEFAULT",
-            "reason": reason,
-            "status": "ANALYZED_SUCCESSFULLY"
+            "type": hair_type,
+            "confidence": round(median(r.confidence for r in same_type), 2),
+            "tone": Counter(r.tone for r in results).most_common(1)[0][0],
         }

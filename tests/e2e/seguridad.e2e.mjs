@@ -44,7 +44,10 @@ check('cliente no ve la pestaña ERP', (await cliente.locator('#tab-mfe-gestion'
 check('no existe el botón de alternar rol', (await cliente.locator('[title="Alternar rol de sesión"]').count()) === 0);
 
 const mfe = cliente.frameLocator('#mfe-frame');
-await mfe.getByRole('button', { name: /Iniciar Escaneo/ }).click();
+// Pide recomendaciones a ms-ia; a mano si todavía no hay consentimiento biométrico
+await mfe.locator('#btn-manual, #btn-camera').first().waitFor({ timeout: 20000 });
+if (await mfe.locator('#btn-manual').count()) await mfe.locator('#btn-manual').click();
+await mfe.locator('#pref-hair').selectOption('CURLY');
 await cliente.waitForTimeout(3000);
 check('el microfrontend llama a ms-ia con el token', pedidos.length > 0 && Boolean(pedidos[0].auth?.startsWith('Bearer ey')), `(${pedidos.length} llamadas)`);
 check('ms-ia acepta el token del Shell', respuestas.length > 0 && respuestas.every((s) => s === 200), JSON.stringify(respuestas));
