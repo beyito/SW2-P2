@@ -23,6 +23,7 @@ Registro oficial del desarrollo de la **Plataforma Inteligente para Salón de Be
 | **I** | Simulación de cortes y ropa con IA en web y móvil | Vie 6 | **COMPLETADA** |
 | **J** | Agentes de operación, inventario y agenda con Skills sobre MCP (RF-11) | Vie 6 | **COMPLETADA** |
 | **K** | Prueba de conjuntos de ropa en una sola imagen, en web y móvil | Sáb 7 | **COMPLETADA** |
+| **L** | Cierre de entrega: regresión, README, frontends en Docker y pantallas móviles que faltan | Lun 9 | **APROBADA, SIN EMPEZAR** |
 
 ---
 
@@ -313,6 +314,39 @@ Función adicional pedida por el usuario: probarse varias prendas a la vez en un
 - **Abrigo:** la combinación con abrigo, y por tanto la de 3 prendas, nunca se probó con el modelo real.
 - **Móvil:** verificado con pruebas de pantalla en el equipo; no se ejecutó en el emulador porque su flujo real gasta crédito.
 - **Fidelidad:** una imagen en espejo se copia en espejo: una prenda con letras invertidas sale igual. Detalles como los rotos de un pantalón pueden variar.
+
+## Fase L: Cierre de entrega (CU-06, CU-10, CU-11, CU-12, CU-16, CU-20, CU-21) (Aprobada, sin empezar)
+**Aprobada el 7 de noviembre de 2026 por el equipo, completa.** No hace falta volver a pedir aprobación para empezarla. La ejecuta el agente de otro integrante del equipo; nada de esta fase se ha implementado todavía.
+
+Hazla en este orden. Si no alcanza el tiempo, lo primero que se recorta es L3, y hay que avisarlo al equipo con antelación.
+
+### L1: Asegurar lo existente y empaquetar
+- [ ] **Regresión completa:** todas las suites de `MANUAL_EJECUCION.md`, sección 7. No se corrió después de la Fase K, solo las suites afectadas.
+- [ ] **`README.md` en la raíz:** qué es el proyecto, cómo arrancarlo, enlaces al manual y al ROADMAP, y limitaciones conocidas. No existe.
+- [ ] **Frontends en Docker Compose:** Dockerfile para `shell`, `mfe-estudio-ia`, `mfe-reservas` y `mfe-gestion`, y sus servicios con healthcheck. Hoy se ejecutan con `npm run dev`. Los módulos federados deben seguir cargando desde el Shell, y el login de Keycloak debe seguir funcionando en los puertos 3000 a 3003.
+- [ ] **Manual:** actualizar `MANUAL_EJECUCION.md` y `start-all.ps1` con el nuevo arranque.
+
+**Aceptación:** en un entorno limpio, `docker compose up -d --build --wait` levanta toda la plataforma, con todos los servicios en `healthy`. Las suites E2E pasan contra los frontends en contenedores, incluido el login y un pago de prueba.
+
+### L2: Reserva y pago en el móvil (CU-06, CU-10)
+- [ ] Elegir servicio, estilista, fecha y turno disponible. "Mis citas" hoy solo lee.
+- [ ] Pagar con Stripe en modo prueba, por la misma SAGA de la web y con `Idempotency-Key`. Reutilizar la API existente, sin un camino de cobro propio.
+- [ ] Sin conexión, guardar la solicitud en la cola de `lib/core/sync/offline_queue.dart`. Una reserva enviada debe pagarse en 15 minutos.
+- [ ] Mostrar el pago rechazado y el turno ya ocupado con un mensaje claro.
+
+**Aceptación:** en el emulador, contra los servicios reales, una reserva pagada queda `CONFIRMED`, descuenta insumos y genera factura y puntos. Un reintento no cobra dos veces, y una tarjeta rechazada libera el turno.
+
+### L3: Resto de las pantallas móviles
+- [ ] **Comunidad (CU-20, CU-21):** ver el muro, publicar un look, reaccionar y comentar.
+- [ ] **Facturas y puntos (CU-11, CU-12):** consultar facturas y saldo de puntos.
+- [ ] **Asesoría para redes (CU-16):** pedir y ver la asesoría por red social.
+
+**Aceptación:** cada pantalla funciona en el emulador contra los servicios reales, y sus pruebas de pantalla pasan con `flutter test` y `flutter analyze` limpio.
+
+### Reglas de la fase
+- **Cierre:** actualizar en este archivo las casillas, el estado global y la matriz de casos de uso, y agregar la verificación y las limitaciones conocidas de cada parte. Una casilla solo se marca después de verificarla en vivo.
+- **Sin gastar crédito de Replicate:** esta fase no necesita generar imágenes reales. La prueba de conjuntos en el móvil queda para un integrante del equipo, que ya tiene previsto hacerla.
+- **Fuera de esta fase, se declara como limitación:** WhatsApp real, iOS, teléfono físico, captura con cámara y video sin conexión.
 
 ---
 
