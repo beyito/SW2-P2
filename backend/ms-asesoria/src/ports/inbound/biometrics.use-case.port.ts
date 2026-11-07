@@ -25,11 +25,16 @@ export interface ConsentStatus {
   revokedAt: Date | null;
 }
 
+export type ImageConsentStatus = Omit<ConsentStatus, 'retentionDays'>;
+
 export interface IBiometricsUseCase {
   getConsent(clientId: string): Promise<ConsentStatus>;
   grantConsent(clientId: string, policyVersion: string, declaresAdult: boolean): Promise<BiometricConsent>;
   /** Retira el consentimiento y borra todos los resultados del cliente. */
   revokeConsent(clientId: string): Promise<{ deletedDiagnoses: number }>;
+  getImageConsent(clientId: string): Promise<ImageConsentStatus>;
+  grantImageConsent(clientId: string, policyVersion: string, declaresAdult: boolean): Promise<BiometricConsent>;
+  revokeImageConsent(clientId: string): Promise<void>;
   saveDiagnosis(clientId: string, dto: SaveDiagnosisDto): Promise<BiometricDiagnosis>;
   listDiagnoses(clientId: string): Promise<BiometricDiagnosis[]>;
   deleteDiagnosis(clientId: string, id: string): Promise<boolean>;

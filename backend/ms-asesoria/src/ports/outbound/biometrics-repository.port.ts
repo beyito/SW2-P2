@@ -4,6 +4,9 @@ import { BiometricDiagnosis } from '../../domain/entities/biometric-diagnosis.en
 export interface IBiometricsRepository {
   findConsent(clientId: string): Promise<BiometricConsent | null>;
   saveConsent(consent: BiometricConsent): Promise<void>;
+  /** Autorización aparte para enviar la foto a un proveedor externo. */
+  findImageConsent(clientId: string): Promise<BiometricConsent | null>;
+  saveImageConsent(consent: BiometricConsent): Promise<void>;
   saveDiagnosis(diagnosis: BiometricDiagnosis): Promise<void>;
   /** Del más reciente al más antiguo. */
   findDiagnoses(clientId: string): Promise<BiometricDiagnosis[]>;

@@ -91,5 +91,20 @@
 .studio-filters { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; margin-bottom: 16px; }
 .studio-field { display: flex; flex-direction: column; gap: 4px; font-size: 0.76rem; color: var(--text-secondary); min-width: 0; }
 .studio-field select, .studio-field input { background: #0A0E17; color: var(--text-primary); border: 1px solid var(--border-glass); border-radius: 8px; padding: 8px; font: inherit; font-size: 0.85rem; min-width: 0; }
+&.preview-backdrop { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(5, 8, 15, 0.78); }
+.preview-dialog { width: min(520px, 100%); max-height: calc(100vh - 32px); overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+.preview-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.preview-close { background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 4px; }
+.preview-policy { font-size: 0.88rem; line-height: 1.55; color: var(--text-secondary); margin: 0 0 10px; }
+.preview-check { display: flex; gap: 8px; align-items: center; font-size: 0.88rem; margin-bottom: 12px; }
+.preview-busy { color: var(--gold-primary); font-size: 0.88rem; margin: 0; }
+.preview-result { margin: 0; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+.preview-result img { width: 100%; max-height: 60vh; object-fit: contain; border-radius: 10px; background: #0A0E17; }
+.preview-result figcaption { font-size: 0.8rem; font-weight: 700; color: var(--gold-primary); }
+.preview-result p { margin: 0; font-size: 0.78rem; }
+.preview-result a { text-decoration: none; }
+.studio-primary.disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
+.btn-try-on { margin-top: 8px; width: 100%; justify-content: center; }
+.try-on-hint { margin: 8px 0 0; }
 .studio-style { padding: 14px; border-radius: 10px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-glass); }
 }

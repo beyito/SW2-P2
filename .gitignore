@@ -55,3 +55,7 @@ Thumbs.db
 
 # Modelos de la app móvil: se obtienen con dart run tool/fetch_models.dart
 mobile/salon_mobile/assets/models/
+
+# Fotos personales usadas en pruebas de generacion de imagenes: nunca versionar
+/ROSTRO.jpeg
+/CUERPO-COMPLETO.jpeg

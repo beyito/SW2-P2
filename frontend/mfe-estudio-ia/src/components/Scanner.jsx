@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Camera, Check, Sparkles, Upload, Video } from 'lucide-react';
-import { biometricsApi, iaApi, loadStyleProfile } from '../api';
+import { biometricsApi, iaApi, imageGenApi, loadStyleProfile } from '../api';
 import { openBooking } from '../auth';
+import ImagePreview from './ImagePreview';
 import { AGE_RANGES, FACE_SHAPES, GENDERS, HAIR_TONES, HAIR_TYPES, LENGTHS, MAINTENANCE, UNDERTONES, VIBES } from '../labels';
 
 const RECORD_MS = 4000;
@@ -38,6 +39,7 @@ export default function Scanner() {
   const [busy, setBusy] = useState('');
   const [error, setError] = useState(null);
   const [confirmingRevoke, setConfirmingRevoke] = useState(false);
+  const [previewStyle, setPreviewStyle] = useState(null);
   const videoRef = useRef(null);
   const streamRef = useRef(null);
   const requestRef = useRef(0);
@@ -357,6 +359,11 @@ export default function Scanner() {
                 {style.matched_factors.length > 0 && (
                   <p style={{ fontSize: '0.76rem', color: 'var(--text-muted)', margin: '6px 0 0' }}>Según {style.matched_factors.join(', ')}.</p>
                 )}
+                {style.can_preview && !isMinor && (
+                  <button className="studio-secondary btn-preview" style={{ marginTop: '10px' }} onClick={() => setPreviewStyle(style)}>
+                    <Sparkles size={14} /> Ver cómo me queda
+                  </button>
+                )}
                 {!style.service && <p className="service-consult" style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: '8px 0 0' }}>Consulta este servicio en el salón.</p>}
                 {style.service && (
                   <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '8px', marginTop: '10px' }}>
@@ -369,6 +376,16 @@ export default function Scanner() {
           </div>
         )}
       </section>
+
+      {previewStyle && (
+        <ImagePreview
+          title={previewStyle.style_name}
+          photoHint="Usa una foto tuya de frente, donde se vea bien tu cabello y no aparezca nadie más."
+          approximate={previewStyle.preview_approximate}
+          generate={(file) => imageGenApi.haircut(file, previewStyle.style_id)}
+          onClose={() => setPreviewStyle(null)}
+        />
+      )}
     </div>
   );
 }

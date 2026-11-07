@@ -40,6 +40,11 @@ export async function loadCatalog() {
   }
 }
 
+/** Fecha de hoy según el reloj del cliente: en UTC, de noche ya sería mañana y no dejaría reservar para hoy. */
+export function localDate(now = new Date()) {
+  return new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+}
+
 export async function loadSlots(stylistId, serviceId, date) {
   const data = await gestion(
     'query ($stylistId: String!, $serviceId: String!, $date: String!) {' +

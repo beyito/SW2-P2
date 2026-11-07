@@ -109,6 +109,37 @@ CATALOG = [
      "reason": "Fortalece la fibra y devuelve el brillo al cabello liso."},
 ]
 
+CATALOG_BY_ID = {style["id"]: style for style in CATALOG}
+
+
+def _preview(haircut: str = "No change", hair_color: str = "No change", approximate: bool = False) -> dict:
+    return {"haircut": haircut, "hair_color": hair_color, "approximate": approximate}
+
+
+# Equivalencia con las opciones cerradas del generador de imágenes. "approximate" avisa al cliente de que muestra lo
+# más parecido disponible; los estilos que no están aquí, como tratamientos o canas, no cambian lo suficiente a la vista
+PREVIEWS = {
+    "cut-capas": _preview("Layered"),
+    "cut-bob": _preview("Bob", approximate=True),
+    "cut-lob": _preview("Lob"),
+    "cut-pixie": _preview("Pixie Cut"),
+    "cut-hombros": _preview("Layered", approximate=True),
+    "cut-rizos": _preview("Curly", approximate=True),
+    "cut-shag": _preview("Shag"),
+    "cut-fade": _preview("Crew Cut", approximate=True),
+    "cut-crop": _preview("Tousled", approximate=True),
+    "cut-undercut": _preview("Undercut"),
+    "cut-raya": _preview("Side-Parted"),
+    "cut-taper-rizos": _preview("Curly", approximate=True),
+    "cut-melena-h": _preview("Layered", approximate=True),
+    "color-miel": _preview(hair_color="Honey Blonde", approximate=True),
+    "color-cenizo": _preview(hair_color="Ash Blonde", approximate=True),
+    "color-cobre": _preview(hair_color="Copper"),
+    "color-espresso": _preview(hair_color="Dark Brown", approximate=True),
+    "color-reflejos-h": _preview(hair_color="Caramel", approximate=True),
+}
+
+
 _ATTRIBUTES = ["face", "hair", "tone", "undertone", "length", "maintenance", "vibe", "age"]
 _FACTOR_LABELS = {
     "face": "tu forma de rostro",
@@ -181,5 +212,7 @@ class RecommendationService:
                 "reason": style["reason"],
                 "matched_factors": [_FACTOR_LABELS[name] for name in matched],
                 "service": (services or {}).get(style.get("service", _SERVICE_FOR[style["category"]])),
+                "can_preview": style["id"] in PREVIEWS,
+                "preview_approximate": PREVIEWS.get(style["id"], {}).get("approximate", False),
             })
         return results

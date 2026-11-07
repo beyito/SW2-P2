@@ -201,7 +201,7 @@
 import { navigationParams, offlineStore } from './auth';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 import { loadStripe } from '@stripe/stripe-js';
-import { cancelBooking, getBooking, getPublishableKey, loadCatalog, loadMyPoints, loadSlots, loadStylistReviews, queueBooking, startBooking, syncBooking } from './api';
+import { cancelBooking, getBooking, getPublishableKey, loadCatalog, localDate, loadMyPoints, loadSlots, loadStylistReviews, queueBooking, startBooking, syncBooking } from './api';
 
 const POLL_MS = 700;
 const TERMINAL = ['COMPLETED', 'COMPENSATED', 'FAILED', 'REFUNDED'];
@@ -243,11 +243,12 @@ const services = ref([]);
 const stylists = ref([]);
 const selectedService = ref(null);
 const selectedStylist = ref(null);
-const today = new Date().toISOString().slice(0, 10);
+const today = localDate();
 const selectedDate = ref(today);
 const slots = ref([]);
 const slotsLoading = ref(false);
 const selectedSlot = ref(null);
+let slotsRequest = 0;
 const offlineMode = ref(false);
 const offlineTime = ref('');
 const offlineSaved = ref(false);
@@ -348,21 +349,26 @@ onMounted(async () => {
 onBeforeUnmount(() => clearTimeout(pollTimer));
 
 async function refreshSlots() {
+  // Solo vale la consulta más reciente: una respuesta tardía de otra fecha haría pagar un día distinto del que se ve
+  const request = ++slotsRequest;
   // Nunca se muestran turnos anteriores mientras llega la disponibilidad actual
   slots.value = [];
   selectedSlot.value = null;
   slotsLoading.value = true;
   errorMessage.value = null;
   try {
-    slots.value = await loadSlots(selectedStylist.value.id, selectedService.value.id, selectedDate.value);
+    const available = await loadSlots(selectedStylist.value.id, selectedService.value.id, selectedDate.value);
+    if (request !== slotsRequest) return;
+    slots.value = available;
     offlineMode.value = false;
   } catch (error) {
+    if (request !== slotsRequest) return;
     slots.value = [];
     // Sin conexión se ofrece guardar la solicitud; sin almacenamiento local solo se puede informar
     offlineMode.value = Boolean(error.offline && offlineStore());
     if (!offlineMode.value) errorMessage.value = error.message;
   } finally {
-    slotsLoading.value = false;
+    if (request === slotsRequest) slotsLoading.value = false;
   }
 }
 

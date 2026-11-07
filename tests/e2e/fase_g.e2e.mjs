@@ -6,7 +6,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { crc32, deflateSync } from 'node:zlib';
 import { chromium } from 'playwright';
-import { iniciarSesion, saltarCuestionarioInicial } from './soporte.mjs';
+import { iniciarSesion, perfilDePruebaVacio, saltarCuestionarioInicial } from './soporte.mjs';
 
 const AQUI = dirname(fileURLToPath(import.meta.url));
 const VIDEO_CAMARA = join(AQUI, 'fixtures', 'rostro.y4m');
@@ -64,6 +64,7 @@ const limpiar = () => {
 const diagnosticos = () => Number(mongo("db.biometric_diagnoses.countDocuments({clientId: 'cli-001'})"));
 
 saltarCuestionarioInicial();
+const restaurarPerfil = perfilDePruebaVacio();
 limpiar();
 const imagenesAntes = mongo("db.getCollection('media.files').countDocuments()");
 
@@ -218,6 +219,7 @@ try {
   check('la prueba terminó sin errores', false, error.message.split('\n')[0]);
 } finally {
   await browser.close();
+  restaurarPerfil();
   limpiar();
 }
 

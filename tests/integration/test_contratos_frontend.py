@@ -123,6 +123,8 @@ def test_el_validador_detecta_un_contrato_roto(esquemas):
     ("post", "/api/v1/recommendations/styles", {"gender", "age_range", "face_shape", "hair_type", "hair_tone", "skin_undertone", "length", "maintenance", "vibe"}),
     ("post", "/api/v1/brand/strategy", {"platform", "goal", "sector", "gender", "age_range"}),
     ("post", "/api/v1/speech/transcribe", {"file"}),
+    ("post", "/api/v1/image-generation/haircut", {"file", "style_id"}),
+    ("post", "/api/v1/image-generation/try-on", {"file", "item_id"}),
 ])
 def test_ms_ia_mantiene_lo_que_usan_sus_clientes(metodo, ruta, campos):
     openapi = httpx.get(f"{IA}/openapi.json").json()

@@ -86,7 +86,7 @@ async function iaRequest(path, options) {
   try {
     response = await authFetch(`${IA_URL}${path}`, options);
   } catch (failure) {
-    throw failure.offline ? new OfflineError('El análisis con IA requiere conexión.') : failure;
+    throw failure.offline ? new OfflineError('Esta función de IA requiere conexión.') : failure;
   }
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) {
@@ -135,6 +135,22 @@ export const biometricsApi = {
   revoke: () => online('/biometrics/consent', 'DELETE'),
   diagnoses: () => online('/biometrics/diagnoses'),
   deleteDiagnosis: (id) => online(`/biometrics/diagnoses/${id}`, 'DELETE'),
+};
+
+/** Generar una imagen envía la foto a un tercero: sin cola, sin copia local y siempre con conexión. */
+function generateImage(path, file, field, value) {
+  const form = new FormData();
+  form.append('file', file);
+  form.append(field, value);
+  return iaRequest(`/image-generation/${path}`, { method: 'POST', body: form });
+}
+
+export const imageGenApi = {
+  consent: () => online('/biometrics/image-consent'),
+  grant: (policyVersion) => online('/biometrics/image-consent', 'POST', { policyVersion, declaresAdult: true }),
+  revoke: () => online('/biometrics/image-consent', 'DELETE'),
+  haircut: (file, styleId) => generateImage('haircut', file, 'style_id', styleId),
+  tryOn: (file, itemId) => generateImage('try-on', file, 'item_id', itemId),
 };
 
 export const closetApi = {

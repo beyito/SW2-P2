@@ -21,12 +21,25 @@ class FakePlatform(PlatformClient):
         self.items = []
         self.catalog = {"srv-03": {"id": "srv-03", "name": "Corte", "price": 45.0, "durationMinutes": 45}}
         self.consent_checks = 0
+        self.image_consent = False
+        self.garments = {}
 
     def require_consent(self):
         from app.core.errors import api_error
         self.consent_checks += 1
         if not self.consent:
             raise api_error(403, "CONSENT_REQUIRED", "Se necesita su consentimiento.")
+
+    def require_image_consent(self):
+        from app.core.errors import api_error
+        if not self.image_consent:
+            raise api_error(403, "IMAGE_CONSENT_REQUIRED", "Se necesita su autorización.")
+
+    def closet_garment(self, item_id):
+        from app.core.errors import api_error
+        if item_id not in self.garments:
+            raise api_error(404, "ITEM_NOT_FOUND", "Esa prenda no está en su clóset.")
+        return self.garments[item_id]
 
     def save_diagnosis(self, diagnosis):
         self.saved.append(diagnosis)

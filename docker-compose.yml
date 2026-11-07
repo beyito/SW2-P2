@@ -403,6 +403,11 @@ services:
       GESTION_GRAPHQL_URL: http://ms-gestion:8081/graphql
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash}
+      REPLICATE_API_KEY: ${REPLICATE_API_KEY:-}
+      REPLICATE_HAIRCUT_MODEL: ${REPLICATE_HAIRCUT_MODEL:-flux-kontext-apps/change-haircut}
+      REPLICATE_TRY_ON_MODEL: ${REPLICATE_TRY_ON_MODEL:-black-forest-labs/flux-2-max}
+      IMAGE_GEN_DAILY_LIMIT_PER_CLIENT: ${IMAGE_GEN_DAILY_LIMIT_PER_CLIENT:-5}
+      IMAGE_GEN_DAILY_LIMIT_TOTAL: ${IMAGE_GEN_DAILY_LIMIT_TOTAL:-30}
     networks:
       - salon-network
     depends_on:

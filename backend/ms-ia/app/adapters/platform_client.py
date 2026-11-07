@@ -3,6 +3,7 @@ Acceso a los demás servicios con el token de quien llama: ms-ia no guarda datos
 y no puede ver nada que el usuario no pueda ver.
 """
 import logging
+import re
 from typing import Optional
 
 import httpx
@@ -14,6 +15,8 @@ from app.core.security import AuthenticatedUser, get_bearer_token, get_current_u
 
 logger = logging.getLogger(__name__)
 _TIMEOUT = 5
+_MEDIA_PATH = re.compile(r"/media/[a-f0-9]{32}")
+_MAX_GARMENT_BYTES = 5 * 1024 * 1024
 
 
 class PlatformClient:
@@ -37,6 +40,30 @@ class PlatformClient:
             raise api_error(503, "CONSENT_UNAVAILABLE", "No se pudo comprobar su consentimiento.")
         if not response.json().get("granted"):
             raise api_error(403, "CONSENT_REQUIRED", "Se necesita su consentimiento biométrico para este diagnóstico.")
+
+    def require_image_consent(self) -> None:
+        """Enviar la foto a un tercero exige su propia autorización; ante cualquier duda no se envía."""
+        response = self._request("GET", "/biometrics/image-consent")
+        if response.status_code != 200:
+            raise api_error(503, "CONSENT_UNAVAILABLE", "No se pudo comprobar tu autorización.")
+        if not response.json().get("granted"):
+            raise api_error(403, "IMAGE_CONSENT_REQUIRED", "Se necesita tu autorización para enviar la foto al generador de imágenes.")
+
+    def closet_garment(self, item_id: str) -> tuple[dict, bytes]:
+        """
+        Prenda del clóset de quien llama y su foto. Solo se leen imágenes subidas a la plataforma: una URL
+        escrita por el usuario haría que este servicio pidiera direcciones internas en su nombre.
+        """
+        item = next((entry for entry in self.closet() if entry.get("id") == item_id), None)
+        if item is None:
+            raise api_error(404, "ITEM_NOT_FOUND", "Esa prenda no está en tu clóset.")
+        path = item.get("imageUrl") or ""
+        if not _MEDIA_PATH.fullmatch(path):
+            raise api_error(422, "GARMENT_IMAGE_REQUIRED", "Sube una foto de esta prenda para poder probártela.")
+        response = self._request("GET", path)
+        if response.status_code != 200 or len(response.content) > _MAX_GARMENT_BYTES:
+            raise api_error(503, "ASESORIA_UNAVAILABLE", "No se pudo leer la foto de la prenda.")
+        return item, response.content
 
     def save_diagnosis(self, diagnosis: dict) -> dict:
         response = self._request("POST", "/biometrics/diagnoses", json=diagnosis)

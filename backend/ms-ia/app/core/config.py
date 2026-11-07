@@ -32,5 +32,14 @@ class Settings(BaseSettings):
     GEMINI_API_KEY: str = ""
     GEMINI_MODEL: str = "gemini-2.5-flash"
 
+    # Replicate es opcional: sin clave, la generación de imágenes responde que no está disponible
+    REPLICATE_API_KEY: str = ""
+    REPLICATE_HAIRCUT_MODEL: str = "flux-kontext-apps/change-haircut"
+    REPLICATE_TRY_ON_MODEL: str = "black-forest-labs/flux-2-max"
+    # Cada imagen cuesta dinero real: un cliente no debe poder agotar el saldo del salón
+    IMAGE_GEN_DAILY_LIMIT_PER_CLIENT: int = 5
+    IMAGE_GEN_DAILY_LIMIT_TOTAL: int = 30
+    MAX_IMAGE_GEN_BYTES: int = 15 * 1024 * 1024
+
 
 settings = Settings()

@@ -7,10 +7,10 @@ import jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
+from app.adapters.dynamo import CONDITION_FAILED, dynamo_call
 from app.core.config import settings
 
 _TABLE = "ActiveUserSessions"
-_CONDITION_FAILED = "ConditionalCheckFailedException"
 _EIGHT_HOURS = 28800
 
 
@@ -34,25 +34,8 @@ class SessionRegistry(Protocol):
 class DynamoSessionRegistry:
     """Registro de sesiones sobre la tabla ActiveUserSessions de DynamoDB."""
 
-    def _call(self, target: str, payload: dict) -> dict:
-        response = httpx.post(
-            settings.DYNAMODB_ENDPOINT,
-            json=payload,
-            headers={
-                "Content-Type": "application/x-amz-json-1.0",
-                "X-Amz-Target": f"DynamoDB_20120810.{target}",
-                "Authorization": "AWS4-HMAC-SHA256 Credential=local/20260101/us-east-1/dynamodb/aws4_request, "
-                                 "SignedHeaders=host, Signature=local",
-            },
-            timeout=3,
-        )
-        body = response.json()
-        if response.status_code != 200 and _CONDITION_FAILED not in body.get("__type", ""):
-            raise RuntimeError(f"DynamoDB respondió {response.status_code}")
-        return body
-
     def _get(self, key: str) -> Optional[dict]:
-        return self._call(
+        return dynamo_call(
             "GetItem",
             {"TableName": _TABLE, "ConsistentRead": True, "Key": {"userId": {"S": key}}},
         ).get("Item")
@@ -67,7 +50,7 @@ class DynamoSessionRegistry:
         return item["sessionId"]["S"], int(item["loginTimestamp"]["N"])
 
     def claim_active(self, user_id: str, session_id: str, auth_time: int) -> bool:
-        result = self._call("PutItem", {
+        result = dynamo_call("PutItem", {
             "TableName": _TABLE,
             "Item": {
                 "userId": {"S": user_id},
@@ -78,7 +61,7 @@ class DynamoSessionRegistry:
             "ConditionExpression": "attribute_not_exists(userId) OR loginTimestamp < :t OR sessionId = :s",
             "ExpressionAttributeValues": {":t": {"N": str(auth_time)}, ":s": {"S": session_id}},
         })
-        return _CONDITION_FAILED not in result.get("__type", "")
+        return CONDITION_FAILED not in result.get("__type", "")
 
 
 _jwks_client = jwt.PyJWKClient(settings.KEYCLOAK_JWKS_URI, cache_keys=True, lifespan=300)

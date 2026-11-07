@@ -20,6 +20,8 @@ Registro oficial del desarrollo de la **Plataforma Inteligente para Salón de Be
 | **F** | Frontends y MCP con datos reales, perfil, reseñas, avisos y moderación | Vie 6 | **COMPLETADA** |
 | **G** | IA real y consentimiento biométrico | Vie 6 | **COMPLETADA** |
 | **H** | Perfil de estilo, agente autónomo, n8n, offline, Module Federation, móvil, Testcontainers y certificación final | Vie 6 | **COMPLETADA** |
+| **I** | Simulación de cortes y ropa con IA en web y móvil | Vie 6 | **COMPLETADA** |
+| **J** | Agentes de operación, inventario y agenda con Skills sobre MCP (RF-11) | Sáb 7 | **APROBADA, SIN EMPEZAR** |
 
 ---
 
@@ -238,10 +240,43 @@ La Fase D se ejecutó antes por decisión del usuario, e incorporó las piezas d
 - **Frontends fuera de Docker Compose:** los cuatro se ejecutan con `npm` en el equipo.
 - La verificación de firma de los webhooks de Meta (`X-Hub-Signature-256`) no está implementada: es necesaria antes de exponer n8n a Internet.
 
-## Funciones propuestas (sin aprobar)
-Pedidas por el usuario el 6 de noviembre. Antes de implementarlas se presentarán las opciones de IA, servicio o API para que elija, y hará falta una nueva versión de la política de datos biométricos si la foto sale hacia un tercero.
-- [ ] Generar imágenes del cliente con los cortes recomendados.
-- [ ] Generar imágenes del cliente con la ropa de su clóset.
+## Fase I: Simulación de cortes y ropa con IA (CU-14, CU-15) (Completada)
+Función adicional pedida por el usuario. Modelos elegidos por él en Replicate: `flux-kontext-apps/change-haircut` para cortes y color, y `black-forest-labs/flux-2-max` para ropa.
+
+- [x] `ms-ia`: adaptador intercambiable del proveedor, con reintentos ante su límite de velocidad, cancelación por tiempo y descarga solo desde su dominio.
+- [x] Costo: fotos reducidas a 1 MP antes de enviarlas (de 9 a 3 megapíxeles contabilizados en la prueba de ropa) y cupo atómico en DynamoDB: 5 imágenes por cliente y 30 por salón al día. Si la imagen no se genera, el cupo se devuelve.
+- [x] `ms-asesoria`: autorización aparte del diagnóstico (`2026-11-img-v1`), solo para mayores de 18 años, que nombra al tercero. Retirar el consentimiento biométrico también la retira.
+- [x] La foto se valida en local antes de enviarla: una sola persona y, para ropa, sin encuadre de solo la cara. La plataforma no guarda la foto ni el resultado.
+- [x] Una prenda solo se lee desde las imágenes subidas a la plataforma: nunca una URL escrita por el usuario, para evitar SSRF.
+- [x] Web: "Ver cómo me queda" en las recomendaciones y "Probármela" en el clóset, con etiqueta de simulación.
+- [x] Móvil: las mismas dos funciones. Se agregaron la lista de recomendaciones y las fotos de prendas, que la aplicación no tenía.
+- [x] Corregido al verificar: una respuesta tardía de disponibilidad mostraba turnos de otro día, y el cliente pagaba un día distinto del que veía; también al reprogramar. La fecha de hoy se calculaba en UTC y, desde las 20:00 en Bolivia, no dejaba reservar para hoy.
+
+**Verificación:**
+- [x] Con Replicate real y fotos reales: flujo completo en navegador y en un emulador Android, pasando por las pantallas reales. El corte tardó menos de un minuto y la ropa unos 30 segundos.
+- [x] Navegador real: 169/169, incluida una prueba que falla sin el arreglo de la fecha.
+- [x] En vivo: 270/270 en `tests/integration`. Las pruebas automáticas no gastan crédito.
+- [x] Suites: `ms-ia` 160/160, `ms-asesoria` 86/86, `mfe-estudio-ia` 32/32, `mfe-reservas` 11/11, móvil 38/38, emulador 4/4 más 2/2 con Replicate real.
+- [x] Datos intactos tras las pruebas; 0 mensajes muertos.
+
+**Limitaciones conocidas:**
+- **Solo con conexión**, en web y en móvil.
+- **Parecido, no igual:** `flux-2-max` regenera toda la imagen, así que la cara y el encuadre pueden cambiar un poco. El color de la prenda también varía ligeramente.
+- **Cortes aproximados:** el generador tiene una lista cerrada. Degradado, Crop, Bob francés, Melena, ambos estilos de rizos y los colores balayage muestran lo más parecido, con aviso. Los cambios sobre cabello corto pueden ser sutiles.
+- **Ropa:** solo prendas superiores, inferiores y abrigos. Solo se verificó con un abrigo. Calzado y accesorios no se ofrecen.
+- **Precio:** Replicate no lo publica en la página de estos modelos; se estima con la tarifa de Black Forest Labs. Conviene confirmarlo en el saldo de la cuenta.
+- **Privacidad:** Replicate informa que borra cada solicitud en una hora, y su API no permite borrarla antes. No se pudo confirmar qué hace con los datos el creador del modelo, ni si los usa para entrenar; por eso la autorización no lo promete.
+- **Mayoría de edad:** es una declaración del cliente, no una comprobación.
+- **Cupo:** el día cambia a las 00:00 UTC, es decir, a las 20:00 en Bolivia.
+- **iOS y teléfono físico:** sin probar, igual que el resto de la aplicación móvil.
+
+## Fase J: Agentes con Skills (RF-11) (Aprobada, sin empezar)
+Al revisarlo con el usuario, RF-11 resultó no estar completo, aunque la Fase H lo daba por cerrado: hay un solo agente, solo consulta, y no existen Skills.
+- [ ] Agente de operación: el actual, para métricas y reportes.
+- [ ] Agente de inventario: detecta stock crítico y propone reposición.
+- [ ] Agente de agenda: encuentra huecos y ayuda a organizar citas.
+- [ ] Una Skill por agente, con sus instrucciones y herramientas permitidas, siempre a través de MCP (RNF-02).
+- [ ] Toda acción que cambie datos requiere la confirmación de una persona.
 
 ---
 
@@ -264,10 +299,10 @@ Estado actualizado al cierre de cada fase. ✅ completo y verificado en vivo. �
 | CU-11 | Emitir factura | ✅ (sin validez fiscal) | E, F |
 | CU-12 | Puntos de fidelidad | ✅ | E, F |
 | CU-13 | Escaneo capilar y facial | ✅ (web y Android; offline con fotos) | G, H |
-| CU-14 | Recomendaciones | ✅ | G |
-| CU-15 | Armario virtual | ✅ | F |
+| CU-14 | Recomendaciones | ✅ (con simulación en imagen) | G, I |
+| CU-15 | Armario virtual | ✅ (con prueba de ropa en imagen) | F, I |
 | CU-16 | Asesoría para redes sociales | ✅ | G |
-| CU-17 | Métricas por agente (MCP) | ✅ | F, H |
+| CU-17 | Métricas por agente (MCP) | ✅ (RF-11 incompleto: faltan varios agentes y Skills, Fase J) | F, H |
 | CU-18 | Reportes por lenguaje natural | ✅ (texto y voz) | F, G |
 | CU-19 | Recordatorios y reservas por WhatsApp | 🟡 (flujos reales; envío a Meta sin probar por falta de cuenta) | H |
 | CU-20 | Publicar look | ✅ | F |

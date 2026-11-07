@@ -7,6 +7,7 @@ import '../../core/api/api_client.dart';
 import '../../core/config.dart';
 import '../../core/connectivity_status.dart';
 import 'on_device_analyzer.dart';
+import 'recommendations_section.dart';
 
 const _shapes = {'OVAL': 'Ovalado', 'ROUND': 'Redondo', 'SQUARE': 'Cuadrado', 'HEART': 'Corazón', 'OBLONG': 'Alargado'};
 const _undertones = {'WARM': 'Cálido', 'COOL': 'Frío', 'NEUTRAL': 'Neutro'};
@@ -142,6 +143,7 @@ class _BiometricsScreenState extends State<BiometricsScreen> {
         if (consent != null && consent['granted'] != true) ..._consentView(consent),
         if (consent != null && consent['granted'] == true) ..._scanView(),
         if (_diagnosis != null) _result(_diagnosis!),
+        RecommendationsSection(api: widget.api, diagnosis: _diagnosis, online: widget.connectivity.isOnline),
         if (consent != null && consent['granted'] == true)
           TextButton(key: const Key('revoke'), onPressed: _busy == null ? _revoke : null, child: const Text('Retirar mi consentimiento y borrar mis datos')),
       ],

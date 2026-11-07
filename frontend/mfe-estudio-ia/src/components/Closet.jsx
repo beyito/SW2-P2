@@ -1,9 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { closetApi, imageSource, uploadImage } from '../api';
+import { Sparkles } from 'lucide-react';
+import { closetApi, imageGenApi, imageSource, uploadImage } from '../api';
 import { currentUser, offlineStore } from '../auth';
+import ImagePreview from './ImagePreview';
 
 const CATEGORIES = { TOP: 'Parte superior', BOTTOM: 'Parte inferior', SHOES: 'Calzado', ACCESSORY: 'Accesorio', OUTERWEAR: 'Abrigo' };
 const SEASONS = { SPRING: 'Primavera', SUMMER: 'Verano', AUTUMN: 'Otoño', WINTER: 'Invierno', ALL_SEASON: 'Todo el año' };
+// El generador viste a la persona con prendas; calzado y accesorios no dan un resultado fiable
+const TRY_ON_CATEGORIES = ['TOP', 'BOTTOM', 'OUTERWEAR'];
+const hasOwnPhoto = (item) => item.imageUrl?.startsWith('/media/');
 const EMPTY = { name: '', category: 'TOP', color: '', season: 'ALL_SEASON' };
 
 /** Armario virtual del cliente, guardado en ms-asesoria (CU-15). */
@@ -17,6 +22,7 @@ export default function Closet() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
+  const [tryOnItem, setTryOnItem] = useState(null);
 
   const reload = async (id) => setItems(await closetApi.list(id));
 
@@ -101,6 +107,12 @@ export default function Closet() {
                   <button type="button" className="studio-btn btn-edit-item" onClick={() => startEdit(item)}>Editar</button>
                   <button type="button" className="studio-btn danger btn-remove-item" onClick={() => remove(item)}>Eliminar</button>
                 </div>
+                {TRY_ON_CATEGORIES.includes(item.category) && hasOwnPhoto(item) && (
+                  <button type="button" className="studio-secondary btn-try-on" onClick={() => setTryOnItem(item)}><Sparkles size={14} /> Probármela</button>
+                )}
+                {TRY_ON_CATEGORIES.includes(item.category) && !hasOwnPhoto(item) && (
+                  <p className="studio-muted closet-detail try-on-hint">Sube una foto de la prenda para probártela.</p>
+                )}
               </div>
             </div>
           ))}
@@ -133,6 +145,15 @@ export default function Closet() {
           {editingId && <button type="button" className="studio-btn" onClick={resetForm}>Cancelar</button>}
         </form>
       </div>
+
+      {tryOnItem && (
+        <ImagePreview
+          title={tryOnItem.name}
+          photoHint="Usa una foto tuya de cuerpo entero o de la cintura para arriba, sin nadie más."
+          generate={(file) => imageGenApi.tryOn(file, tryOnItem.id)}
+          onClose={() => setTryOnItem(null)}
+        />
+      )}
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { ForbiddenException, UnprocessableEntityException } from '@nestjs/common';
 import { BIOMETRIC_POLICY_VERSION } from '../../../domain/biometric-policy';
+import { IMAGE_GENERATION_POLICY_VERSION } from '../../../domain/image-generation-policy';
 import { BiometricConsent } from '../../../domain/entities/biometric-consent.entity';
 import { BiometricDiagnosis } from '../../../domain/entities/biometric-diagnosis.entity';
 import { SaveDiagnosisDto } from '../../../ports/inbound/biometrics.use-case.port';
@@ -17,6 +18,13 @@ class MemoryRepository implements IBiometricsRepository {
   }
   async saveConsent(consent: BiometricConsent) {
     this.consents.set(consent.clientId, consent);
+  }
+  imageConsents = new Map<string, BiometricConsent>();
+  async findImageConsent(clientId: string) {
+    return this.imageConsents.get(clientId) ?? null;
+  }
+  async saveImageConsent(consent: BiometricConsent) {
+    this.imageConsents.set(consent.clientId, consent);
   }
   async saveDiagnosis(diagnosis: BiometricDiagnosis) {
     this.diagnoses.push(diagnosis);
@@ -61,6 +69,47 @@ describe('BiometricsService', () => {
   });
 
   const grant = () => service.grantConsent('cli-1', BIOMETRIC_POLICY_VERSION, true);
+
+  describe('autorización para generar imágenes', () => {
+    const grantImages = () => service.grantImageConsent('cli-1', IMAGE_GENERATION_POLICY_VERSION, true);
+
+    it('es independiente del consentimiento biométrico y nombra al tercero', async () => {
+      await grant();
+      const status = await service.getImageConsent('cli-1');
+      expect(status.granted).toBe(false);
+      expect(status.policyText).toContain('Replicate');
+      await grantImages();
+      expect((await service.getImageConsent('cli-1')).granted).toBe(true);
+      expect((await service.getImageConsent('cli-2')).granted).toBe(false);
+    });
+
+    it('exige declarar la mayoría de edad y la versión vigente', async () => {
+      await expect(service.grantImageConsent('cli-1', IMAGE_GENERATION_POLICY_VERSION, false)).rejects.toThrow(UnprocessableEntityException);
+      await expect(service.grantImageConsent('cli-1', 'antigua', true)).rejects.toThrow(UnprocessableEntityException);
+      await expect(service.grantImageConsent('cli-1', BIOMETRIC_POLICY_VERSION, true)).rejects.toThrow(UnprocessableEntityException);
+      expect((await service.getImageConsent('cli-1')).granted).toBe(false);
+    });
+
+    it('se puede retirar sin afectar el diagnóstico', async () => {
+      await grant();
+      await grantImages();
+      await service.revokeImageConsent('cli-1');
+      expect((await service.getImageConsent('cli-1')).granted).toBe(false);
+      expect((await service.getConsent('cli-1')).granted).toBe(true);
+    });
+
+    it('se retira también al retirar el consentimiento biométrico', async () => {
+      await grant();
+      await grantImages();
+      await service.revokeConsent('cli-1');
+      expect((await service.getImageConsent('cli-1')).granted).toBe(false);
+    });
+
+    it('una nueva versión de la política la deja sin efecto', async () => {
+      repository.imageConsents.set('cli-1', new BiometricConsent({ clientId: 'cli-1', policyVersion: 'antigua', grantedAt: new Date() }));
+      expect((await service.getImageConsent('cli-1')).granted).toBe(false);
+    });
+  });
 
   it('empieza sin consentimiento y muestra el texto de la política', async () => {
     const status = await service.getConsent('cli-1');

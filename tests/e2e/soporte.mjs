@@ -6,6 +6,17 @@ export function saltarCuestionarioInicial() {
   sql('salon_crm', "UPDATE crm_clients SET onboarded_at = COALESCE(onboarded_at, NOW()) WHERE id LIKE 'cli-00%'");
 }
 
+/**
+ * Deja a cli-001 sin preferencias, para que la prueba no dependa de lo que respondió el usuario en el cuestionario.
+ * Devuelve la función que restaura sus respuestas.
+ */
+export function perfilDePruebaVacio() {
+  const columnas = 'gender, age_range, preferred_length, maintenance, style_vibe';
+  const original = sql('salon_crm', `SELECT quote_nullable(gender)||','||quote_nullable(age_range)||','||quote_nullable(preferred_length)||','||quote_nullable(maintenance)||','||quote_nullable(style_vibe) FROM crm_clients WHERE id='cli-001'`);
+  sql('salon_crm', `UPDATE crm_clients SET (${columnas}) = (NULL, NULL, NULL, NULL, NULL) WHERE id='cli-001'`);
+  return () => sql('salon_crm', `UPDATE crm_clients SET (${columnas}) = (${original}) WHERE id='cli-001'`);
+}
+
 /** Consulta PostgreSQL dentro de su contenedor; solo para preparar y comprobar datos de prueba. */
 export function sql(database, query) {
   return execFileSync(

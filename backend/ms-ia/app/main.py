@@ -5,7 +5,7 @@ from fastapi import Depends, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from app.api import biometrics, health, personal_brand, recommendations, speech
+from app.api import biometrics, health, image_generation, personal_brand, recommendations, speech
 from app.core.config import settings
 from app.core.security import get_current_user
 from app.vision.face import landmarker
@@ -57,6 +57,7 @@ app.include_router(biometrics.router, prefix=settings.API_V1_STR, dependencies=a
 app.include_router(recommendations.router, prefix=settings.API_V1_STR, dependencies=authenticated)
 app.include_router(personal_brand.router, prefix=settings.API_V1_STR, dependencies=authenticated)
 app.include_router(speech.router, prefix=settings.API_V1_STR, dependencies=authenticated)
+app.include_router(image_generation.router, prefix=settings.API_V1_STR, dependencies=authenticated)
 
 if __name__ == "__main__":
     import uvicorn

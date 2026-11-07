@@ -32,6 +32,22 @@ export class BiometricsController {
     return this.biometrics.revokeConsent(user.id);
   }
 
+  @Get('image-consent')
+  getImageConsent(@CurrentUser() user: AuthenticatedUser) {
+    return this.biometrics.getImageConsent(user.id);
+  }
+
+  @Post('image-consent')
+  grantImageConsent(@Body() body: { policyVersion: string; declaresAdult: boolean }, @CurrentUser() user: AuthenticatedUser) {
+    return this.biometrics.grantImageConsent(user.id, body?.policyVersion, body?.declaresAdult);
+  }
+
+  @Delete('image-consent')
+  async revokeImageConsent(@CurrentUser() user: AuthenticatedUser) {
+    await this.biometrics.revokeImageConsent(user.id);
+    return { success: true };
+  }
+
   @Post('diagnoses')
   saveDiagnosis(@Body() dto: SaveDiagnosisDto, @CurrentUser() user: AuthenticatedUser) {
     return this.biometrics.saveDiagnosis(user.id, dto ?? ({} as SaveDiagnosisDto));

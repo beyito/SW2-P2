@@ -62,6 +62,7 @@
 import { onMounted, ref } from 'vue';
 import {
   cancelBooking, cancelUnpaidAppointment, createReview, getBooking, loadMyAppointments, loadSlots, rescheduleAppointment,
+  localDate,
 } from '../api';
 
 const STATUS = {
@@ -87,9 +88,10 @@ const rescheduling = ref(null);
 const newDate = ref('');
 const slots = ref([]);
 const slotsLoading = ref(false);
+let slotsRequest = 0;
 const rating = ref({});
 const comment = ref({});
-const today = new Date().toISOString().slice(0, 10);
+const today = localDate();
 
 const formatDate = (iso) => new Date(iso).toLocaleString('es', { dateStyle: 'medium', timeStyle: 'short' });
 const isOpen = (item) => OPEN_STATUSES.includes(item.status) && new Date(item.appointmentDate) > new Date();
@@ -152,14 +154,18 @@ function startReschedule(item) {
 }
 
 async function loadOptions(item) {
+  // Solo vale la consulta más reciente: una respuesta tardía movería la cita a otro día distinto del que se ve
+  const request = ++slotsRequest;
+  slots.value = [];
   slotsLoading.value = true;
   error.value = null;
   try {
-    slots.value = newDate.value ? await loadSlots(item.stylistId, item.serviceId, newDate.value) : [];
+    const available = newDate.value ? await loadSlots(item.stylistId, item.serviceId, newDate.value) : [];
+    if (request === slotsRequest) slots.value = available;
   } catch (failure) {
-    error.value = failure.message;
+    if (request === slotsRequest) error.value = failure.message;
   } finally {
-    slotsLoading.value = false;
+    if (request === slotsRequest) slotsLoading.value = false;
   }
 }
 

@@ -149,13 +149,14 @@ class ApiClient {
     }
   }
 
-  /// Sube un archivo a ms-ia para analizarlo en el servidor.
-  Future<dynamic> upload(String url, List<int> bytes, String filename) async {
+  /// Sube un archivo para procesarlo en el servidor. Generar una imagen puede tardar más de un minuto.
+  Future<dynamic> upload(String url, List<int> bytes, String filename, {Map<String, String> fields = const {}}) async {
     try {
       final request = http.MultipartRequest('POST', Uri.parse(url))
         ..headers.addAll(await _auth())
+        ..fields.addAll(fields)
         ..files.add(http.MultipartFile.fromBytes('file', bytes, filename: filename));
-      final streamed = await _http.send(request).timeout(const Duration(seconds: 90));
+      final streamed = await _http.send(request).timeout(const Duration(seconds: 180));
       return _parse(await http.Response.fromStream(streamed));
     } on ApiException {
       rethrow;

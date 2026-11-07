@@ -159,6 +159,21 @@ El Shell carga los tres microfrontends con Module Federation, en una sola págin
 
 Sin credenciales, los recordatorios y las confirmaciones llegan como avisos dentro de la aplicación. Para enviarlos de verdad, cree una app en [Meta for Developers](https://developers.facebook.com/), defina en `.env` las variables `WHATSAPP_*` de `.env.example` y ejecute `docker compose up -d n8n`. El cliente debe autorizarlo en "Mi perfil". Para recibir respuestas, Meta debe poder llegar a `/webhook/whatsapp/entrante`, lo que requiere una dirección pública. Fuera de una conversación abierta, Meta solo admite plantillas aprobadas.
 
+## Simulación de cortes y ropa
+
+Es opcional y **de pago**. Cree un token en https://replicate.com y agréguelo a `.env`. Luego ejecute `docker compose up -d ms-ia`:
+
+```
+REPLICATE_API_KEY=su_token
+```
+
+- Sin clave, esas funciones responden que no están disponibles; el resto de la plataforma sigue igual.
+- Cada cliente puede generar 5 imágenes al día y el salón 30. Se cambian con `IMAGE_GEN_DAILY_LIMIT_PER_CLIENT` e `IMAGE_GEN_DAILY_LIMIT_TOTAL`.
+- Para probarse una prenda, esta debe tener una foto subida en el clóset; un enlace externo no sirve.
+- Con menos de 5 dólares de crédito, Replicate admite pocas peticiones por minuto: si está ocupado, espere unos segundos.
+- Las pruebas automáticas no gastan crédito, salvo `IMAGENES_REALES=1` en `tests/e2e/generacion_imagenes.e2e.mjs` y `mobile/salon_mobile/integration_test/image_generation_real_test.dart`, que se ejecutan a mano.
+- No guarde fotos personales en el repositorio: `ROSTRO.jpeg` y `CUERPO-COMPLETO.jpeg` están excluidas en `.gitignore`.
+
 ## Diagnóstico biométrico y voz
 
 - La cámara y el micrófono solo funcionan en `localhost` o por HTTPS, y el navegador pide permiso la primera vez.

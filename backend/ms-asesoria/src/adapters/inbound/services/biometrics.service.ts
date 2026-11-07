@@ -6,11 +6,13 @@ import {
 } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { BIOMETRIC_POLICY_VERSION, biometricPolicyText } from '../../../domain/biometric-policy';
+import { IMAGE_GENERATION_POLICY_TEXT, IMAGE_GENERATION_POLICY_VERSION } from '../../../domain/image-generation-policy';
 import { BiometricConsent } from '../../../domain/entities/biometric-consent.entity';
 import { BiometricDiagnosis } from '../../../domain/entities/biometric-diagnosis.entity';
 import {
   ConsentStatus,
   IBiometricsUseCase,
+  ImageConsentStatus,
   SaveDiagnosisDto,
 } from '../../../ports/inbound/biometrics.use-case.port';
 import { BIOMETRICS_REPOSITORY, IBiometricsRepository } from '../../../ports/outbound/biometrics-repository.port';
@@ -79,7 +81,46 @@ export class BiometricsService implements IBiometricsUseCase {
       consent.revokedAt = new Date();
       await this.repository.saveConsent(consent);
     }
+    // Quien retira el análisis de su foto tampoco espera que siga saliendo hacia un tercero
+    await this.revokeImageConsent(clientId);
     return { deletedDiagnoses: await this.repository.deleteDiagnoses(clientId) };
+  }
+
+  async getImageConsent(clientId: string): Promise<ImageConsentStatus> {
+    const consent = await this.repository.findImageConsent(clientId);
+    return {
+      granted: consent?.isActive(IMAGE_GENERATION_POLICY_VERSION) ?? false,
+      policyVersion: IMAGE_GENERATION_POLICY_VERSION,
+      policyText: IMAGE_GENERATION_POLICY_TEXT,
+      grantedAt: consent?.grantedAt ?? null,
+      revokedAt: consent?.revokedAt ?? null,
+    };
+  }
+
+  async grantImageConsent(clientId: string, policyVersion: string, declaresAdult: boolean): Promise<BiometricConsent> {
+    if (declaresAdult !== true) {
+      throw new UnprocessableEntityException({
+        code: 'ADULT_DECLARATION_REQUIRED',
+        message: 'La generación de imágenes es solo para mayores de 18 años.',
+      });
+    }
+    if (policyVersion !== IMAGE_GENERATION_POLICY_VERSION) {
+      throw new UnprocessableEntityException({
+        code: 'POLICY_OUTDATED',
+        message: 'La política de datos cambió. Léala de nuevo antes de aceptarla.',
+      });
+    }
+    const consent = new BiometricConsent({ clientId, policyVersion, grantedAt: new Date() });
+    await this.repository.saveImageConsent(consent);
+    return consent;
+  }
+
+  async revokeImageConsent(clientId: string): Promise<void> {
+    const consent = await this.repository.findImageConsent(clientId);
+    if (consent && consent.revokedAt === null) {
+      consent.revokedAt = new Date();
+      await this.repository.saveImageConsent(consent);
+    }
   }
 
   async saveDiagnosis(clientId: string, dto: SaveDiagnosisDto): Promise<BiometricDiagnosis> {

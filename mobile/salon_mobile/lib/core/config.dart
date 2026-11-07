@@ -6,6 +6,7 @@ class Config {
   static const asesoria = '$_host:3100';
   static const ia = '$_host:8002/api/v1';
   static const gestion = '$_host:8081/graphql';
+  static const crm = '$_host:8083/graphql';
   static const clientId = 'salon-mobile';
   static const redirectUrl = 'com.salon.mobile://callback';
 }

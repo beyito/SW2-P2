@@ -11,6 +11,8 @@ import {
   BiometricConsentSchema,
   BiometricDiagnosisMongo,
   BiometricDiagnosisSchema,
+  ImageConsentMongo,
+  ImageConsentSchema,
 } from './adapters/outbound/persistence/schemas/biometrics.schema';
 import { BIOMETRICS_USE_CASE } from './ports/inbound/biometrics.use-case.port';
 import { BIOMETRICS_REPOSITORY } from './ports/outbound/biometrics-repository.port';
@@ -57,6 +59,7 @@ const MONGO_URI =
       { name: CommunityPostMongo.name, schema: CommunityPostSchema },
       { name: BiometricConsentMongo.name, schema: BiometricConsentSchema },
       { name: BiometricDiagnosisMongo.name, schema: BiometricDiagnosisSchema },
+      { name: ImageConsentMongo.name, schema: ImageConsentSchema },
     ]),
   ],
   controllers: [ClosetController, CommunityController, MediaController, BiometricsController, AuthController, HealthController],

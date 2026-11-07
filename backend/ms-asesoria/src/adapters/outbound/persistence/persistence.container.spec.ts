@@ -12,6 +12,9 @@ import {
   BiometricDiagnosisDocument,
   BiometricDiagnosisMongo,
   BiometricDiagnosisSchema,
+  ImageConsentDocument,
+  ImageConsentMongo,
+  ImageConsentSchema,
 } from './schemas/biometrics.schema';
 import { CommunityPostMongo, CommunityPostSchema } from './schemas/community-post.schema';
 
@@ -54,7 +57,9 @@ describe('Persistencia en MongoDB', () => {
     diagnoses = connection.model(BiometricDiagnosisMongo.name, BiometricDiagnosisSchema) as unknown as Model<BiometricDiagnosisDocument>;
     const posts = connection.model(CommunityPostMongo.name, CommunityPostSchema) as any;
     await Promise.all([consents.init(), diagnoses.init(), posts.init()]);
-    biometrics = new MongoBiometricsRepository(consents, diagnoses);
+    const imageConsents = connection.model(ImageConsentMongo.name, ImageConsentSchema) as unknown as Model<ImageConsentDocument>;
+    await imageConsents.init();
+    biometrics = new MongoBiometricsRepository(consents, diagnoses, imageConsents);
     community = new MongoCommunityRepository(posts);
   });
 
@@ -82,6 +87,14 @@ describe('Persistencia en MongoDB', () => {
       await biometrics.saveConsent(new BiometricConsent({ clientId: 'c2', policyVersion: 'v1', grantedAt: new Date() }));
       await biometrics.saveConsent(new BiometricConsent({ clientId: 'c2', policyVersion: 'v2', grantedAt: new Date() }));
       expect((await biometrics.findConsent('c2'))?.policyVersion).toBe('v2');
+    });
+
+    it('la autorización de imágenes no se mezcla con el consentimiento biométrico', async () => {
+      await biometrics.saveConsent(new BiometricConsent({ clientId: 'c7', policyVersion: 'bio', grantedAt: new Date() }));
+      expect(await biometrics.findImageConsent('c7')).toBeNull();
+      await biometrics.saveImageConsent(new BiometricConsent({ clientId: 'c7', policyVersion: 'img', grantedAt: new Date() }));
+      expect((await biometrics.findImageConsent('c7'))?.policyVersion).toBe('img');
+      expect((await biometrics.findConsent('c7'))?.policyVersion).toBe('bio');
     });
 
     it('lista del más reciente al más antiguo, solo del cliente', async () => {

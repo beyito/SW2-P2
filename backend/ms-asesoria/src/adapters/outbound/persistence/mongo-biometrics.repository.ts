@@ -9,6 +9,8 @@ import {
   BiometricConsentMongo,
   BiometricDiagnosisDocument,
   BiometricDiagnosisMongo,
+  ImageConsentDocument,
+  ImageConsentMongo,
 } from './schemas/biometrics.schema';
 
 @Injectable()
@@ -18,10 +20,28 @@ export class MongoBiometricsRepository implements IBiometricsRepository {
     private readonly consents: Model<BiometricConsentDocument>,
     @InjectModel(BiometricDiagnosisMongo.name)
     private readonly diagnoses: Model<BiometricDiagnosisDocument>,
+    @InjectModel(ImageConsentMongo.name)
+    private readonly imageConsents: Model<ImageConsentDocument>,
   ) {}
 
-  async findConsent(clientId: string): Promise<BiometricConsent | null> {
-    const doc = await this.consents.findOne({ clientId }).lean().exec();
+  findConsent(clientId: string): Promise<BiometricConsent | null> {
+    return this.readConsent(this.consents, clientId);
+  }
+
+  saveConsent(consent: BiometricConsent): Promise<void> {
+    return this.writeConsent(this.consents, consent);
+  }
+
+  findImageConsent(clientId: string): Promise<BiometricConsent | null> {
+    return this.readConsent(this.imageConsents, clientId);
+  }
+
+  saveImageConsent(consent: BiometricConsent): Promise<void> {
+    return this.writeConsent(this.imageConsents, consent);
+  }
+
+  private async readConsent(collection: Model<any>, clientId: string): Promise<BiometricConsent | null> {
+    const doc: any = await collection.findOne({ clientId }).lean().exec();
     return doc
       ? new BiometricConsent({
           clientId: doc.clientId,
@@ -32,8 +52,8 @@ export class MongoBiometricsRepository implements IBiometricsRepository {
       : null;
   }
 
-  async saveConsent(consent: BiometricConsent): Promise<void> {
-    await this.consents
+  private async writeConsent(collection: Model<any>, consent: BiometricConsent): Promise<void> {
+    await collection
       .updateOne(
         { clientId: consent.clientId },
         { $set: { policyVersion: consent.policyVersion, grantedAt: consent.grantedAt, revokedAt: consent.revokedAt } },

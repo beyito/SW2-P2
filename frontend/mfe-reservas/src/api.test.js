@@ -1,9 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { loadCatalog, queueBooking, startBooking } from './api';
+import { loadCatalog, localDate, queueBooking, startBooking } from './api';
 import { setPlatform } from './auth';
 
 const json = (body, status = 200) => new Response(JSON.stringify(body), { status });
 const CATALOGO = { getServices: [{ id: 'srv-1', name: 'Corte', price: 45 }], getStylists: [{ id: 'sty-1', name: 'Ana' }] };
+
+describe('fecha local', () => {
+  it('de noche en Bolivia sigue siendo el mismo día, aunque en UTC ya sea mañana', () => {
+    const noche = { getTime: () => Date.UTC(2026, 10, 7, 2, 10), getTimezoneOffset: () => 240 };
+    expect(localDate(noche)).toBe('2026-11-06');
+  });
+});
 
 describe('acceso a los servicios', () => {
   let store;

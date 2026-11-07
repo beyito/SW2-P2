@@ -73,6 +73,20 @@ def create_tables():
     res3 = send_dynamo_request("CreateTable", saga_table)
     print("Tabla 'SagaInstances':", res3.get("TableDescription", {}).get("TableStatus", res3.get("status")))
 
+    # Cupo diario de imágenes generadas, porque cada una tiene un costo real
+    quota_table = {
+        "TableName": "ImageGenerationQuota",
+        "KeySchema": [
+            {"AttributeName": "quotaKey", "KeyType": "HASH"}
+        ],
+        "AttributeDefinitions": [
+            {"AttributeName": "quotaKey", "AttributeType": "S"}
+        ],
+        "BillingMode": "PAY_PER_REQUEST"
+    }
+    res4 = send_dynamo_request("CreateTable", quota_table)
+    print("Tabla 'ImageGenerationQuota':", res4.get("TableDescription", {}).get("TableStatus", res4.get("status")))
+
     # 4. Listar Tablas creadas
     tables = send_dynamo_request("ListTables", {})
     print("Tablas activas en DynamoDB Local:", tables.get("TableNames", []))

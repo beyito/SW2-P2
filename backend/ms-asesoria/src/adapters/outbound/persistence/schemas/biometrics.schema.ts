@@ -3,9 +3,26 @@ import { Document } from 'mongoose';
 
 export type BiometricConsentDocument = BiometricConsentMongo & Document;
 export type BiometricDiagnosisDocument = BiometricDiagnosisMongo & Document;
+export type ImageConsentDocument = ImageConsentMongo & Document;
 
 @Schema({ collection: 'biometric_consents' })
 export class BiometricConsentMongo {
+  @Prop({ required: true, unique: true })
+  clientId: string;
+
+  @Prop({ required: true })
+  policyVersion: string;
+
+  @Prop({ required: true })
+  grantedAt: Date;
+
+  @Prop({ type: Date, default: null })
+  revokedAt: Date | null;
+}
+
+/** Autorización de la generación de imágenes: misma forma que el consentimiento, pero con su propia decisión. */
+@Schema({ collection: 'image_generation_consents' })
+export class ImageConsentMongo {
   @Prop({ required: true, unique: true })
   clientId: string;
 
@@ -68,6 +85,7 @@ export class BiometricDiagnosisMongo {
 }
 
 export const BiometricConsentSchema = SchemaFactory.createForClass(BiometricConsentMongo);
+export const ImageConsentSchema = SchemaFactory.createForClass(ImageConsentMongo);
 export const BiometricDiagnosisSchema = SchemaFactory.createForClass(BiometricDiagnosisMongo);
 
 BiometricDiagnosisSchema.index({ clientId: 1, createdAt: -1 });
