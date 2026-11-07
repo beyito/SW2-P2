@@ -4,11 +4,22 @@
  */
 const { runAgent } = require('./agent');
 const { BackendError } = require('./backends');
+const { loadSkills } = require('./skills');
 
 const DEFAULT_TIMEZONE = 'America/La_Paz';
 const PERIOD_DAYS = { DAILY: 1, WEEKLY: 7, MONTHLY: 30 };
 const DATE_FORMAT = /^\d{4}-\d{2}-\d{2}$/;
 const DEFAULT_PERIOD = 'WEEKLY';
+const DATE_TIME_FORMAT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?$/;
+const MAX_RESTOCK_UNITS = 1000;
+const MAX_REASON_CHARS = 200;
+const MAX_AGENDA_DAYS = 31;
+const DAY_MS = 86400000;
+// Una cita ya atendida, cancelada o sin pagar no se mueve desde un agente
+const MOVABLE_STATUSES = new Set(['CONFIRMED']);
+const RESTOCK = 'REPOSICION';
+const RESCHEDULE = 'REPROGRAMACION';
+const DEFAULT_AGENT = 'operacion';
 
 // Roles autorizados por herramienta (RNF-02)
 const TOOL_ROLES = {
@@ -18,11 +29,17 @@ const TOOL_ROLES = {
   obtener_metricas_negocio: ['ADMIN'],
   generar_reporte_lenguaje_natural: ['ADMIN'],
   preguntar_al_agente: ['ADMIN', 'STYLIST'],
+  consultar_inventario: ['ADMIN', 'STYLIST'],
+  consultar_agenda: ['ADMIN', 'STYLIST'],
+  proponer_reposicion: ['ADMIN'],
+  proponer_reprogramacion: ['ADMIN', 'STYLIST'],
+  confirmar_accion: ['ADMIN', 'STYLIST'],
+  rechazar_accion: ['ADMIN', 'STYLIST'],
 };
 
 const AGENT_TOOL = 'preguntar_al_agente';
-// El agente responde por sí mismo: no se llama a sí mismo ni delega en el generador de reportes
-const NOT_FOR_AGENT = new Set([AGENT_TOOL, 'generar_reporte_lenguaje_natural']);
+// Decidir sobre una propuesta es de una persona: ninguna Skill puede dárselas al modelo
+const HUMAN_ONLY_TOOLS = new Set(['confirmar_accion', 'rechazar_accion']);
 
 const TOOLS = [
   {
@@ -76,16 +93,86 @@ const TOOLS = [
   },
   {
     name: AGENT_TOOL,
-    description: 'Agente autónomo: decide qué herramientas de las permitidas al usuario necesita para responder su pregunta (CU-17, RF-11).',
+    description: 'Agente autónomo: decide qué herramientas de las permitidas por su Skill y por el usuario necesita (CU-17, RF-11).',
     inputSchema: {
       type: 'object',
       properties: {
         prompt: { type: 'string', description: 'Pregunta en lenguaje natural.' },
+        agente: { type: 'string', enum: ['operacion', 'inventario', 'agenda'], description: 'Agente que responde; por defecto, operacion.' },
       },
       required: ['prompt'],
     },
   },
+  {
+    name: 'consultar_inventario',
+    description: 'Lista todos los insumos con su identificador, existencias y mínimo (CU-08).',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        category: { type: 'string', description: 'Filtro opcional por categoría, por ejemplo COLORACION.' },
+      },
+    },
+  },
+  {
+    name: 'consultar_agenda',
+    description: 'Lista las citas de un rango de fechas, sin datos de clientes ni precios (CU-06).',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        from: { type: 'string', description: 'Primer día, en formato AAAA-MM-DD.' },
+        to: { type: 'string', description: 'Último día, en formato AAAA-MM-DD. Máximo 31 días después.' },
+      },
+      required: ['from', 'to'],
+    },
+  },
+  {
+    name: 'proponer_reposicion',
+    description: 'Prepara sumar unidades a un insumo. No cambia nada: una persona debe confirmarlo (RF-03).',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        itemId: { type: 'string', description: 'ID del insumo; se obtiene de las consultas de inventario.' },
+        quantity: { type: 'integer', description: 'Unidades a sumar, mayor que cero.' },
+        reason: { type: 'string', description: 'Motivo breve que verá la persona.' },
+      },
+      required: ['itemId', 'quantity'],
+    },
+  },
+  {
+    name: 'proponer_reprogramacion',
+    description: 'Prepara mover una cita a un turno libre. No cambia nada: una persona debe confirmarlo (CU-07).',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        appointmentId: { type: 'string', description: 'ID de la cita; se obtiene de consultar_agenda.' },
+        newDate: { type: 'string', description: 'Inicio del turno libre, en formato AAAA-MM-DDTHH:MM:SS.' },
+        reason: { type: 'string', description: 'Motivo breve que verá la persona.' },
+      },
+      required: ['appointmentId', 'newDate'],
+    },
+  },
+  {
+    name: 'confirmar_accion',
+    description: 'Ejecuta una propuesta de un agente. Es la decisión de una persona: el modelo no puede usarla.',
+    inputSchema: {
+      type: 'object',
+      properties: { actionId: { type: 'string', description: 'Identificador de la propuesta.' } },
+      required: ['actionId'],
+    },
+  },
+  {
+    name: 'rechazar_accion',
+    description: 'Descarta una propuesta de un agente sin ejecutarla. Es la decisión de una persona: el modelo no puede usarla.',
+    inputSchema: {
+      type: 'object',
+      properties: { actionId: { type: 'string', description: 'Identificador de la propuesta.' } },
+      required: ['actionId'],
+    },
+  },
 ];
+
+// Se carga al arrancar: una Skill inválida debe impedir el inicio, no aparecer en una consulta
+const SKILLS = loadSkills({ knownTools: new Set(TOOLS.map((tool) => tool.name)), humanOnlyTools: HUMAN_ONLY_TOOLS });
 
 function canUseTool(toolName, roles) {
   return (TOOL_ROLES[toolName] || []).some((role) => roles.includes(role));
@@ -128,8 +215,21 @@ function buildPlainReport({ metrics, criticalStock }) {
   ].join('\n');
 }
 
+/** Herramientas que un agente puede usar con el rol de quien pregunta. */
+function agentTools(skill, roles) {
+  return TOOLS.filter((tool) => skill.tools.includes(tool.name) && canUseTool(tool.name, roles));
+}
+
+const shortText = (text) => (typeof text === 'string' ? text.trim().slice(0, MAX_REASON_CHARS) : '');
+const minutesOf = (dateTime) => String(dateTime).slice(0, 16);
+
 /** Sin modelo disponible, se informa lo que el rol puede ver con datos reales, sin intentar interpretar la pregunta. */
-async function plainSummaryFor(roles, handlers) {
+async function plainSummaryFor(agent, roles, handlers, today) {
+  if (agent === 'agenda') {
+    const { appointments } = await handlers.consultar_agenda({ from: today, to: today });
+    const lines = appointments.map((item) => `- ${minutesOf(item.appointmentDate).slice(11)} ${item.serviceName} con ${item.stylistName}`);
+    return `El asistente no está disponible. Citas de hoy: ${lines.length ? `\n${lines.join('\n')}` : 'ninguna'}.`;
+  }
   const criticalStock = await handlers.consultar_stock_critico({});
   if (canUseTool('obtener_metricas_negocio', roles)) {
     return buildPlainReport({ metrics: await handlers.obtener_metricas_negocio({ period: 'MONTHLY' }), criticalStock });
@@ -139,8 +239,79 @@ async function plainSummaryFor(roles, handlers) {
 }
 
 /** Crea el ejecutor de herramientas para los datos de una petición autenticada. */
-function createToolRunner({ backends, generateText, callModel, roles = [], now = () => new Date(), timeZone = process.env.SALON_TIMEZONE || DEFAULT_TIMEZONE }) {
+function createToolRunner({ backends, generateText, callModel, roles = [], actions, ownerId, now = () => new Date(), timeZone = process.env.SALON_TIMEZONE || DEFAULT_TIMEZONE }) {
+  /** Guarda la propuesta; el resumen lo arma este servidor con datos reales, no el texto del modelo. */
+  async function propose(action, summary, reason) {
+    const actionId = await actions.create(ownerId, action);
+    return { actionId, status: 'PENDIENTE_DE_CONFIRMACION', summary, reason: shortText(reason), message: 'Todavía no se hizo ningún cambio: la persona debe confirmarlo.' };
+  }
+
   const handlers = {
+    consultar_inventario: async ({ category }) => {
+      const all = await backends.inventory();
+      return { items: category ? all.filter((item) => item.category === category) : all };
+    },
+
+    consultar_agenda: async ({ from, to }) => {
+      if (!DATE_FORMAT.test(from ?? '') || !DATE_FORMAT.test(to ?? '')) {
+        throw new BackendError('Indique las fechas con formato AAAA-MM-DD.');
+      }
+      const days = (Date.parse(to) - Date.parse(from)) / DAY_MS;
+      if (!(days >= 0 && days <= MAX_AGENDA_DAYS)) {
+        throw new BackendError(`El rango debe ir hacia adelante y abarcar como máximo ${MAX_AGENDA_DAYS} días.`);
+      }
+      return { from, to, appointments: await backends.panelAgenda(from, to) };
+    },
+
+    proponer_reposicion: async ({ itemId, quantity, reason }) => {
+      if (!Number.isInteger(quantity) || quantity < 1 || quantity > MAX_RESTOCK_UNITS) {
+        throw new BackendError(`La cantidad debe ser un entero entre 1 y ${MAX_RESTOCK_UNITS}.`);
+      }
+      const item = await backends.inventoryItem(itemId);
+      if (!item) throw new BackendError(`No existe el insumo '${itemId}'.`);
+      return propose(
+        { type: RESTOCK, itemId: item.id, quantity },
+        `Sumar ${quantity} unidades a ${item.name}: de ${item.currentStock} a ${item.currentStock + quantity} (mínimo ${item.minimumStock}).`,
+        reason,
+      );
+    },
+
+    proponer_reprogramacion: async ({ appointmentId, newDate, reason }) => {
+      if (!DATE_TIME_FORMAT.test(newDate ?? '')) {
+        throw new BackendError('Indique el nuevo turno con formato AAAA-MM-DDTHH:MM:SS.');
+      }
+      const appointment = await backends.appointment(appointmentId);
+      if (!appointment) throw new BackendError(`No existe la cita '${appointmentId}'.`);
+      if (!MOVABLE_STATUSES.has(appointment.status)) throw new BackendError('Solo se pueden mover citas confirmadas.');
+      const slots = await backends.availableSlots(appointment.stylistId, appointment.serviceId, newDate.slice(0, 10));
+      const slot = slots.find(({ start }) => minutesOf(start) === minutesOf(newDate));
+      if (!slot) throw new BackendError('Ese turno no está libre: consulte la disponibilidad y elija otro.');
+      return propose(
+        { type: RESCHEDULE, appointmentId: appointment.id, newDate: slot.start },
+        `Mover ${appointment.serviceName} con ${appointment.stylistName} del ${minutesOf(appointment.appointmentDate).replace('T', ' ')} al ${minutesOf(slot.start).replace('T', ' ')}.`,
+        reason,
+      );
+    },
+
+    /** Se ejecuta con el token de quien confirma, y cada servicio vuelve a validar su rol. */
+    confirmar_accion: async ({ actionId }) => {
+      const action = await takeAction(actionId);
+      if (action.type === RESTOCK) {
+        const item = await backends.updateStock(action.itemId, action.quantity, 'Reposición propuesta por el agente de inventario y confirmada por una persona');
+        return { executed: true, type: action.type, item };
+      }
+      if (action.type === RESCHEDULE) {
+        const appointment = await backends.reschedule(action.appointmentId, action.newDate);
+        return { executed: true, type: action.type, appointment };
+      }
+      throw new BackendError('Esa propuesta no se reconoce.');
+    },
+
+    rechazar_accion: async ({ actionId }) => {
+      await takeAction(actionId);
+      return { rejected: true };
+    },
+
     listar_estilistas: async () => ({ stylists: await backends.stylists() }),
 
     consultar_disponibilidad_estilista: async ({ stylistId, date, serviceId }) => {
@@ -187,26 +358,43 @@ function createToolRunner({ backends, generateText, callModel, roles = [], now =
     },
   };
 
-  handlers[AGENT_TOOL] = async ({ prompt }) => {
+  async function takeAction(actionId) {
+    if (typeof actionId !== 'string' || !actionId) throw new BackendError('Indique la propuesta.');
+    const action = await actions.take(ownerId, actionId);
+    if (!action) throw new BackendError('Esa propuesta ya no está disponible: ya se respondió, venció o no es suya.');
+    return action;
+  }
+
+  handlers[AGENT_TOOL] = async ({ prompt, agente = DEFAULT_AGENT }) => {
     if (typeof prompt !== 'string' || !prompt.trim()) {
       throw new BackendError('Escriba la pregunta para el agente.');
     }
-    const tools = toolsFor(roles).filter((tool) => !NOT_FOR_AGENT.has(tool.name));
+    const skill = SKILLS[agente];
+    if (!skill) throw new BackendError(`No existe el agente '${agente}'.`);
+    if (!skill.roles.some((role) => roles.includes(role))) throw new BackendError(`No tiene permiso para usar el agente '${agente}'.`);
+
+    const pendingActions = [];
+    const today = localDate(now(), timeZone);
     const result = await runAgent({
       prompt,
-      tools,
+      tools: agentTools(skill, roles),
       callModel,
-      runTool: (name, args) => handlers[name](args ?? {}),
-      today: localDate(now(), timeZone),
+      skillInstructions: skill.instructions,
+      runTool: async (name, args) => {
+        const output = await handlers[name](args ?? {});
+        if (output?.actionId) pendingActions.push({ actionId: output.actionId, summary: output.summary, reason: output.reason });
+        return output;
+      },
+      today,
       timeZone,
     });
     if (result) {
-      return { query: prompt, engine: result.engine ?? 'Agente sin respuesta', generatedReport: result.answer, toolsUsed: result.toolsUsed };
+      return { query: prompt, agent: skill.name, engine: result.engine ?? 'Agente sin respuesta', generatedReport: result.answer, toolsUsed: result.toolsUsed, pendingActions };
     }
-    return { query: prompt, engine: 'Resumen sin modelo de lenguaje', generatedReport: await plainSummaryFor(roles, handlers), toolsUsed: [] };
+    return { query: prompt, agent: skill.name, engine: 'Resumen sin modelo de lenguaje', generatedReport: await plainSummaryFor(skill.name, roles, handlers, today), toolsUsed: [], pendingActions };
   };
 
   return (toolName, args) => handlers[toolName](args ?? {});
 }
 
-module.exports = { TOOLS, canUseTool, toolsFor, createToolRunner, periodRange };
+module.exports = { HUMAN_ONLY_TOOLS, SKILLS, TOOLS, agentTools, canUseTool, toolsFor, createToolRunner, periodRange };

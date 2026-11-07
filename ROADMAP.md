@@ -21,7 +21,7 @@ Registro oficial del desarrollo de la **Plataforma Inteligente para Salón de Be
 | **G** | IA real y consentimiento biométrico | Vie 6 | **COMPLETADA** |
 | **H** | Perfil de estilo, agente autónomo, n8n, offline, Module Federation, móvil, Testcontainers y certificación final | Vie 6 | **COMPLETADA** |
 | **I** | Simulación de cortes y ropa con IA en web y móvil | Vie 6 | **COMPLETADA** |
-| **J** | Agentes de operación, inventario y agenda con Skills sobre MCP (RF-11) | Sáb 7 | **APROBADA, SIN EMPEZAR** |
+| **J** | Agentes de operación, inventario y agenda con Skills sobre MCP (RF-11) | Vie 6 | **COMPLETADA** |
 
 ---
 
@@ -270,13 +270,31 @@ Función adicional pedida por el usuario. Modelos elegidos por él en Replicate:
 - **Cupo:** el día cambia a las 00:00 UTC, es decir, a las 20:00 en Bolivia.
 - **iOS y teléfono físico:** sin probar, igual que el resto de la aplicación móvil.
 
-## Fase J: Agentes con Skills (RF-11) (Aprobada, sin empezar)
-Al revisarlo con el usuario, RF-11 resultó no estar completo, aunque la Fase H lo daba por cerrado: hay un solo agente, solo consulta, y no existen Skills.
-- [ ] Agente de operación: el actual, para métricas y reportes.
-- [ ] Agente de inventario: detecta stock crítico y propone reposición.
-- [ ] Agente de agenda: encuentra huecos y ayuda a organizar citas.
-- [ ] Una Skill por agente, con sus instrucciones y herramientas permitidas, siempre a través de MCP (RNF-02).
-- [ ] Toda acción que cambie datos requiere la confirmación de una persona.
+## Fase J: Agentes con Skills (CU-17, RF-11, RNF-02) (Completada)
+Al revisarlo con el usuario, RF-11 resultó no estar completo, aunque la Fase H lo daba por cerrado: había un solo agente, solo consultaba, y no existían Skills.
+
+- [x] Tres agentes sobre el mismo ciclo: operación, inventario y agenda. Se eligen en la pantalla del ERP.
+- [x] Una Skill por agente en `backend/mcp-server/skills/*/SKILL.md`, con sus roles, herramientas permitidas e instrucciones. El servidor no arranca si una Skill es inválida o pide una herramienta reservada a las personas.
+- [x] Nuevas herramientas MCP: `consultar_inventario`, `consultar_agenda`, `proponer_reposicion`, `proponer_reprogramacion`, `confirmar_accion` y `rechazar_accion`.
+- [x] El modelo solo propone. Cada propuesta se guarda en DynamoDB (`AgentPendingActions`), es de un solo uso, vence en 30 minutos y solo la puede responder quien la pidió. Se ejecuta con su token, y cada servicio vuelve a validar su rol.
+- [x] El resumen que se confirma lo arma el servidor con datos reales, no el texto del modelo.
+- [x] El agente de agenda no recibe nombres ni identificadores de clientes, ni precios.
+- [x] Sin modelo disponible, cada agente responde con datos reales de su tema.
+
+**Verificación:**
+- [x] Navegador real con modelo real: 14/14. El modelo elige sus herramientas, y no pudo confirmar aunque se le pidió expresamente. Confirmar aplica el cambio una vez; rechazar no cambia nada.
+- [x] En vivo: 24/24, con doble confirmación, propuesta ajena, propuesta vencida y turno ocupado antes de confirmar.
+- [x] Regresión: 295 pruebas de integración y 183 en navegador. `mcp-server` 64/64, `mfe-gestion` 20/20.
+- [x] Datos intactos tras las pruebas; 0 mensajes muertos.
+
+**Limitaciones conocidas:**
+- **Modelo probado:** los tres agentes se verificaron con `gemini-3.1-flash-lite`, porque las pruebas agotaron el cupo gratuito diario de `gemini-2.5-flash`, el modelo por defecto. Las respuestas dependen del modelo, que puede elegir otros pasos para una misma pregunta.
+- **Cupo gratuito:** 20 consultas diarias por modelo. Una sola pregunta puede usar varias, porque cada paso del agente cuenta. Al agotarse responde con datos reales, sin interpretar la pregunta.
+- **Pruebas bajo memoria baja:** en un equipo con poca memoria libre, varias suites simultáneas pueden agotar sus tiempos de espera. Ocurrió con 421 MB libres: 2 archivos de integración y 2 suites de navegador tuvieron que repetirse, y pasaron sin cambios en el código.
+- **La confirmación la hace quien tenga el token:** el servidor impide que el ciclo del agente confirme, pero un programa externo que use el token de una persona podría llamar a `confirmar_accion` como ella.
+- **Sin iniciativa propia:** los agentes responden cuando se les pregunta; no vigilan ni actúan por su cuenta.
+- **Solo en el ERP web:** los agentes no están en la aplicación móvil.
+- **Cancelar citas:** el agente de agenda no cancela, porque cancelar implica reembolsos. Solo reprograma citas confirmadas.
 
 ---
 
@@ -302,7 +320,7 @@ Estado actualizado al cierre de cada fase. ✅ completo y verificado en vivo. �
 | CU-14 | Recomendaciones | ✅ (con simulación en imagen) | G, I |
 | CU-15 | Armario virtual | ✅ (con prueba de ropa en imagen) | F, I |
 | CU-16 | Asesoría para redes sociales | ✅ | G |
-| CU-17 | Métricas por agente (MCP) | ✅ (RF-11 incompleto: faltan varios agentes y Skills, Fase J) | F, H |
+| CU-17 | Métricas por agente (MCP) | ✅ (tres agentes con Skills; cambios con confirmación de una persona) | F, H, J |
 | CU-18 | Reportes por lenguaje natural | ✅ (texto y voz) | F, G |
 | CU-19 | Recordatorios y reservas por WhatsApp | 🟡 (flujos reales; envío a Meta sin probar por falta de cuenta) | H |
 | CU-20 | Publicar look | ✅ | F |

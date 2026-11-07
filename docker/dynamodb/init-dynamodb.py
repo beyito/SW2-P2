@@ -87,6 +87,20 @@ def create_tables():
     res4 = send_dynamo_request("CreateTable", quota_table)
     print("Tabla 'ImageGenerationQuota':", res4.get("TableDescription", {}).get("TableStatus", res4.get("status")))
 
+    # Propuestas de los agentes a la espera de que una persona las confirme (RF-11)
+    actions_table = {
+        "TableName": "AgentPendingActions",
+        "KeySchema": [
+            {"AttributeName": "actionId", "KeyType": "HASH"}
+        ],
+        "AttributeDefinitions": [
+            {"AttributeName": "actionId", "AttributeType": "S"}
+        ],
+        "BillingMode": "PAY_PER_REQUEST"
+    }
+    res5 = send_dynamo_request("CreateTable", actions_table)
+    print("Tabla 'AgentPendingActions':", res5.get("TableDescription", {}).get("TableStatus", res5.get("status")))
+
     # 4. Listar Tablas creadas
     tables = send_dynamo_request("ListTables", {})
     print("Tablas activas en DynamoDB Local:", tables.get("TableNames", []))

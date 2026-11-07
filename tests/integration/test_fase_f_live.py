@@ -849,7 +849,7 @@ class TestServidorMcp:
         assert "consultar_stock_critico" in nombres(tokens["stylist"])
         assert "obtener_metricas_negocio" not in nombres(tokens["stylist"])
         herramientas = rpc("tools/list", {}, tokens["admin"]).json()["result"]["tools"]
-        assert len(herramientas) == 6 and all(h["inputSchema"]["type"] == "object" for h in herramientas)
+        assert len(herramientas) == 12 and all(h["inputSchema"]["type"] == "object" for h in herramientas)
 
     def test_estilistas_reales(self, tokens):
         resultado = herramienta(tokens["client"], "listar_estilistas")

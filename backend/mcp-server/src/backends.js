@@ -60,6 +60,41 @@ function createBackends({ gestionUrl, crmUrl, fetchImpl = fetch }) {
         const data = await gestion('{ getCriticalStockItems { id code name category currentStock minimumStock } }');
         return data.getCriticalStockItems;
       },
+      async inventory() {
+        return (await gestion('{ getAllInventory { id code name category currentStock minimumStock isCriticalStock } }')).getAllInventory;
+      },
+      async inventoryItem(id) {
+        const data = await gestion('query ($id: ID!) { getInventoryItem(id: $id) { id name currentStock minimumStock } }', { id });
+        return data.getInventoryItem;
+      },
+      async updateStock(id, quantityChange, reason) {
+        const data = await gestion(
+          'mutation ($input: UpdateStockInput!) { updateStock(input: $input) { id name currentStock minimumStock } }',
+          { input: { id, quantityChange, reason } },
+        );
+        return data.updateStock;
+      },
+      async panelAgenda(from, to) {
+        const data = await gestion(
+          'query ($from: String!, $to: String!) { getPanelAgenda(from: $from, to: $to) { id stylistId stylistName serviceName appointmentDate appointmentEnd durationMinutes status } }',
+          { from, to },
+        );
+        return data.getPanelAgenda;
+      },
+      async appointment(id) {
+        const data = await gestion(
+          'query ($id: ID!) { getAppointmentById(id: $id) { id stylistId serviceId serviceName stylistName appointmentDate status } }',
+          { id },
+        );
+        return data.getAppointmentById;
+      },
+      async reschedule(id, newDate) {
+        const data = await gestion(
+          'mutation ($id: ID!, $newDate: String!) { rescheduleAppointment(id: $id, newDate: $newDate) { id appointmentDate status } }',
+          { id, newDate },
+        );
+        return data.rescheduleAppointment;
+      },
       async panelSummary(from, to) {
         const data = await gestion(
           'query ($from: String!, $to: String!) { getPanelSummary(from: $from, to: $to) {' +

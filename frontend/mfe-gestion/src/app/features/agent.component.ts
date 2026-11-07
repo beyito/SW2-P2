@@ -9,15 +9,31 @@ interface ToolResult {
   structuredContent?: any;
 }
 
+interface PendingAction {
+  actionId: string;
+  summary: string;
+  reason?: string;
+  state: 'PENDING' | 'WORKING' | 'CONFIRMED' | 'REJECTED';
+  error?: string;
+}
+
 interface Message {
   from: 'user' | 'agent';
   text: string;
   note?: string;
   failed?: boolean;
+  actions?: PendingAction[];
 }
 
 const AGENT_TOOL = 'preguntar_al_agente';
 const MAX_RECORDING_MS = 30000;
+
+/** Cada uno corresponde a una Skill del Servidor MCP. */
+const AGENTS = [
+  { id: 'operacion', label: 'Operación', placeholder: 'Pregunte sobre la operación del salón' },
+  { id: 'inventario', label: 'Inventario', placeholder: 'Por ejemplo: ¿qué insumos debo reponer?' },
+  { id: 'agenda', label: 'Agenda', placeholder: 'Por ejemplo: ¿qué turnos quedan libres mañana?' },
+];
 
 /** Consultas predefinidas; solo se ofrecen las herramientas que el rol tiene permitidas. */
 const PRESETS = [
@@ -76,6 +92,25 @@ function describe(tool: string, data: any): { text: string; note?: string } {
           <div class="bubble" [class.user]="message.from === 'user'" [class.agent]="message.from === 'agent'" [class.failed]="message.failed">
             {{ message.text }}
             @if (message.note) { <small class="agent-note">{{ message.note }}</small> }
+            @for (action of message.actions; track action.actionId) {
+              <div class="agent-action" [attr.data-state]="action.state">
+                <strong class="action-summary">{{ action.summary }}</strong>
+                @if (action.reason) { <small>Motivo indicado por el agente: {{ action.reason }}</small> }
+                @switch (action.state) {
+                  @case ('PENDING') {
+                    <small>Todavía no se hizo ningún cambio.</small>
+                    <div class="row">
+                      <button type="button" class="primary btn-action-confirm" (click)="decide(action, 'confirmar_accion')">Confirmar</button>
+                      <button type="button" class="secondary btn-action-reject" (click)="decide(action, 'rechazar_accion')">Rechazar</button>
+                    </div>
+                  }
+                  @case ('WORKING') { <small>Aplicando...</small> }
+                  @case ('CONFIRMED') { <small class="action-done">Confirmado y aplicado.</small> }
+                  @case ('REJECTED') { <small class="action-done">Rechazado: no se hizo ningún cambio.</small> }
+                }
+                @if (action.error) { <small class="action-error" role="alert">{{ action.error }}</small> }
+              </div>
+            }
           </div>
         }
         @if (busy()) { <div class="bubble agent muted" id="agent-busy">Consultando...</div> }
@@ -88,8 +123,13 @@ function describe(tool: string, data: any): { text: string; note?: string } {
       </div>
 
       @if (canReport()) {
+        <div class="row" style="margin-bottom: 10px;" role="group" aria-label="Agente que responde">
+          @for (agent of agents; track agent.id) {
+            <button type="button" [id]="'agent-select-' + agent.id" [class]="selected().id === agent.id ? 'primary' : 'secondary'" [attr.aria-pressed]="selected().id === agent.id" (click)="selected.set(agent)">{{ agent.label }}</button>
+          }
+        </div>
         <form class="row" (ngSubmit)="askReport()">
-          <input id="agent-prompt" class="wide" style="flex: 1;" name="prompt" placeholder="Pregunte sobre la operación del salón" [(ngModel)]="prompt" required>
+          <input id="agent-prompt" class="wide" style="flex: 1;" name="prompt" [placeholder]="selected().placeholder" [(ngModel)]="prompt" required>
           <button class="primary" type="submit" id="agent-send" [disabled]="busy() || recording()">Preguntar</button>
           <button type="button" class="secondary" id="agent-mic" [disabled]="busy()" (click)="toggleRecording()">{{ recording() ? 'Detener y enviar' : 'Preguntar por voz' }}</button>
         </form>
@@ -102,6 +142,8 @@ export class AgentComponent implements OnInit, OnDestroy {
   private readonly tools = signal<string[]>([]);
   readonly presets = computed(() => PRESETS.filter((preset) => this.tools().includes(preset.tool)));
   readonly canReport = computed(() => this.tools().includes(AGENT_TOOL));
+  readonly agents = AGENTS;
+  readonly selected = signal(AGENTS[0]);
   readonly messages = signal<Message[]>([]);
   readonly busy = signal(false);
   readonly loadError = signal('');
@@ -162,7 +204,7 @@ export class AgentComponent implements OnInit, OnDestroy {
     this.busy.set(true);
     try {
       const question = await this.api.transcribe(audio);
-      await this.ask(AGENT_TOOL, { prompt: question }, question);
+      await this.ask(AGENT_TOOL, { prompt: question, agente: this.selected().id }, question);
     } catch (error) {
       this.messages.update((all) => [...all, { from: 'agent', text: messageOf(error), failed: true }]);
     } finally {
@@ -174,7 +216,27 @@ export class AgentComponent implements OnInit, OnDestroy {
     const question = this.prompt.trim();
     if (!question) return;
     this.prompt = '';
-    void this.ask(AGENT_TOOL, { prompt: question }, question);
+    void this.ask(AGENT_TOOL, { prompt: question, agente: this.selected().id }, question);
+  }
+
+  /** La decisión sobre una propuesta solo sale de este botón: el modelo no dispone de estas herramientas. */
+  async decide(action: PendingAction, tool: 'confirmar_accion' | 'rechazar_accion'): Promise<void> {
+    const update = (changes: Partial<PendingAction>) => {
+      Object.assign(action, changes);
+      this.messages.update((all) => [...all]);
+    };
+    update({ state: 'WORKING', error: undefined });
+    try {
+      const result = await this.api.mcp<ToolResult>('tools/call', { name: tool, arguments: { actionId: action.actionId } });
+      if (result.isError) {
+        // La propuesta se retira al intentarla: si falló, hay que pedirla otra vez con datos actuales
+        update({ state: 'REJECTED', error: `No se aplicó: ${result.content[0]?.text ?? 'la herramienta falló.'}` });
+        return;
+      }
+      update({ state: tool === 'confirmar_accion' ? 'CONFIRMED' : 'REJECTED' });
+    } catch (error) {
+      update({ state: 'PENDING', error: messageOf(error) });
+    }
   }
 
   async ask(tool: string, args: object, label: string): Promise<void> {
@@ -184,7 +246,11 @@ export class AgentComponent implements OnInit, OnDestroy {
       const result = await this.api.mcp<ToolResult>('tools/call', { name: tool, arguments: args });
       const reply: Message = result.isError
         ? { from: 'agent', text: result.content[0]?.text ?? 'La herramienta falló.', failed: true }
-        : { from: 'agent', ...describe(tool, result.structuredContent) };
+        : {
+            from: 'agent',
+            ...describe(tool, result.structuredContent),
+            actions: (result.structuredContent?.pendingActions ?? []).map((action: PendingAction) => ({ ...action, state: 'PENDING' })),
+          };
       this.messages.update((all) => [...all, reply]);
     } catch (error) {
       this.messages.update((all) => [...all, { from: 'agent', text: messageOf(error), failed: true }]);

@@ -11,6 +11,7 @@ const { AuthError, DynamoSessionRegistry, createAuthenticator, createKeycloakVer
 const { BackendError, createBackends } = require('./backends');
 const { createGeminiAgentModel, createGeminiGenerator } = require('./gemini');
 const { canUseTool, createToolRunner, toolsFor } = require('./tools');
+const { createDynamoActions } = require('./actions');
 
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'http://localhost:3000').split(',');
 const MCP_PATH = '/mcp';
@@ -29,12 +30,14 @@ class McpHttpServer {
     }),
     generateText = createGeminiGenerator(),
     callModel = createGeminiAgentModel(),
+    actions = createDefaultActions(),
   } = {}) {
     this.port = port;
     this.authenticate = authenticate;
     this.backendsFor = backendsFor;
     this.generateText = generateText;
     this.callModel = callModel;
+    this.actions = actions;
   }
 
   /** Crea el servidor de protocolo con los permisos y los datos de quien hace la petición. */
@@ -45,6 +48,8 @@ class McpHttpServer {
       generateText: this.generateText,
       callModel: this.callModel,
       roles: user.roles,
+      actions: this.actions,
+      ownerId: user.agentId,
     });
 
     server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: toolsFor(user.roles) }));
@@ -189,6 +194,11 @@ async function readBody(req) {
 
 function toolError(message) {
   return { isError: true, content: [{ type: 'text', text: message }] };
+}
+
+function createDefaultActions() {
+  const registry = new DynamoSessionRegistry(process.env.DYNAMODB_ENDPOINT || 'http://localhost:8000');
+  return createDynamoActions({ call: (target, payload) => registry.call(target, payload) });
 }
 
 function createDefaultAuthenticator() {

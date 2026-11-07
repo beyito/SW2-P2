@@ -159,6 +159,15 @@ El Shell carga los tres microfrontends con Module Federation, en una sola págin
 
 Sin credenciales, los recordatorios y las confirmaciones llegan como avisos dentro de la aplicación. Para enviarlos de verdad, cree una app en [Meta for Developers](https://developers.facebook.com/), defina en `.env` las variables `WHATSAPP_*` de `.env.example` y ejecute `docker compose up -d n8n`. El cliente debe autorizarlo en "Mi perfil". Para recibir respuestas, Meta debe poder llegar a `/webhook/whatsapp/entrante`, lo que requiere una dirección pública. Fuera de una conversación abierta, Meta solo admite plantillas aprobadas.
 
+## Agentes del ERP
+
+En **ERP > Agente** elija **Operación**, **Inventario** o **Agenda**, y escriba o dicte su pregunta.
+
+- Cada agente se define en `backend/mcp-server/skills/<agente>/SKILL.md`. Si cambia un archivo, ejecute `docker compose up -d --build mcp-server`.
+- Si un agente propone reponer stock o mover una cita, no se hace ningún cambio hasta pulsar **Confirmar**. La propuesta vence en 30 minutos.
+- Reponer stock solo está disponible para el administrador.
+- `tests/e2e/agentes.e2e.mjs` consume cupo de Gemini: unas 10 consultas o más por corrida. Si se agota, siga las indicaciones de "Cupo de Gemini".
+
 ## Simulación de cortes y ropa
 
 Es opcional y **de pago**. Cree un token en https://replicate.com y agréguelo a `.env`. Luego ejecute `docker compose up -d ms-ia`:

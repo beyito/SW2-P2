@@ -67,11 +67,11 @@ test('el agente de un estilista no recibe ni puede usar las métricas del negoci
   assert.equal(devuelto.result, undefined);
 });
 
-test('el agente de un cliente solo dispone de las herramientas públicas', async () => {
+test('el agente de un estilista no dispone de las métricas del negocio', async () => {
   const modelo = guion(texto('Hola.'));
-  await runner(modelo, ['CLIENT'])('preguntar_al_agente', { prompt: 'x' });
+  await runner(modelo, ['STYLIST'])('preguntar_al_agente', { prompt: 'x' });
   const ofrecidas = modelo.entradas[0].declarations.map((declaracion) => declaracion.name).sort();
-  assert.deepEqual(ofrecidas, ['consultar_disponibilidad_estilista', 'listar_estilistas']);
+  assert.deepEqual(ofrecidas, ['consultar_disponibilidad_estilista', 'consultar_stock_critico', 'listar_estilistas']);
 });
 
 test('el agente no se ofrece a sí mismo ni el generador de reportes', async () => {
