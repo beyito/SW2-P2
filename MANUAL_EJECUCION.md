@@ -179,6 +179,7 @@ REPLICATE_API_KEY=su_token
 - Sin clave, esas funciones responden que no están disponibles; el resto de la plataforma sigue igual.
 - Cada cliente puede generar 5 imágenes al día y el salón 30. Se cambian con `IMAGE_GEN_DAILY_LIMIT_PER_CLIENT` e `IMAGE_GEN_DAILY_LIMIT_TOTAL`.
 - Para probarse una prenda, esta debe tener una foto subida en el clóset; un enlace externo no sirve.
+- Para un conjunto, marque en el clóset de 2 a 3 prendas de distinto tipo y pulse **Probar conjunto**. Cuenta como una sola imagen del cupo.
 - Con menos de 5 dólares de crédito, Replicate admite pocas peticiones por minuto: si está ocupado, espere unos segundos.
 - Las pruebas automáticas no gastan crédito, salvo `IMAGENES_REALES=1` en `tests/e2e/generacion_imagenes.e2e.mjs` y `mobile/salon_mobile/integration_test/image_generation_real_test.dart`, que se ejecutan a mano.
 - No guarde fotos personales en el repositorio: `ROSTRO.jpeg` y `CUERPO-COMPLETO.jpeg` están excluidas en `.gitignore`.

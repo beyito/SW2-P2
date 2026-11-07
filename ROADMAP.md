@@ -22,6 +22,7 @@ Registro oficial del desarrollo de la **Plataforma Inteligente para Salón de Be
 | **H** | Perfil de estilo, agente autónomo, n8n, offline, Module Federation, móvil, Testcontainers y certificación final | Vie 6 | **COMPLETADA** |
 | **I** | Simulación de cortes y ropa con IA en web y móvil | Vie 6 | **COMPLETADA** |
 | **J** | Agentes de operación, inventario y agenda con Skills sobre MCP (RF-11) | Vie 6 | **COMPLETADA** |
+| **K** | Prueba de conjuntos de ropa en una sola imagen, en web y móvil | Sáb 7 | **COMPLETADA** |
 
 ---
 
@@ -295,6 +296,23 @@ Al revisarlo con el usuario, RF-11 resultó no estar completo, aunque la Fase H 
 - **Sin iniciativa propia:** los agentes responden cuando se les pregunta; no vigilan ni actúan por su cuenta.
 - **Solo en el ERP web:** los agentes no están en la aplicación móvil.
 - **Cancelar citas:** el agente de agenda no cancela, porque cancelar implica reembolsos. Solo reprograma citas confirmadas.
+
+## Fase K: Prueba de conjuntos (CU-15) (Completada)
+Función adicional pedida por el usuario: probarse varias prendas a la vez en una sola imagen.
+
+- [x] `POST /api/v1/image-generation/try-on-outfit`: de 2 a 3 prendas del propio clóset, una por categoría (superior, inferior y abrigo). Cuenta como un solo cupo diario.
+- [x] Las prendas se validan antes de leer sus fotos, y todo se comprueba antes de apartar cupo o llamar al proveedor.
+- [x] Web y móvil: marcar las prendas y pulsar "Probar conjunto". Elegir otra prenda del mismo tipo reemplaza a la anterior.
+
+**Verificación:**
+- [x] Antes de programar, una generación real con polera y pantalón: ambas prendas quedaron bien puestas y sin mezclarse, en unos 23 segundos.
+- [x] `ms-ia`, web y móvil con el proveedor sustituido; en vivo, todos los rechazos contra los servicios reales; navegador real con el proveedor sustituido en la red.
+
+**Limitaciones conocidas:**
+- **Flujo programado sin imagen real:** por decisión del usuario, para no gastar crédito ajeno, el flujo completo de la aplicación no se ejecutó con Replicate. La instrucción de polera y pantalón es la misma de la prueba real, pero falta generar el primer conjunto desde la aplicación.
+- **Abrigo:** la combinación con abrigo, y por tanto la de 3 prendas, nunca se probó con el modelo real.
+- **Móvil:** verificado con pruebas de pantalla en el equipo; no se ejecutó en el emulador porque su flujo real gasta crédito.
+- **Fidelidad:** una imagen en espejo se copia en espejo: una prenda con letras invertidas sale igual. Detalles como los rotos de un pantalón pueden variar.
 
 ---
 

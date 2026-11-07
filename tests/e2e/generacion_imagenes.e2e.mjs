@@ -35,9 +35,11 @@ try {
   const contexto = await browser.newContext({ viewport: { width: 1400, height: 1200 } });
   const pagina = await iniciarSesion(contexto, SHELL, CAMILA);
   const llamadas = [];
+  let ultimoCuerpo = '';
   if (!REALES) {
     await contexto.route('**/api/v1/image-generation/**', (ruta) => {
       llamadas.push(ruta.request().url());
+      ultimoCuerpo = ruta.request().postDataBuffer()?.toString('latin1') ?? '';
       return ruta.fulfill({ status: 201, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify(SIMULADA) });
     });
   }
@@ -114,6 +116,40 @@ try {
   const estrecha = await dialogo.boundingBox();
   check('la ventana cabe en un teléfono', estrecha.x >= 0 && estrecha.x + estrecha.width <= 390 && estrecha.y >= 0 && estrecha.y + estrecha.height <= 800, JSON.stringify(estrecha));
   await pagina.setViewportSize({ width: 1400, height: 1200 });
+
+  // Conjunto: siempre con el proveedor sustituido, para no gastar crédito
+  await dialogo.locator('#btn-preview-close').click();
+  if (!REALES) {
+    const OTRA = `${PRENDA}-pantalon`;
+    await mfe.locator('#closet-name').fill(OTRA);
+    await mfe.locator('#closet-color').fill('Gris');
+    await mfe.locator('#closet-category').selectOption('BOTTOM');
+    await mfe.locator('#closet-file').setInputFiles(FOTO_PRENDA);
+    await mfe.locator('#closet-save').click();
+    const otra = mfe.locator(`.closet-item[data-name="${OTRA}"]`);
+    await otra.locator('.outfit-toggle').waitFor(ESPERA);
+    check('sin marcar no ofrece el conjunto', (await mfe.locator('#btn-try-outfit').count()) === 0);
+    await prenda.locator('.outfit-toggle').check();
+    check('con una prenda no se puede probar el conjunto', await mfe.locator('#btn-try-outfit').isDisabled());
+    await otra.locator('.outfit-toggle').check();
+    check('con dos prendas sí', await mfe.locator('#btn-try-outfit').isEnabled());
+    await mfe.locator('#btn-try-outfit').click();
+    await dialogo.locator('#preview-file').waitFor({ state: 'attached', ...ESPERA });
+    check('el título nombra las dos prendas', (await dialogo.getAttribute('aria-label')).includes(OTRA));
+    await dialogo.locator('#preview-file').setInputFiles(FOTO_CUERPO);
+    await dialogo.locator('#preview-image').waitFor({ timeout: 120000 });
+    check('la petición va al endpoint de conjuntos', llamadas.at(-1).endsWith('/image-generation/try-on-outfit'));
+    const enviadas = /name="item_ids"\r\n\r\n([^\r]+)/.exec(ultimoCuerpo)?.[1].split(',') ?? [];
+    check('envía las dos prendas en una sola petición', enviadas.length === 2, enviadas.join(','));
+    check('la imagen del conjunto lleva la etiqueta de simulación', (await dialogo.locator('#preview-label').innerText()).includes('Simulación'));
+    if (CAPTURAS) await pagina.screenshot({ path: `${CAPTURAS}/web_conjunto.png` });
+    await dialogo.locator('#btn-preview-close').click();
+    await otra.locator('.btn-remove-item').click();
+    await otra.waitFor({ state: 'detached', ...ESPERA });
+    check('quitar una prenda la saca del conjunto', await mfe.locator('#btn-try-outfit').isDisabled());
+  }
+  await prenda.locator('.btn-try-on').click();
+  await dialogo.locator('#btn-preview-revoke').waitFor(ESPERA);
 
   // Retirar
   await dialogo.locator('#btn-preview-revoke').click();

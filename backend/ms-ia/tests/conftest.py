@@ -41,6 +41,15 @@ class FakePlatform(PlatformClient):
             raise api_error(404, "ITEM_NOT_FOUND", "Esa prenda no está en su clóset.")
         return self.garments[item_id]
 
+    def closet_items(self, item_ids):
+        from app.core.errors import api_error
+        if any(item_id not in self.garments for item_id in item_ids):
+            raise api_error(404, "ITEM_NOT_FOUND", "Esa prenda no está en su clóset.")
+        return [self.garments[item_id][0] for item_id in item_ids]
+
+    def garment_photo(self, item):
+        return self.garments[item["id"]][1]
+
     def save_diagnosis(self, diagnosis):
         self.saved.append(diagnosis)
         return {"id": "diag-1", **diagnosis}

@@ -1,5 +1,6 @@
 """Generación de imágenes: el rostro se detecta con el modelo real; el proveedor externo se sustituye para no gastar crédito."""
 import base64
+import json
 
 import cv2
 import httpx
@@ -7,7 +8,7 @@ import numpy as np
 import pytest
 from fastapi.testclient import TestClient
 
-from app.adapters.image_generator import GeneratedImage, ImageGenerationError, ReplicateImageGenerator, get_image_generator
+from app.adapters.image_generator import GeneratedImage, ImageGenerationError, ReplicateImageGenerator, get_image_generator, try_on_prompt
 from app.adapters.image_quota import get_image_quota
 from app.core.config import settings
 from app.core.errors import api_error
@@ -20,6 +21,7 @@ client = TestClient(app)
 JPEG = b"\xff\xd8\xff\xe0resultado"
 CORTE = "/api/v1/image-generation/haircut"
 ROPA = "/api/v1/image-generation/try-on"
+CONJUNTO = "/api/v1/image-generation/try-on-outfit"
 MEDIA = "/media/" + "a" * 32
 PRENDA = {"id": "item-1", "category": "OUTERWEAR", "imageUrl": MEDIA}
 
@@ -39,8 +41,8 @@ class GeneradorFalso:
         self.cortes.append({"photo": photo, "haircut": haircut, "hair_color": hair_color, "gender": gender})
         return self._resultado()
 
-    def try_on(self, photo, garment, category, width, height):
-        self.pruebas.append({"photo": photo, "garment": garment, "category": category, "width": width, "height": height})
+    def try_on(self, photo, garments, width, height):
+        self.pruebas.append({"photo": photo, "garments": garments, "width": width, "height": height})
         return self._resultado()
 
 
@@ -191,10 +193,10 @@ class TestRopa:
         assert respuesta.status_code == 201, respuesta.text
         assert respuesta.json()["item_id"] == "item-1"
         enviado = generador.pruebas[0]
-        assert enviado["category"] == "OUTERWEAR"
+        assert [categoria for _, categoria in enviado["garments"]] == ["OUTERWEAR"]
         assert enviado["width"] * enviado["height"] <= 1_000_000
         assert enviado["width"] % 16 == 0 and enviado["height"] % 16 == 0
-        assert enviado["garment"][:3] == b"\xff\xd8\xff"
+        assert enviado["garments"][0][0][:3] == b"\xff\xd8\xff"
 
     def test_una_prenda_ajena_o_inexistente_no_se_encuentra(self, plataforma_ropa, generador, cuota, retrato):
         respuesta = pedir_ropa(jpeg(cuerpo_entero(retrato)), "de-otra-persona")
@@ -215,6 +217,97 @@ class TestRopa:
         plataforma_ropa.image_consent = False
         plataforma_ropa.garments = {}
         assert pedir_ropa(jpeg(cuerpo_entero(retrato))).status_code == 403
+
+
+def pedir_conjunto(foto, prendas):
+    return client.post(CONJUNTO, files={"file": ("foto.jpg", foto, "image/jpeg")}, data={"item_ids": prendas})
+
+
+@pytest.mark.usefixtures("con_clave")
+class TestConjunto:
+    @pytest.fixture
+    def armario(self, plataforma_ropa):
+        foto = jpeg(prenda_de_prueba())
+        for identificador, categoria in [("polera", "TOP"), ("otra-polera", "TOP"), ("pantalon", "BOTTOM"), ("abrigo", "OUTERWEAR"), ("zapato", "SHOES")]:
+            plataforma_ropa.garments[identificador] = ({"id": identificador, "category": categoria, "imageUrl": MEDIA}, foto)
+        return plataforma_ropa
+
+    def test_prueba_dos_prendas_en_una_sola_imagen_y_un_solo_cupo(self, armario, generador, cuota, retrato):
+        respuesta = pedir_conjunto(jpeg(cuerpo_entero(retrato)), "polera,pantalon")
+        assert respuesta.status_code == 201, respuesta.text
+        cuerpo = respuesta.json()
+        assert cuerpo["item_ids"] == ["polera", "pantalon"]
+        assert cuerpo["label"] == SIMULATION_LABEL
+        assert cuerpo["remaining_today"] == 4
+        assert len(generador.pruebas) == 1 and cuota.reservas == 1
+        assert [categoria for _, categoria in generador.pruebas[0]["garments"]] == ["TOP", "BOTTOM"]
+        assert respuesta.headers["cache-control"] == "no-store"
+
+    def test_ordena_las_prendas_sin_importar_como_se_eligieron(self, armario, generador, cuota, retrato):
+        assert pedir_conjunto(jpeg(cuerpo_entero(retrato)), "abrigo, pantalon ,polera").status_code == 201
+        assert [categoria for _, categoria in generador.pruebas[0]["garments"]] == ["TOP", "BOTTOM", "OUTERWEAR"]
+
+    @pytest.mark.parametrize("prendas,estado,codigo_esperado", [
+        ("polera", 422, "OUTFIT_SIZE"),
+        ("", 422, None),
+        (",,", 422, "OUTFIT_SIZE"),
+        ("polera,otra-polera", 422, "OUTFIT_DUPLICATE_CATEGORY"),
+        ("polera,polera", 422, "OUTFIT_DUPLICATE_CATEGORY"),
+        ("polera,zapato", 422, "GARMENT_NOT_SUPPORTED"),
+        ("polera,de-otra-persona", 404, "ITEM_NOT_FOUND"),
+        ("polera,pantalon,abrigo,otra-polera", 422, "OUTFIT_SIZE"),
+    ])
+    def test_un_conjunto_invalido_no_gasta(self, armario, generador, cuota, retrato, prendas, estado, codigo_esperado):
+        respuesta = pedir_conjunto(jpeg(cuerpo_entero(retrato)), prendas)
+        assert respuesta.status_code == estado
+        if codigo_esperado:
+            assert codigo(respuesta) == codigo_esperado
+        assert generador.pruebas == [] and cuota.reservas == 0
+
+    def test_sin_autorizacion_no_lee_las_prendas(self, armario, generador, cuota, retrato):
+        armario.image_consent = False
+        armario.garments = {}
+        assert pedir_conjunto(jpeg(cuerpo_entero(retrato)), "polera,pantalon").status_code == 403
+        assert generador.pruebas == []
+
+    def test_una_foto_de_la_cara_no_sirve(self, armario, generador, cuota, retrato):
+        respuesta = pedir_conjunto(jpeg(retrato), "polera,pantalon")
+        assert respuesta.status_code == 422 and codigo(respuesta) == "FULL_BODY_REQUIRED"
+        assert generador.pruebas == [] and cuota.reservas == 0
+
+    def test_una_foto_de_prenda_danada_no_gasta(self, armario, generador, cuota, retrato):
+        armario.garments["pantalon"] = (armario.garments["pantalon"][0], b"no es una imagen")
+        respuesta = pedir_conjunto(jpeg(cuerpo_entero(retrato)), "polera,pantalon")
+        assert respuesta.status_code == 422 and codigo(respuesta) == "INVALID_GARMENT_IMAGE"
+        assert generador.pruebas == [] and cuota.reservas == 0
+
+    def test_si_el_proveedor_falla_devuelve_el_cupo(self, armario, generador, cuota, retrato):
+        generador.error = ImageGenerationError(502, "IMAGE_GENERATION_FAILED", "Falló.")
+        assert pedir_conjunto(jpeg(cuerpo_entero(retrato)), "polera,pantalon").status_code == 502
+        assert cuota.reservas == 1 and cuota.devueltas == 1
+
+
+class TestInstruccion:
+    def test_una_prenda_conserva_la_instruccion_probada(self):
+        texto = try_on_prompt(["OUTERWEAR"])
+        assert "the second image shows a garment" in texto and "worn naturally over their current top" in texto
+
+    def test_polera_y_pantalon_usan_la_instruccion_probada(self):
+        texto = try_on_prompt(["TOP", "BOTTOM"])
+        assert "The second image shows a top. The third image shows pants or shorts." in texto
+        assert "with both garments at the same time" in texto
+        assert "the top from the second image replacing their current top" in texto
+        assert "the bottoms from the third image replacing their current pants, shorts or skirt" in texto
+        assert "do not mix details between garments" in texto
+
+    def test_tres_prendas_nombran_cada_imagen(self):
+        texto = try_on_prompt(["TOP", "BOTTOM", "OUTERWEAR"])
+        assert "The fourth image shows a jacket or coat." in texto
+        assert "the jacket or coat from the fourth image worn naturally over the top" in texto
+        assert "with all the garments" in texto
+
+    def test_un_abrigo_sin_polera_va_sobre_la_que_lleva_puesta(self):
+        assert "worn naturally over their current top" in try_on_prompt(["BOTTOM", "OUTERWEAR"])
 
 
 class TestPlataforma:
@@ -368,6 +461,20 @@ class TestProveedor:
             generador.haircut(b"f", "Bob", "No change", "none")
         assert "clave-secreta" not in str(error.value)
 
+    def test_el_conjunto_envia_la_persona_y_cada_prenda_en_orden(self):
+        cuerpos = []
+
+        def manejador(peticion):
+            if peticion.method == "POST":
+                cuerpos.append(json.loads(peticion.content))
+                return httpx.Response(201, json={"id": "p", "status": "succeeded", "output": SALIDA})
+            return httpx.Response(200, content=JPEG)
+
+        generador, _ = proveedor(manejador)
+        generador.try_on(b"persona", [(b"polera", "TOP"), (b"pantalon", "BOTTOM")], 768, 1024)
+        imagenes = cuerpos[0]["input"]["input_images"]
+        assert [base64.b64decode(i.split(",")[1]) for i in imagenes] == [b"persona", b"polera", b"pantalon"]
+
     def test_la_prueba_de_ropa_no_envia_datos_del_cliente_en_el_texto(self):
         cuerpos = []
 
@@ -378,7 +485,7 @@ class TestProveedor:
             return httpx.Response(200, content=JPEG)
 
         generador, _ = proveedor(manejador)
-        generador.try_on(b"persona", b"prenda", "TOP", 768, 1024)
+        generador.try_on(b"persona", [(b"prenda", "TOP")], 768, 1024)
         assert "replacing their current top" in cuerpos[0]
         assert '"aspect_ratio":"custom"' in cuerpos[0].replace(" ", "")
 

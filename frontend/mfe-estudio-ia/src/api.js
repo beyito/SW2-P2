@@ -151,6 +151,7 @@ export const imageGenApi = {
   revoke: () => online('/biometrics/image-consent', 'DELETE'),
   haircut: (file, styleId) => generateImage('haircut', file, 'style_id', styleId),
   tryOn: (file, itemId) => generateImage('try-on', file, 'item_id', itemId),
+  tryOnOutfit: (file, itemIds) => generateImage('try-on-outfit', file, 'item_ids', itemIds.join(',')),
 };
 
 export const closetApi = {

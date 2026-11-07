@@ -9,6 +9,8 @@ const SEASONS = { SPRING: 'Primavera', SUMMER: 'Verano', AUTUMN: 'Otoño', WINTE
 // El generador viste a la persona con prendas; calzado y accesorios no dan un resultado fiable
 const TRY_ON_CATEGORIES = ['TOP', 'BOTTOM', 'OUTERWEAR'];
 const hasOwnPhoto = (item) => item.imageUrl?.startsWith('/media/');
+const canWear = (item) => TRY_ON_CATEGORIES.includes(item.category) && hasOwnPhoto(item);
+const BODY_PHOTO_HINT = 'Usa una foto tuya de cuerpo entero o de la cintura para arriba, sin nadie más.';
 const EMPTY = { name: '', category: 'TOP', color: '', season: 'ALL_SEASON' };
 
 /** Armario virtual del cliente, guardado en ms-asesoria (CU-15). */
@@ -22,7 +24,30 @@ export default function Closet() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
-  const [tryOnItem, setTryOnItem] = useState(null);
+  const [preview, setPreview] = useState(null);
+  // Una prenda por categoría: elegir otra del mismo tipo reemplaza a la anterior
+  const [outfit, setOutfit] = useState({});
+  const chosen = items.filter((item) => canWear(item) && outfit[item.category] === item.id);
+
+  const toggleOutfit = (item) => setOutfit((current) => {
+    const next = { ...current };
+    if (next[item.category] === item.id) delete next[item.category];
+    else next[item.category] = item.id;
+    return next;
+  });
+
+  const tryOn = (item) => setPreview({
+    title: item.name,
+    generate: (file) => imageGenApi.tryOn(file, item.id),
+  });
+
+  const tryOutfit = () => {
+    const ids = chosen.map((item) => item.id);
+    setPreview({
+      title: `Conjunto: ${chosen.map((item) => item.name).join(' + ')}`,
+      generate: (file) => imageGenApi.tryOnOutfit(file, ids),
+    });
+  };
 
   const reload = async (id) => setItems(await closetApi.list(id));
 
@@ -94,6 +119,13 @@ export default function Closet() {
         {error && <p id="closet-error" className="studio-error" role="alert">{error}</p>}
         {loading && <p>Cargando...</p>}
         {!loading && items.length === 0 && <p id="closet-empty" className="studio-muted">Aún no tienes prendas. Agrega la primera.</p>}
+        {chosen.length > 0 && (
+          <div id="outfit-bar" className="outfit-bar">
+            <span id="outfit-names">{chosen.map((item) => item.name).join(' + ')}</span>
+            {chosen.length < 2 && <span className="studio-muted closet-detail">Elige otra prenda de otro tipo.</span>}
+            <button id="btn-try-outfit" type="button" className="studio-primary" disabled={chosen.length < 2} onClick={tryOutfit}><Sparkles size={14} /> Probar conjunto</button>
+          </div>
+        )}
         <div className="closet-grid">
           {items.map((item) => (
             <div key={item.id} className="closet-item" data-name={item.name}>
@@ -107,8 +139,14 @@ export default function Closet() {
                   <button type="button" className="studio-btn btn-edit-item" onClick={() => startEdit(item)}>Editar</button>
                   <button type="button" className="studio-btn danger btn-remove-item" onClick={() => remove(item)}>Eliminar</button>
                 </div>
-                {TRY_ON_CATEGORIES.includes(item.category) && hasOwnPhoto(item) && (
-                  <button type="button" className="studio-secondary btn-try-on" onClick={() => setTryOnItem(item)}><Sparkles size={14} /> Probármela</button>
+                {canWear(item) && (
+                  <>
+                    <button type="button" className="studio-secondary btn-try-on" onClick={() => tryOn(item)}><Sparkles size={14} /> Probármela</button>
+                    <label className="outfit-check">
+                      <input type="checkbox" className="outfit-toggle" checked={outfit[item.category] === item.id} onChange={() => toggleOutfit(item)} />
+                      Incluir en un conjunto
+                    </label>
+                  </>
                 )}
                 {TRY_ON_CATEGORIES.includes(item.category) && !hasOwnPhoto(item) && (
                   <p className="studio-muted closet-detail try-on-hint">Sube una foto de la prenda para probártela.</p>
@@ -146,12 +184,12 @@ export default function Closet() {
         </form>
       </div>
 
-      {tryOnItem && (
+      {preview && (
         <ImagePreview
-          title={tryOnItem.name}
-          photoHint="Usa una foto tuya de cuerpo entero o de la cintura para arriba, sin nadie más."
-          generate={(file) => imageGenApi.tryOn(file, tryOnItem.id)}
-          onClose={() => setTryOnItem(null)}
+          title={preview.title}
+          photoHint={BODY_PHOTO_HINT}
+          generate={preview.generate}
+          onClose={() => setPreview(null)}
         />
       )}
     </div>

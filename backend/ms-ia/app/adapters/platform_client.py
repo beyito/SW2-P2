@@ -54,16 +54,24 @@ class PlatformClient:
         Prenda del clóset de quien llama y su foto. Solo se leen imágenes subidas a la plataforma: una URL
         escrita por el usuario haría que este servicio pidiera direcciones internas en su nombre.
         """
-        item = next((entry for entry in self.closet() if entry.get("id") == item_id), None)
-        if item is None:
+        [item] = self.closet_items([item_id])
+        return item, self.garment_photo(item)
+
+    def closet_items(self, item_ids: list[str]) -> list[dict]:
+        """Prendas del clóset de quien llama: una ajena se responde igual que una inexistente."""
+        own = {entry.get("id"): entry for entry in self.closet()}
+        if any(item_id not in own for item_id in item_ids):
             raise api_error(404, "ITEM_NOT_FOUND", "Esa prenda no está en tu clóset.")
+        return [own[item_id] for item_id in item_ids]
+
+    def garment_photo(self, item: dict) -> bytes:
         path = item.get("imageUrl") or ""
         if not _MEDIA_PATH.fullmatch(path):
             raise api_error(422, "GARMENT_IMAGE_REQUIRED", "Sube una foto de esta prenda para poder probártela.")
         response = self._request("GET", path)
         if response.status_code != 200 or len(response.content) > _MAX_GARMENT_BYTES:
             raise api_error(503, "ASESORIA_UNAVAILABLE", "No se pudo leer la foto de la prenda.")
-        return item, response.content
+        return response.content
 
     def save_diagnosis(self, diagnosis: dict) -> dict:
         response = self._request("POST", "/biometrics/diagnoses", json=diagnosis)

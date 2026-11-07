@@ -36,6 +36,9 @@ class ImageGenerationApi {
   Future<Map<String, dynamic>> tryOn(Uint8List photo, String itemId) async =>
       await _api.upload('$_baseUrl/try-on', photo, 'foto.jpg', fields: {'item_id': itemId}) as Map<String, dynamic>;
 
+  Future<Map<String, dynamic>> tryOnOutfit(Uint8List photo, List<String> itemIds) async =>
+      await _api.upload('$_baseUrl/try-on-outfit', photo, 'foto.jpg', fields: {'item_ids': itemIds.join(',')}) as Map<String, dynamic>;
+
   /// Preferencias declaradas; si el CRM no responde, se continúa sin ellas.
   Future<Map<String, dynamic>> styleProfile() async {
     try {

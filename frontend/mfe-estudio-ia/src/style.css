@@ -106,5 +106,8 @@
 .studio-primary.disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
 .btn-try-on { margin-top: 8px; width: 100%; justify-content: center; }
 .try-on-hint { margin: 8px 0 0; }
+.outfit-check { display: flex; align-items: center; gap: 6px; margin-top: 8px; font-size: 0.78rem; color: var(--text-secondary); cursor: pointer; }
+.outfit-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 14px; padding: 10px 12px; border: 1px solid var(--border-glass); border-radius: 10px; font-size: 0.85rem; }
+.outfit-bar #outfit-names { flex: 1 1 160px; font-weight: 700; min-width: 0; overflow-wrap: anywhere; }
 .studio-style { padding: 14px; border-radius: 10px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-glass); }
 }

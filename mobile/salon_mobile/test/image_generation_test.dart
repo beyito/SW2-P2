@@ -304,6 +304,69 @@ void main() {
       expect(jsonDecode(backend.bodies[patch])['imageUrl'], startsWith('/media/'));
     });
 
+    List<Map<String, dynamic>> armario() => [
+          {'id': 'a', 'name': 'Polera', 'category': 'TOP', 'color': 'Verde', 'imageUrl': '/media/${'a' * 32}'},
+          {'id': 'b', 'name': 'Otra polera', 'category': 'TOP', 'color': 'Azul', 'imageUrl': '/media/${'b' * 32}'},
+          {'id': 'c', 'name': 'Pantalon', 'category': 'BOTTOM', 'color': 'Gris', 'imageUrl': '/media/${'c' * 32}'},
+          {'id': 'd', 'name': 'Sin foto', 'category': 'BOTTOM', 'color': 'Negro', 'imageUrl': ''},
+        ];
+
+    Future<void> marcar(WidgetTester tester, String nombre) async {
+      await tester.ensureVisible(find.byKey(Key('outfit-$nombre')));
+      await tester.tap(find.byKey(Key('outfit-$nombre')));
+      await tester.pump();
+    }
+
+    FilledButton botonConjunto(WidgetTester tester) => tester.widget<FilledButton>(find.byKey(const Key('try-outfit')));
+
+    testWidgets('el conjunto exige dos prendas y una sin foto no se puede marcar', (tester) async {
+      backend.closet = armario();
+      await showCloset(tester);
+      expect(find.byKey(const Key('try-outfit')), findsNothing);
+      expect(find.byKey(const Key('outfit-Sin foto')), findsNothing);
+      await marcar(tester, 'Polera');
+      expect(botonConjunto(tester).onPressed, isNull);
+      await marcar(tester, 'Pantalon');
+      expect(botonConjunto(tester).onPressed, isNotNull);
+      expect(tester.widget<Text>(find.byKey(const Key('outfit-names'))).data, 'Polera + Pantalon');
+    });
+
+    testWidgets('otra prenda del mismo tipo reemplaza a la anterior', (tester) async {
+      backend.closet = armario();
+      await showCloset(tester);
+      await marcar(tester, 'Polera');
+      await marcar(tester, 'Otra polera');
+      expect(tester.widget<Text>(find.byKey(const Key('outfit-names'))).data, 'Otra polera');
+      expect(botonConjunto(tester).onPressed, isNull);
+    });
+
+    testWidgets('desmarcar quita la prenda del conjunto', (tester) async {
+      backend.closet = armario();
+      await showCloset(tester);
+      await marcar(tester, 'Polera');
+      await marcar(tester, 'Polera');
+      expect(find.byKey(const Key('try-outfit')), findsNothing);
+    });
+
+    testWidgets('prueba el conjunto con todas las prendas en una sola petición', (tester) async {
+      backend.closet = armario();
+      backend.granted = true;
+      await showCloset(tester);
+      await marcar(tester, 'Polera');
+      await marcar(tester, 'Pantalon');
+      await tester.ensureVisible(find.byKey(const Key('try-outfit')));
+      await tester.tap(find.byKey(const Key('try-outfit')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      await settle(tester);
+      await tester.tap(find.byKey(const Key('preview-gallery')));
+      await settle(tester);
+      expect(find.byKey(const Key('preview-image')), findsOneWidget);
+      final peticiones = backend.calls.where((call) => call.url.path.endsWith('/image-generation/try-on-outfit')).toList();
+      expect(peticiones.length, 1);
+      expect(backend.bodies[backend.calls.indexOf(peticiones.first)], contains('a,c'));
+    });
+
     testWidgets('calzado y accesorios no ofrecen la prueba', (tester) async {
       backend.closet = [
         {'id': 'a', 'name': 'Botas', 'category': 'SHOES', 'color': 'Negro', 'imageUrl': ''},

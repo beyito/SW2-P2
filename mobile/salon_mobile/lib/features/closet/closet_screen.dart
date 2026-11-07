@@ -10,6 +10,7 @@ import '../image_generation/image_preview_screen.dart';
 const _categories = {'TOP': 'Parte superior', 'BOTTOM': 'Parte inferior', 'SHOES': 'Calzado', 'ACCESSORY': 'Accesorio', 'OUTERWEAR': 'Abrigo'};
 // El generador viste a la persona con prendas; calzado y accesorios no dan un resultado fiable
 const _tryOnCategories = {'TOP', 'BOTTOM', 'OUTERWEAR'};
+const _bodyPhotoHint = 'Usa una foto tuya de cuerpo entero o de la cintura para arriba, sin nadie más.';
 
 /// Clóset virtual (CU-15): sin conexión muestra la última copia y guarda las prendas nuevas en la cola.
 class ClosetScreen extends StatefulWidget {
@@ -29,6 +30,8 @@ class _ClosetScreenState extends State<ClosetScreen> {
   String _category = 'TOP';
   List<dynamic> _items = [];
   String? _message;
+  // Una prenda por categoría: elegir otra del mismo tipo reemplaza a la anterior
+  final Map<String, String> _outfit = {};
   StreamSubscription<void>? _changes;
 
   String get _url => '${Config.asesoria}/closet/client/${widget.clientId}';
@@ -94,9 +97,44 @@ class _ClosetScreenState extends State<ClosetScreen> {
       builder: (_) => ImagePreviewScreen(
         api: widget.api,
         title: item['name'] as String,
-        photoHint: 'Usa una foto tuya de cuerpo entero o de la cintura para arriba, sin nadie más.',
+        photoHint: _bodyPhotoHint,
         pickPhoto: widget.pickPhoto,
         generate: (images, photo) => images.tryOn(photo, item['id'] as String),
+      ),
+    ));
+  }
+
+  /// Solo cuentan las prendas que siguen en el clóset y aún se pueden probar.
+  List<Map<String, dynamic>> get _chosen => _items
+      .cast<Map<String, dynamic>>()
+      .where((item) => _canWear(item) && _outfit[item['category']] == item['id'])
+      .toList();
+
+  bool _canWear(Map<String, dynamic> item) {
+    final image = item['imageUrl'] as String?;
+    return _tryOnCategories.contains(item['category']) && image != null && image.startsWith('/media/');
+  }
+
+  void _toggleOutfit(Map<String, dynamic> item) {
+    final category = item['category'] as String;
+    setState(() {
+      if (_outfit[category] == item['id']) {
+        _outfit.remove(category);
+      } else {
+        _outfit[category] = item['id'] as String;
+      }
+    });
+  }
+
+  void _tryOutfit(List<Map<String, dynamic>> chosen) {
+    final ids = [for (final item in chosen) item['id'] as String];
+    Navigator.of(context).push(MaterialPageRoute<void>(
+      builder: (_) => ImagePreviewScreen(
+        api: widget.api,
+        title: 'Conjunto: ${chosen.map((item) => item['name']).join(' + ')}',
+        photoHint: _bodyPhotoHint,
+        pickPhoto: widget.pickPhoto,
+        generate: (images, photo) => images.tryOnOutfit(photo, ids),
       ),
     ));
   }
@@ -120,7 +158,10 @@ class _ClosetScreenState extends State<ClosetScreen> {
       trailing: !canTryOn
           ? null
           : hasOwnPhoto
-              ? TextButton(key: Key('try-on-${item['name']}'), onPressed: () => _tryOn(item), child: const Text('Probármela'))
+              ? Row(mainAxisSize: MainAxisSize.min, children: [
+                  TextButton(key: Key('try-on-${item['name']}'), onPressed: () => _tryOn(item), child: const Text('Probármela')),
+                  Checkbox(key: Key('outfit-${item['name']}'), value: _outfit[item['category']] == item['id'], onChanged: (_) => _toggleOutfit(item)),
+                ])
               : IconButton(key: Key('add-photo-${item['name']}'), tooltip: 'Agregar foto de la prenda', onPressed: () => _addPhoto(item), icon: const Icon(Icons.add_a_photo)),
     );
   }
@@ -135,6 +176,7 @@ class _ClosetScreenState extends State<ClosetScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final chosen = _chosen;
     return ListView(padding: const EdgeInsets.all(16), children: [
       TextField(key: const Key('closet-name'), controller: _name, maxLength: 80, decoration: const InputDecoration(labelText: 'Nombre')),
       TextField(key: const Key('closet-color'), controller: _color, maxLength: 80, decoration: const InputDecoration(labelText: 'Color')),
@@ -148,6 +190,21 @@ class _ClosetScreenState extends State<ClosetScreen> {
       if (_message != null) Padding(padding: const EdgeInsets.symmetric(vertical: 8), child: Text(_message!, key: const Key('closet-message'))),
       const Divider(),
       if (_items.isEmpty) const Text('Aún no tienes prendas.'),
+      if (chosen.isNotEmpty)
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            Text(chosen.map((item) => item['name']).join(' + '), key: const Key('outfit-names'), style: const TextStyle(fontWeight: FontWeight.bold)),
+            if (chosen.length < 2) const Text('Marca otra prenda de otro tipo.', style: TextStyle(fontSize: 12)),
+            const SizedBox(height: 4),
+            FilledButton.icon(
+              key: const Key('try-outfit'),
+              onPressed: chosen.length < 2 ? null : () => _tryOutfit(chosen),
+              icon: const Icon(Icons.auto_awesome, size: 16),
+              label: const Text('Probar conjunto'),
+            ),
+          ]),
+        ),
       for (final item in _items.cast<Map<String, dynamic>>()) _tile(item),
     ]);
   }

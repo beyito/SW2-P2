@@ -7,7 +7,7 @@ from app.core.config import settings
 from app.core.errors import api_error
 from app.core.security import AuthenticatedUser, get_current_user
 from app.core.uploads import read_limited
-from app.services.image_generation_service import ImageGenerationService
+from app.services.image_generation_service import ImageGenerationService, check_outfit
 from app.vision.errors import BiometricRejection, UnsupportedMedia
 
 router = APIRouter(prefix="/image-generation", tags=["Image Generation"])
@@ -66,3 +66,22 @@ def preview_garment(
     content = read_limited(file, settings.MAX_IMAGE_GEN_BYTES)
     item, garment = platform.closet_garment(item_id)
     return _with_rejections(lambda: service.try_on(user.id, content, item, garment))
+
+
+@router.post("/try-on-outfit", status_code=201)
+def preview_outfit(
+    response: Response,
+    file: UploadFile = File(...),
+    item_ids: str = Form(..., max_length=300, description="Identificadores de las prendas, separados por comas."),
+    user: AuthenticatedUser = Depends(get_current_user),
+    platform: PlatformClient = Depends(get_platform),
+    service: ImageGenerationService = Depends(_service),
+):
+    """Simula un conjunto de prendas del clóset del propio cliente en una sola imagen; requiere su autorización expresa."""
+    _require_ready(platform)
+    response.headers["Cache-Control"] = "no-store"
+    content = read_limited(file, settings.MAX_IMAGE_GEN_BYTES)
+    ids = [item_id.strip() for item_id in item_ids.split(",") if item_id.strip()]
+    items = check_outfit(platform.closet_items(ids))
+    garments = [(item, platform.garment_photo(item)) for item in items]
+    return _with_rejections(lambda: service.try_on_outfit(user.id, content, garments))

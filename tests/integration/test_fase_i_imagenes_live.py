@@ -18,6 +18,7 @@ CONSENT = f"{ASESORIA}/biometrics/image-consent"
 BIOMETRIC_CONSENT = f"{ASESORIA}/biometrics/consent"
 CORTE = f"{IA}/api/v1/image-generation/haircut"
 ROPA = f"{IA}/api/v1/image-generation/try-on"
+CONJUNTO = f"{IA}/api/v1/image-generation/try-on-outfit"
 OTRO_CLIENTE = ("alejandro.morales", "Cliente#2026")
 # Tiene la firma de un PNG, pero su contenido no se puede decodificar: la validación local siempre lo detiene antes
 # de apartar cupo o llamar al proveedor, y por eso estas pruebas no pueden gastar crédito aunque cambie otra cosa
@@ -41,6 +42,14 @@ def ropa(token, prenda, contenido=None):
         ROPA, headers=auth(token), timeout=60,
         files={"file": ("foto.png", contenido if contenido is not None else foto(), "image/png")},
         data={"item_id": prenda},
+    )
+
+
+def conjunto(token, prendas, contenido=None):
+    return httpx.post(
+        CONJUNTO, headers=auth(token), timeout=60,
+        files={"file": ("foto.png", contenido if contenido is not None else foto(), "image/png")},
+        data={"item_ids": prendas},
     )
 
 
@@ -186,6 +195,52 @@ class TestValidaciones:
 
     def test_foto_de_prenda_danada(self, token, prendas):
         respuesta = ropa(token, prendas(subir_imagen(token)))
+        assert respuesta.status_code == 422 and codigo(respuesta) == "INVALID_GARMENT_IMAGE"
+
+
+class TestConjunto:
+    """Cada caso termina en un rechazo previo al proveedor: las fotos de prenda están dañadas y nunca se llega a generar."""
+
+    @pytest.fixture(autouse=True)
+    def autorizado(self, token):
+        conceder(token)
+
+    def test_exige_token(self):
+        assert httpx.post(CONJUNTO, files={"file": ("f.png", b"x")}, data={"item_ids": "a,b"}).status_code == 401
+
+    def test_sin_autorizacion_no_se_genera(self, token):
+        httpx.delete(CONSENT, headers=auth(token))
+        respuesta = conjunto(token, "a,b")
+        assert respuesta.status_code == 403 and codigo(respuesta) == "IMAGE_CONSENT_REQUIRED"
+
+    def test_una_sola_prenda_no_es_un_conjunto(self, token, prendas):
+        respuesta = conjunto(token, prendas(subir_imagen(token)))
+        assert respuesta.status_code == 422 and codigo(respuesta) == "OUTFIT_SIZE"
+
+    def test_dos_prendas_del_mismo_tipo(self, token, prendas):
+        una, otra = prendas(subir_imagen(token)), prendas(subir_imagen(token))
+        respuesta = conjunto(token, f"{una},{otra}")
+        assert respuesta.status_code == 422 and codigo(respuesta) == "OUTFIT_DUPLICATE_CATEGORY"
+
+    def test_calzado_no_entra_en_un_conjunto(self, token, prendas):
+        respuesta = conjunto(token, f"{prendas(subir_imagen(token))},{prendas(subir_imagen(token), 'SHOES')}")
+        assert respuesta.status_code == 422 and codigo(respuesta) == "GARMENT_NOT_SUPPORTED"
+
+    def test_una_prenda_ajena_no_se_encuentra(self, token, prendas):
+        otro = login(OTRO_CLIENTE)
+        respuesta = conjunto(token, f"{prendas(subir_imagen(token))},{prendas(subir_imagen(otro), 'BOTTOM', otro)}")
+        assert respuesta.status_code == 404 and codigo(respuesta) == "ITEM_NOT_FOUND"
+
+    def test_nunca_lee_una_url_escrita_por_el_cliente(self, token, prendas):
+        respuesta = conjunto(token, f"{prendas(subir_imagen(token))},{prendas('http://ms-gestion:8081/actuator/env', 'BOTTOM')}")
+        assert respuesta.status_code == 422 and codigo(respuesta) == "GARMENT_IMAGE_REQUIRED"
+
+    def test_foto_sin_persona(self, token, prendas):
+        respuesta = conjunto(token, f"{prendas(subir_imagen(token))},{prendas(subir_imagen(token), 'BOTTOM')}", sin_rostro())
+        assert respuesta.status_code == 422 and codigo(respuesta) == "NO_FACE"
+
+    def test_foto_de_prenda_danada_se_detiene_antes_de_gastar(self, token, prendas):
+        respuesta = conjunto(token, f"{prendas(subir_imagen(token))},{prendas(subir_imagen(token), 'BOTTOM')}")
         assert respuesta.status_code == 422 and codigo(respuesta) == "INVALID_GARMENT_IMAGE"
 
 

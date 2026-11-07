@@ -36,6 +36,30 @@ _TRY_ON_PROMPT = (
     "Ignore any hanger, mannequin or hand holding the garment. Keep the person's face, identity, skin tone, hair, body "
     "proportions, pose, all other clothing and the background exactly as in the first image."
 )
+_ORDINALS = ("second", "third", "fourth")
+_GARMENT_NOUN = {"TOP": "a top", "BOTTOM": "pants or shorts", "OUTERWEAR": "a jacket or coat"}
+# Orden de las prendas en la solicitud: el abrigo va al final porque se describe sobre la parte superior
+OUTFIT_ORDER = ("TOP", "BOTTOM", "OUTERWEAR")
+
+
+def try_on_prompt(categories: list[str]) -> str:
+    """Instrucción fija según las categorías: nunca incluye el nombre de la prenda ni texto del cliente."""
+    if len(categories) == 1:
+        return _TRY_ON_PROMPT.format(placement=GARMENT_PLACEMENT[categories[0]])
+    shows = " ".join(f"The {_ORDINALS[i]} image shows {_GARMENT_NOUN[c]}." for i, c in enumerate(categories))
+    places = {
+        "TOP": "the top from the {ordinal} image replacing their current top",
+        "BOTTOM": "the bottoms from the {ordinal} image replacing their current pants, shorts or skirt",
+        "OUTERWEAR": "the jacket or coat from the {ordinal} image worn naturally over " + ("the top" if "TOP" in categories else "their current top"),
+    }
+    placement = ", and ".join(places[c].format(ordinal=_ORDINALS[i]) for i, c in enumerate(categories))
+    amount = "both garments" if len(categories) == 2 else "all the garments"
+    return (
+        f"Virtual try-on. The first image shows a person. {shows} Dress the person from the first image with {amount} "
+        f"at the same time: {placement}. Preserve each garment's exact color, fabric, print and cut, and do not mix details "
+        "between garments. Ignore any hanger, mannequin or hand holding a garment. Keep the person's face, identity, skin tone, "
+        "hair, body proportions, pose, footwear and the background exactly as in the first image."
+    )
 
 
 class ImageGenerationError(Exception):
@@ -69,7 +93,7 @@ class GeneratedImage:
 class ImageGenerator(Protocol):
     def haircut(self, photo: bytes, haircut: str, hair_color: str, gender: str) -> GeneratedImage: ...
 
-    def try_on(self, photo: bytes, garment: bytes, category: str, width: int, height: int) -> GeneratedImage: ...
+    def try_on(self, photo: bytes, garments: list[tuple[bytes, str]], width: int, height: int) -> GeneratedImage: ...
 
 
 class ReplicateImageGenerator:
@@ -177,10 +201,10 @@ class ReplicateImageGenerator:
             "output_format": "jpg",
         })
 
-    def try_on(self, photo: bytes, garment: bytes, category: str, width: int, height: int) -> GeneratedImage:
+    def try_on(self, photo: bytes, garments: list[tuple[bytes, str]], width: int, height: int) -> GeneratedImage:
         return self._run(settings.REPLICATE_TRY_ON_MODEL, {
-            "prompt": _TRY_ON_PROMPT.format(placement=GARMENT_PLACEMENT[category]),
-            "input_images": [data_uri(photo), data_uri(garment)],
+            "prompt": try_on_prompt([category for _, category in garments]),
+            "input_images": [data_uri(photo), *(data_uri(image) for image, _ in garments)],
             "aspect_ratio": "custom",
             "width": width,
             "height": height,
