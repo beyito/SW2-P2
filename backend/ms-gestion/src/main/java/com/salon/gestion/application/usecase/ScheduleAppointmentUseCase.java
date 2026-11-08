@@ -93,6 +93,20 @@ public class ScheduleAppointmentUseCase {
         return appointmentRepository.save(appointment);
     }
 
+    /** La recepción registra que el cliente llegó al salón. */
+    public Appointment checkIn(String appointmentId) {
+        Appointment appointment = find(appointmentId);
+        appointment.checkIn(LocalDateTime.now(clock));
+        return appointmentRepository.save(appointment);
+    }
+
+    /** El cliente no se presentó: el turno queda libre y el pago no se devuelve. */
+    public Appointment markNoShow(String appointmentId) {
+        Appointment appointment = find(appointmentId);
+        appointment.markNoShow(LocalDateTime.now(clock));
+        return appointmentRepository.save(appointment);
+    }
+
     public List<Appointment> getByStylist(String stylistId) {
         return appointmentRepository.findByStylistId(stylistId);
     }

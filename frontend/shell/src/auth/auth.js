@@ -25,7 +25,7 @@ export function currentUser() {
   const token = keycloak.tokenParsed ?? {};
   const name = token.name ?? token.preferred_username ?? 'Usuario';
   const roles = token.realm_access?.roles ?? [];
-  const role = ['ADMIN', 'STYLIST', 'CLIENT'].find((candidate) => roles.includes(candidate)) ?? 'CLIENT';
+  const role = ['ADMIN', 'RECEPTIONIST', 'STYLIST', 'CLIENT'].find((candidate) => roles.includes(candidate)) ?? 'CLIENT';
   const initials = name.split(' ').map((part) => part[0]).slice(0, 2).join('').toUpperCase();
   return { id: token.salon_id ?? token.sub, name, role, avatar: initials };
 }

@@ -4,6 +4,9 @@
  */
 const { STATES, decide } = require('./saga-engine');
 
+/** Reserva cobrada en el mostrador del salón: el dinero no pasa por Stripe. */
+const isCounter = (saga) => saga.channel === 'COUNTER';
+
 class SagaRunner {
   constructor({ repository, publisher, payments, paymentTimeoutMs, logger = console }) {
     this.repository = repository;
@@ -14,7 +17,7 @@ class SagaRunner {
   }
 
   /** Crea la SAGA si no existe y solicita bloquear el turno. Se puede repetir sin efectos dobles. */
-  async start({ sagaId, clientId, clientName, clientEmail, stylistId, serviceId, appointmentDate, pointsToRedeem = 0 }) {
+  async start({ sagaId, clientId, clientName, clientEmail, stylistId, serviceId, appointmentDate, pointsToRedeem = 0, channel = 'ONLINE', paymentMethod, cashierId }) {
     const saga = {
       sagaId,
       clientId,
@@ -24,6 +27,9 @@ class SagaRunner {
       serviceId,
       appointmentDate,
       pointsRequested: pointsToRedeem,
+      channel,
+      ...(paymentMethod ? { paymentMethod } : {}),
+      ...(cashierId ? { cashierId } : {}),
       state: STATES.RESERVING_APPOINTMENT,
       version: 1,
       history: [{ state: STATES.RESERVING_APPOINTMENT, at: new Date().toISOString() }],
@@ -70,6 +76,11 @@ class SagaRunner {
 
   /** Crea el cobro; el sagaId como llave impide dos cobros aunque se repita. */
   async createPayment(saga) {
+    // En el mostrador no hay cobro electrónico: la SAGA espera a que la recepción confirme que cobró
+    if (isCounter(saga)) {
+      await this.handle({ type: 'payment.created', sagaId: saga.sagaId, paymentIntentId: `mostrador-${saga.sagaId}`, clientSecret: null });
+      return;
+    }
     try {
       const payment = await this.payments.createPayment({
         sagaId: saga.sagaId,
@@ -95,6 +106,10 @@ class SagaRunner {
 
   /** Venció el plazo: cancela el cobro, salvo que se haya pagado justo antes. */
   async expirePayment(saga) {
+    if (isCounter(saga)) {
+      await this.handle({ type: 'payment.expired', sagaId: saga.sagaId });
+      return;
+    }
     const status = await this.payments.cancelPayment(saga.paymentIntentId);
     const type = status === 'succeeded' ? 'payment.succeeded' : 'payment.expired';
     await this.handle({ type, sagaId: saga.sagaId });
@@ -102,6 +117,12 @@ class SagaRunner {
 
   /** Devuelve un cobro que llegó cuando la reserva ya se había revertido. */
   async refundPayment(saga) {
+    if (isCounter(saga)) {
+      // El efectivo o el pago con terminal se devuelven en el mostrador; aquí solo queda registrado
+      await this.repository.patch(saga, { refunded: true });
+      this.logger.warn(`[SAGA] ${saga.sagaId}: cobro en mostrador sobre una reserva revertida; devolver el dinero en caja`);
+      return;
+    }
     await this.payments.refundPayment({ sagaId: saga.sagaId, paymentIntentId: saga.paymentIntentId });
     await this.repository.patch(saga, { refunded: true });
     this.logger.warn(`[SAGA] ${saga.sagaId}: cobro tardío reembolsado`);
@@ -109,13 +130,16 @@ class SagaRunner {
 
   /** Devuelve el dinero de una reserva pagada que se canceló; la llave impide un doble reembolso. */
   async refundBooking(saga) {
-    await this.payments.refundPayment({ sagaId: saga.sagaId, paymentIntentId: saga.paymentIntentId });
+    // Una reserva cobrada en el mostrador se reembolsa en caja; la nota de crédito se emite igual
+    if (!isCounter(saga)) {
+      await this.payments.refundPayment({ sagaId: saga.sagaId, paymentIntentId: saga.paymentIntentId });
+    }
     await this.handle({ type: 'payment.refunded', sagaId: saga.sagaId });
   }
 
   /** Reconcilia con la pasarela: sirve cuando el webhook no llega. */
   async syncPayment(saga) {
-    if (saga.state !== STATES.AWAITING_PAYMENT) return saga;
+    if (saga.state !== STATES.AWAITING_PAYMENT || isCounter(saga)) return saga;
     const payment = await this.payments.getPayment(saga.paymentIntentId);
     if (payment.status === 'succeeded') {
       await this.publisher.publish('saga.event.payment.succeeded', { sagaId: saga.sagaId });
@@ -126,4 +150,4 @@ class SagaRunner {
   }
 }
 
-module.exports = { SagaRunner };
+module.exports = { SagaRunner, isCounter };

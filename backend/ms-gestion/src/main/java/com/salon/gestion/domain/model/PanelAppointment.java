@@ -13,5 +13,6 @@ public record PanelAppointment(
         String appointmentEnd,
         int durationMinutes,
         double totalPrice,
-        AppointmentStatus status) {
+        AppointmentStatus status,
+        String checkedInAt) {
 }

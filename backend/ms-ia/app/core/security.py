@@ -103,14 +103,15 @@ def _holds_active_session(user: AuthenticatedUser, auth_time: int) -> bool:
 
 
 def assert_session_valid(user: AuthenticatedUser, auth_time: int) -> None:
-    """Rechaza sesiones cerradas y aplica sesión única a ADMIN: gana el login más reciente."""
+    """Rechaza sesiones cerradas y aplica sesión única a las cuentas administrativas: gana el login más reciente."""
     # Las cuentas de servicio no tienen sesión de usuario
     if user.session_id is None:
         return
     try:
         if _session_registry.is_revoked(user.session_id):
             raise _unauthorized("SESSION_CLOSED", "La sesión fue cerrada.")
-        if "ADMIN" in user.roles and not _holds_active_session(user, auth_time):
+        administrative = "ADMIN" in user.roles or "RECEPTIONIST" in user.roles
+        if administrative and not _holds_active_session(user, auth_time):
             raise _unauthorized("SESSION_SUPERSEDED", "Se inició una sesión más reciente en otro dispositivo.")
     except (RuntimeError, httpx.HTTPError, ValueError, KeyError) as error:
         raise _unauthorized("SESSION_UNAVAILABLE", "No se pudo verificar la sesión.") from error

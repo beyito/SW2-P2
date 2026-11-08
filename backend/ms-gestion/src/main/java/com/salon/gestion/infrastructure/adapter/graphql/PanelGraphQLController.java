@@ -20,7 +20,7 @@ public class PanelGraphQLController {
 
     private final PanelUseCase panel;
 
-    @PreAuthorize("hasAnyRole('ADMIN','STYLIST')")
+    @PreAuthorize("hasAnyRole('ADMIN','STYLIST','RECEPTIONIST')")
     @QueryMapping
     public List<PanelAppointment> getPanelAgenda(@Argument String from, @Argument String to) {
         return panel.agenda(from, to);

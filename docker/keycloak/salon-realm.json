@@ -28,6 +28,10 @@
         "description": "Estilista del salón"
       },
       {
+        "name": "RECEPTIONIST",
+        "description": "Recepcionista del salón: agenda, llegadas, cobro en mostrador y horarios; sesión única concurrente"
+      },
+      {
         "name": "CLIENT",
         "description": "Cliente final"
       },
@@ -183,6 +187,29 @@
         {
           "type": "password",
           "value": "Admin#2026",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "recepcion.salon",
+      "enabled": true,
+      "email": "recepcion@salon.local",
+      "emailVerified": true,
+      "firstName": "Lucía",
+      "lastName": "Recepción",
+      "attributes": {
+        "salon_id": [
+          "rec-001"
+        ]
+      },
+      "realmRoles": [
+        "RECEPTIONIST"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Recepcion#2026",
           "temporary": false
         }
       ]

@@ -102,6 +102,7 @@ Abra http://localhost:3000 e inicie sesión. Estas cuentas son solo para el ento
 | Usuario | Contraseña | Rol |
 | :--- | :--- | :--- |
 | `admin.salon` | `Admin#2026` | ADMIN (sesión única) |
+| `recepcion.salon` | `Recepcion#2026` | RECEPTIONIST (sesión única) |
 | `valentina.rossi` | `Estilista#2026` | STYLIST |
 | `camila.fernandez` | `Cliente#2026` | CLIENT |
 | `alejandro.morales` | `Cliente#2026` | CLIENT |
@@ -109,6 +110,15 @@ Abra http://localhost:3000 e inicie sesión. Estas cuentas son solo para el ento
 Los clientes nuevos pueden registrarse desde la pantalla de login. La consola de Keycloak está en http://localhost:8080, con las credenciales `KEYCLOAK_ADMIN_USER` y `KEYCLOAK_ADMIN_PASSWORD` del `.env`.
 
 > **Cambios en el realm:** `docker/keycloak/salon-realm.json` solo se importa si el realm `salon` aún no existe. Para aplicar cambios, elimine el realm desde la consola y ejecute `docker compose restart keycloak`.
+
+> **Instalación anterior a la recepción:** si su Keycloak ya existía, no tiene el rol `RECEPTIONIST` ni el usuario `recepcion.salon`. Créelos sin borrar el realm, con:
+>
+> ```powershell
+> docker cp docker/keycloak/crear-recepcion.sh salon-keycloak:/tmp/crear-recepcion.sh
+> docker exec salon-keycloak sh /tmp/crear-recepcion.sh
+> ```
+>
+> El script se puede repetir: lo que ya existe no se duplica.
 
 ---
 
@@ -158,6 +168,15 @@ El Shell carga los tres microfrontends con Module Federation, en una sola págin
 ## 10. WhatsApp
 
 Sin credenciales, los recordatorios y las confirmaciones llegan como avisos dentro de la aplicación. Para enviarlos de verdad, cree una app en [Meta for Developers](https://developers.facebook.com/), defina en `.env` las variables `WHATSAPP_*` de `.env.example` y ejecute `docker compose up -d n8n`. El cliente debe autorizarlo en "Mi perfil". Para recibir respuestas, Meta debe poder llegar a `/webhook/whatsapp/entrante`, lo que requiere una dirección pública. Fuera de una conversación abierta, Meta solo admite plantillas aprobadas.
+
+## Recepción y mostrador
+
+La recepcionista inicia sesión y entra directo al ERP. Ve **Agenda**, **Mostrador**, **Estilistas** y **Clientes**; no ve inventario, métricas, moderación ni agentes.
+
+- **Agenda:** el día de la cita, **Llegó** registra la llegada. Desde la hora de inicio, **No asistió** marca la ausencia: el turno queda libre y el pago no se devuelve. Un cliente que ya llegó no puede cancelar con reembolso.
+- **Mostrador**, para un cliente que llega sin reserva: elija o registre al cliente, el servicio, el estilista y un turno libre, y la forma de pago (efectivo o tarjeta en el terminal). **Apartar turno** reserva el horario y los insumos. Cobre y pulse **Confirmar cobro**: la cita queda confirmada, se descuentan los insumos y se emiten la factura y los puntos. Si el cliente se retira, **Anular** libera todo. Si nadie confirma el cobro en 15 minutos, la reserva vence sola.
+- **Estilistas:** puede configurar el horario de cualquier estilista, pero no registrarlos ni editarlos.
+- Toda reserva se paga: la recepción no puede agendar sin cobro. El administrador también puede usar el mostrador.
 
 ## Agentes del ERP
 

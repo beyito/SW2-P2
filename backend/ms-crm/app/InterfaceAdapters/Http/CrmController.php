@@ -2,6 +2,7 @@
 
 namespace App\InterfaceAdapters\Http;
 
+use App\Core\Entities\Invoice;
 use App\InterfaceAdapters\Gateways\ClientRepositoryInterface;
 use App\InterfaceAdapters\Gateways\InvoiceRepositoryInterface;
 use Illuminate\Http\JsonResponse;
@@ -34,7 +35,7 @@ class CrmController
         }
 
         $claims = $request->attributes->get('claims');
-        $isStaff = array_intersect(['ADMIN', 'STYLIST'], $claims['realm_access']['roles'] ?? []) !== [];
+        $isStaff = array_intersect(['ADMIN', 'STYLIST', 'RECEPTIONIST'], $claims['realm_access']['roles'] ?? []) !== [];
         if (!$isStaff && ($claims['salon_id'] ?? $claims['sub']) !== $invoice->getClientId()) {
             return response()->json(['code' => 'NOT_OWNER', 'message' => 'No puede ver la factura de otro cliente.'], 403);
         }
@@ -60,6 +61,7 @@ class CrmController
               <p>Descuento por puntos: \${$money($invoice->getDiscountAmount())} USD</p>
               <p><strong>Total pagado: \${$money($invoice->getTotalAmount())} USD</strong></p>
               <p>IVA 13% incluido: \${$money($invoice->getTaxAmount())} USD</p>
+              <p>Forma de pago: {$text(Invoice::paymentMethodLabel($invoice->getPaymentMethod()))}</p>
               <p>Referencia de pago: {$text($invoice->getPaymentReference())}</p>
               <p><small>Documento de demostración, sin validez fiscal.</small></p>
             </body>

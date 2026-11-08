@@ -47,6 +47,20 @@ public class AppointmentGraphQLController {
         return scheduleAppointmentUseCase.complete(id);
     }
 
+    /** La recepción confirma la llegada del cliente. */
+    @PreAuthorize("hasAnyRole('ADMIN','RECEPTIONIST')")
+    @MutationMapping
+    public Appointment checkInAppointment(@Argument String id) {
+        return scheduleAppointmentUseCase.checkIn(id);
+    }
+
+    /** La recepción registra que el cliente no se presentó. */
+    @PreAuthorize("hasAnyRole('ADMIN','RECEPTIONIST')")
+    @MutationMapping
+    public Appointment markNoShow(@Argument String id) {
+        return scheduleAppointmentUseCase.markNoShow(id);
+    }
+
     @BatchMapping(typeName = "Appointment", field = "stylistName")
     public Map<Appointment, String> stylistName(List<Appointment> batch) {
         Map<String, String> names = stylists.findNamesOf(batch.stream().map(Appointment::getStylistId).distinct().toList());
@@ -59,19 +73,19 @@ public class AppointmentGraphQLController {
         return batch.stream().collect(Collectors.toMap(a -> a, a -> reviewed.contains(a.getId())));
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN','STYLIST') or @appointmentAccess.isOwner(authentication, #id)")
+    @PreAuthorize("hasAnyRole('ADMIN','STYLIST','RECEPTIONIST') or @appointmentAccess.isOwner(authentication, #id)")
     @QueryMapping
     public Appointment getAppointmentById(@Argument String id) {
         return scheduleAppointmentUseCase.getById(id);
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN','STYLIST')")
+    @PreAuthorize("hasAnyRole('ADMIN','STYLIST','RECEPTIONIST')")
     @QueryMapping
     public List<Appointment> getAppointmentsByStylist(@Argument String stylistId, @Argument String date) {
         return scheduleAppointmentUseCase.getByStylist(stylistId);
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN','STYLIST') or @appointmentAccess.isSelf(authentication, #clientId)")
+    @PreAuthorize("hasAnyRole('ADMIN','STYLIST','RECEPTIONIST') or @appointmentAccess.isSelf(authentication, #clientId)")
     @QueryMapping
     public List<Appointment> getAppointmentsByClient(@Argument String clientId) {
         return scheduleAppointmentUseCase.getByClient(clientId);
@@ -83,13 +97,13 @@ public class AppointmentGraphQLController {
         return scheduleAppointmentUseCase.schedule(input);
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN','STYLIST') or @appointmentAccess.isOwner(authentication, #id)")
+    @PreAuthorize("hasAnyRole('ADMIN','STYLIST','RECEPTIONIST') or @appointmentAccess.isOwner(authentication, #id)")
     @MutationMapping
     public Appointment cancelAppointment(@Argument String id, @Argument String reason) {
         return scheduleAppointmentUseCase.cancel(id, reason);
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN','STYLIST') or @appointmentAccess.isOwner(authentication, #id)")
+    @PreAuthorize("hasAnyRole('ADMIN','STYLIST','RECEPTIONIST') or @appointmentAccess.isOwner(authentication, #id)")
     @MutationMapping
     public Appointment rescheduleAppointment(@Argument String id, @Argument String newDate) {
         return scheduleAppointmentUseCase.reschedule(id, newDate);

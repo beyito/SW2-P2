@@ -21,7 +21,7 @@ public interface AppointmentJpaRepository extends JpaRepository<AppointmentEntit
 
     @Query("SELECT COUNT(a) > 0 FROM AppointmentEntity a " +
            "WHERE a.stylistId = :stylistId " +
-           "AND a.status <> 'CANCELLED' " +
+           "AND a.status NOT IN ('CANCELLED', 'NO_SHOW') " +
            "AND (:startDate < FUNCTION('TIMESTAMPADD', MINUTE, a.durationMinutes, a.appointmentDate) " +
            "     AND :endDate > a.appointmentDate)")
     boolean existsOverlapping(
@@ -33,7 +33,7 @@ public interface AppointmentJpaRepository extends JpaRepository<AppointmentEntit
     @Query("SELECT COUNT(a) > 0 FROM AppointmentEntity a " +
            "WHERE a.stylistId = :stylistId " +
            "AND a.id <> :appointmentId " +
-           "AND a.status <> 'CANCELLED' " +
+           "AND a.status NOT IN ('CANCELLED', 'NO_SHOW') " +
            "AND (:startDate < FUNCTION('TIMESTAMPADD', MINUTE, a.durationMinutes, a.appointmentDate) " +
            "     AND :endDate > a.appointmentDate)")
     boolean existsOverlappingExcluding(
@@ -45,7 +45,7 @@ public interface AppointmentJpaRepository extends JpaRepository<AppointmentEntit
 
     @Query("SELECT a FROM AppointmentEntity a " +
            "WHERE a.stylistId = :stylistId " +
-           "AND a.status <> 'CANCELLED' " +
+           "AND a.status NOT IN ('CANCELLED', 'NO_SHOW') " +
            "AND (:startDate < FUNCTION('TIMESTAMPADD', MINUTE, a.durationMinutes, a.appointmentDate) " +
            "     AND :endDate > a.appointmentDate)")
     List<AppointmentEntity> findActiveBetween(

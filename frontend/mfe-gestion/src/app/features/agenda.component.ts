@@ -1,11 +1,19 @@
 import { DatePipe } from '@angular/common';
 import { Component, inject, OnInit, signal } from '@angular/core';
+import { AuthService } from '../core/auth.service';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../core/api.service';
 import { isoDate, messageOf } from '../core/config';
 import { Client, PanelAppointment } from '../core/models';
 
 const ATTENDABLE = ['SCHEDULED', 'CONFIRMED', 'RESCHEDULED'];
+
+/** Consultas literales: la prueba de contratos las valida contra el esquema real. */
+const ACTIONS = {
+  checkIn: 'mutation ($id: ID!) { checkInAppointment(id: $id) { id } }',
+  noShow: 'mutation ($id: ID!) { markNoShow(id: $id) { id } }',
+  complete: 'mutation ($id: ID!) { completeAppointment(id: $id) { id } }',
+};
 
 const STATUS_LABELS: Record<string, string> = {
   PENDING_PAYMENT: 'Pendiente de pago',
@@ -14,9 +22,13 @@ const STATUS_LABELS: Record<string, string> = {
   RESCHEDULED: 'Reprogramada',
   COMPLETED: 'Atendida',
   CANCELLED: 'Cancelada',
+  NO_SHOW: 'No asistió',
 };
 
-/** Agenda del salón sobre el Read Model; el personal registra las citas atendidas (CU-05). */
+/**
+ * Agenda del salón sobre el Read Model (CU-05). La recepción registra llegadas y ausencias;
+ * estilistas y administración registran las citas atendidas.
+ */
 @Component({
   selector: 'app-agenda',
   imports: [DatePipe, FormsModule],
@@ -40,10 +52,21 @@ const STATUS_LABELS: Record<string, string> = {
                 <td>{{ clientName(row.clientId) }}</td>
                 <td>{{ row.stylistName }}</td>
                 <td>{{ row.serviceName }}</td>
-                <td><span class="badge" [class.good]="row.status === 'COMPLETED'" [class.bad]="row.status === 'CANCELLED'">{{ statusLabel(row.status) }}</span></td>
                 <td>
+                  <span class="badge" [class.good]="row.status === 'COMPLETED'" [class.bad]="row.status === 'CANCELLED' || row.status === 'NO_SHOW'">{{ statusLabel(row.status) }}</span>
+                  @if (row.checkedInAt && isPending(row)) {
+                    <span class="badge good arrived">En el salón desde {{ row.checkedInAt | date: 'HH:mm' }}</span>
+                  }
+                </td>
+                <td class="row">
+                  @if (canCheckIn(row)) {
+                    <button type="button" class="primary btn-check-in" (click)="act(row, 'checkIn')">Llegó</button>
+                  }
+                  @if (canMarkNoShow(row)) {
+                    <button type="button" class="danger btn-no-show" (click)="act(row, 'noShow')">No asistió</button>
+                  }
                   @if (canAttend(row)) {
-                    <button type="button" class="secondary" (click)="complete(row)">Marcar atendida</button>
+                    <button type="button" class="secondary btn-complete" (click)="act(row, 'complete')">Marcar atendida</button>
                   }
                 </td>
               </tr>
@@ -58,6 +81,7 @@ const STATUS_LABELS: Record<string, string> = {
 })
 export class AgendaComponent implements OnInit {
   private readonly api = inject(ApiService);
+  private readonly auth = inject(AuthService);
   readonly rows = signal<PanelAppointment[]>([]);
   readonly clients = signal<Map<string, string>>(new Map());
   readonly error = signal('');
@@ -76,7 +100,7 @@ export class AgendaComponent implements OnInit {
     this.error.set('');
     try {
       const { getPanelAgenda } = await this.api.gestion<{ getPanelAgenda: PanelAppointment[] }>(
-        'query ($from: String!, $to: String!) { getPanelAgenda(from: $from, to: $to) { id clientId stylistName serviceName appointmentDate durationMinutes totalPrice status } }',
+        'query ($from: String!, $to: String!) { getPanelAgenda(from: $from, to: $to) { id clientId stylistName serviceName appointmentDate durationMinutes totalPrice status checkedInAt } }',
         { from: this.from, to: this.to },
       );
       this.rows.set(getPanelAgenda);
@@ -93,14 +117,31 @@ export class AgendaComponent implements OnInit {
     return STATUS_LABELS[status] ?? status;
   }
 
-  canAttend(row: PanelAppointment): boolean {
-    return ATTENDABLE.includes(row.status) && new Date(row.appointmentDate) <= new Date();
+  isPending(row: PanelAppointment): boolean {
+    return ATTENDABLE.includes(row.status);
   }
 
-  async complete(row: PanelAppointment): Promise<void> {
+  /** Atender lo registran estilistas y administración, no la recepción. */
+  canAttend(row: PanelAppointment): boolean {
+    const attends = this.auth.roles().some((role) => role === 'ADMIN' || role === 'STYLIST');
+    return attends && this.isPending(row) && new Date(row.appointmentDate) <= new Date();
+  }
+
+  /** La llegada se registra el día de la cita. */
+  canCheckIn(row: PanelAppointment): boolean {
+    return this.auth.isDesk() && this.isPending(row) && !row.checkedInAt
+      && row.appointmentDate.slice(0, 10) === isoDate(new Date());
+  }
+
+  /** Ausente: ya pasó la hora de inicio y no se registró su llegada. */
+  canMarkNoShow(row: PanelAppointment): boolean {
+    return this.auth.isDesk() && this.isPending(row) && !row.checkedInAt && new Date(row.appointmentDate) <= new Date();
+  }
+
+  async act(row: PanelAppointment, action: keyof typeof ACTIONS): Promise<void> {
     this.error.set('');
     try {
-      await this.api.gestion('mutation ($id: ID!) { completeAppointment(id: $id) { id } }', { id: row.id });
+      await this.api.gestion(ACTIONS[action], { id: row.id });
       await this.load();
     } catch (error) {
       this.error.set(messageOf(error));

@@ -40,7 +40,9 @@ CREATE TABLE IF NOT EXISTS stylist_reviews (
 CREATE INDEX IF NOT EXISTS idx_stylist_reviews_stylist ON stylist_reviews (stylist_id, created_at DESC);
 
 -- 4. Read Model del panel (RNF-01): la agenda se lee sin armar uniones en cada resolver
-CREATE OR REPLACE VIEW panel_appointments_view AS
+-- Se recrea entera: 09_recepcion.sql le agrega columnas y una vista no admite quitarlas con OR REPLACE
+DROP VIEW IF EXISTS panel_appointments_view;
+CREATE VIEW panel_appointments_view AS
 SELECT
     a.id,
     a.client_id,

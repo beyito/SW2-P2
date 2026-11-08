@@ -4,7 +4,7 @@
   "type": "module",
   "description": "Pruebas de extremo a extremo en navegador real",
   "scripts": {
-    "test": "node seguridad.e2e.mjs && node reservas.e2e.mjs && node reserva_fecha.e2e.mjs && node fase_f.e2e.mjs && node fase_g.e2e.mjs && node perfil_estilo.e2e.mjs && node generacion_imagenes.e2e.mjs && node fase_h_offline.e2e.mjs && node agentes.e2e.mjs"
+    "test": "node seguridad.e2e.mjs && node reservas.e2e.mjs && node reserva_fecha.e2e.mjs && node recepcion.e2e.mjs && node fase_f.e2e.mjs && node fase_g.e2e.mjs && node perfil_estilo.e2e.mjs && node generacion_imagenes.e2e.mjs && node fase_h_offline.e2e.mjs && node agentes.e2e.mjs"
   },
   "devDependencies": {
     "playwright": "1.65.0"

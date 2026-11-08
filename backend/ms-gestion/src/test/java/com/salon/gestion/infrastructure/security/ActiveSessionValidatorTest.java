@@ -93,4 +93,12 @@ class ActiveSessionValidatorTest {
         var result = validator.validate(token("CLIENT", "s1", 100));
         assertEquals("SESSION_UNAVAILABLE", result.getErrors().iterator().next().getErrorCode());
     }
+
+    @Test
+    void recepcionTambienTieneSesionUnica() {
+        when(registry.findActive("usuario-1"))
+                .thenReturn(Optional.of(new SessionRegistry.ActiveSession("s2", 200)));
+        var result = validator.validate(token("RECEPTIONIST", "s1", 100));
+        assertEquals("SESSION_SUPERSEDED", result.getErrors().iterator().next().getErrorCode());
+    }
 }

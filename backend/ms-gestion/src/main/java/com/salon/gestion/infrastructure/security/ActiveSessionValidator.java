@@ -10,7 +10,8 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * Rechaza tokens de sesiones cerradas (CU-02) y aplica la sesión única a cuentas ADMIN (RF-01).
+ * Rechaza tokens de sesiones cerradas (CU-02) y aplica la sesión única a las cuentas administrativas,
+ * ADMIN y RECEPTIONIST (RF-01).
  * Gana siempre el inicio de sesión más reciente. Ante un fallo del registro se rechaza el acceso.
  */
 public class ActiveSessionValidator implements OAuth2TokenValidator<Jwt> {
@@ -62,7 +63,8 @@ public class ActiveSessionValidator implements OAuth2TokenValidator<Jwt> {
         if (realmAccess == null) {
             return false;
         }
-        return ((List<String>) realmAccess.getOrDefault("roles", List.of())).contains("ADMIN");
+        List<String> roles = (List<String>) realmAccess.getOrDefault("roles", List.of());
+        return roles.contains("ADMIN") || roles.contains("RECEPTIONIST");
     }
 
     private OAuth2TokenValidatorResult failure(String code, String description) {

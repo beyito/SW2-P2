@@ -21,6 +21,9 @@ export class AuthService {
   });
   readonly roles = computed(() => this.claims().realm_access?.roles ?? []);
   readonly isAdmin = computed(() => this.roles().includes('ADMIN'));
+  readonly isReceptionist = computed(() => this.roles().includes('RECEPTIONIST'));
+  /** Atiende el mostrador: agenda llegadas, cobra y configura horarios. */
+  readonly isDesk = computed(() => this.isAdmin() || this.isReceptionist());
   readonly userId = computed(() => this.claims().salon_id ?? this.claims().sub ?? '');
 
   freshToken(): Promise<string> {

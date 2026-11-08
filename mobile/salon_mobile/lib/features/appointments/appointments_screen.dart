@@ -3,7 +3,15 @@ import 'package:flutter/material.dart';
 import '../../core/api/api_client.dart';
 import '../../core/config.dart';
 
-const _status = {'PENDING': 'Pendiente de pago', 'CONFIRMED': 'Confirmada', 'COMPLETED': 'Atendida', 'CANCELLED': 'Cancelada'};
+const _status = {
+  'PENDING_PAYMENT': 'Pendiente de pago',
+  'SCHEDULED': 'Agendada',
+  'CONFIRMED': 'Confirmada',
+  'RESCHEDULED': 'Reprogramada',
+  'COMPLETED': 'Atendida',
+  'CANCELLED': 'Cancelada',
+  'NO_SHOW': 'No asistió',
+};
 
 /// Mis citas: se pueden consultar sin conexión con la última copia.
 class AppointmentsScreen extends StatefulWidget {

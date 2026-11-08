@@ -127,6 +127,13 @@ def test_sesion_admin_desplazada_responde_401(seguridad_real):
     assert response.json()["detail"]["code"] == "SESSION_SUPERSEDED"
 
 
+def test_la_recepcion_tambien_tiene_sesion_unica(seguridad_real):
+    seguridad_real.activa = ("s2", 200)
+    response = peticion(token(rol="RECEPTIONIST", sid="s1", auth_time=100))
+    assert response.status_code == 401
+    assert response.json()["detail"]["code"] == "SESSION_SUPERSEDED"
+
+
 def test_fallo_del_registro_rechaza_el_acceso(seguridad_real, monkeypatch):
     def caido(_):
         raise RuntimeError("DynamoDB caído")

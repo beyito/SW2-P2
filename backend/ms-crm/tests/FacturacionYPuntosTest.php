@@ -78,6 +78,28 @@ class FacturacionYPuntosTest extends TestCase
         $this->assertSame(450, $this->ledger->balanceOf('cli-001'));
     }
 
+    public function testLaReservaEnLineaSeFacturaComoTarjeta(): void
+    {
+        $this->handler->handle('saga.completed', self::EVENT);
+        $this->assertSame('CARD', $this->invoices->findBySagaId('s1')->getPaymentMethod());
+    }
+
+    public function testElCobroEnMostradorSeFacturaConSuFormaDePagoYDaPuntos(): void
+    {
+        $this->handler->handle('saga.completed', [...self::EVENT, 'paymentMethod' => 'CASH', 'channel' => 'COUNTER']);
+
+        $invoice = $this->invoices->findBySagaId('s1');
+        $this->assertSame('CASH', $invoice->getPaymentMethod());
+        $this->assertSame('Efectivo en el mostrador', \App\Core\Entities\Invoice::paymentMethodLabel($invoice->getPaymentMethod()));
+        $this->assertSame(450, $this->ledger->balanceOf('cli-001'));
+    }
+
+    public function testUnaFormaDePagoDesconocidaNoSeGuardaTalCual(): void
+    {
+        $this->handler->handle('saga.completed', [...self::EVENT, 'paymentMethod' => 'BITCOIN']);
+        $this->assertSame('CARD', $this->invoices->findBySagaId('s1')->getPaymentMethod());
+    }
+
     public function testEventoRepetidoNoDuplicaFacturaNiPuntos(): void
     {
         $this->handler->handle('saga.completed', self::EVENT);

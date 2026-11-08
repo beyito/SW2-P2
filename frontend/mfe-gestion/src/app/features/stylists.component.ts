@@ -130,8 +130,9 @@ export class StylistsComponent implements OnInit {
     return DAYS[day - 1];
   }
 
+  /** La administración y la recepción configuran cualquier horario; un estilista, solo el suyo. */
   canEditSchedule(stylist: Stylist): boolean {
-    return this.auth.isAdmin() || stylist.id === this.auth.userId();
+    return this.auth.isDesk() || stylist.id === this.auth.userId();
   }
 
   select(stylist: Stylist): void {

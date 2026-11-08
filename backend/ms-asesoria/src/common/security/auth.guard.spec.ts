@@ -98,6 +98,12 @@ describe('AuthGuard (RF-01, CU-01, CU-02)', () => {
     await expect(guard.canActivate(contextWith('Bearer ok').context)).rejects.toThrow(UnauthorizedException);
   });
 
+  it('la recepción también tiene sesión única', async () => {
+    verifier.verify.mockResolvedValue(claims('RECEPTIONIST', 's1', 100));
+    sessions.findActive.mockResolvedValue({ sessionId: 's2', authTime: 200 });
+    await expect(guard.canActivate(contextWith('Bearer ok').context)).rejects.toThrow(UnauthorizedException);
+  });
+
   it('una cuenta de servicio sin sesión no consulta el registro', async () => {
     verifier.verify.mockResolvedValue({ sub: 'agente', realm_access: { roles: ['ADMIN'] } });
     await expect(guard.canActivate(contextWith('Bearer ok').context)).resolves.toBe(true);

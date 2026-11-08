@@ -130,6 +130,9 @@ public class BookingSagaUseCase {
         if (!paid) {
             throw new BookingRejectedException("NOT_CANCELLABLE", "La cita no se puede cancelar en su estado actual");
         }
+        if (appointment.getCheckedInAt() != null) {
+            throw new BookingRejectedException("ALREADY_CHECKED_IN", "El cliente ya está en el salón: la cita no se puede cancelar");
+        }
         if (!appointment.getAppointmentDate().isAfter(LocalDateTime.now(clock))) {
             throw new BookingRejectedException("TOO_LATE", "La cita ya comenzó o ya pasó");
         }

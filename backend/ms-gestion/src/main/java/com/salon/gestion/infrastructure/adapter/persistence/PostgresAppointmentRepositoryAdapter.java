@@ -81,6 +81,7 @@ public class PostgresAppointmentRepositoryAdapter implements AppointmentReposito
                 .totalPrice(entity.getTotalPrice())
                 .status(entity.getStatus())
                 .notes(entity.getNotes())
+                .checkedInAt(entity.getCheckedInAt())
                 .build();
     }
 
@@ -97,6 +98,7 @@ public class PostgresAppointmentRepositoryAdapter implements AppointmentReposito
                 .totalPrice(domain.getTotalPrice())
                 .status(domain.getStatus())
                 .notes(domain.getNotes())
+                .checkedInAt(domain.getCheckedInAt())
                 .build();
     }
 }

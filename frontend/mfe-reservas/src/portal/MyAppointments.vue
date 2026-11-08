@@ -72,6 +72,7 @@ const STATUS = {
   RESCHEDULED: 'Reprogramada',
   COMPLETED: 'Atendida',
   CANCELLED: 'Cancelada',
+  NO_SHOW: 'No asistió',
 };
 const OPEN_STATUSES = ['SCHEDULED', 'CONFIRMED', 'RESCHEDULED'];
 const POLL_MS = 700;

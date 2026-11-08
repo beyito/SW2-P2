@@ -206,4 +206,15 @@ class BookingSagaUseCaseTest {
 
         assertEquals(List.of("KERAT-BIO-1L"), useCase.commitInventory("s1"));
     }
+
+    @Test
+    @DisplayName("Un cliente que ya llegó al salón no puede cancelar con reembolso")
+    void cancelPaidRejectsCheckedIn() {
+        Appointment paid = paidAt("2030-06-01T10:00:00");
+        paid.setCheckedInAt(java.time.LocalDateTime.parse("2030-06-01T09:50:00"));
+
+        assertEquals("ALREADY_CHECKED_IN", rejectionOf(() -> useCase.cancelPaidAppointment("s1")));
+        assertEquals(AppointmentStatus.CONFIRMED, paid.getStatus());
+        verify(reservations, never()).restock(any(), any());
+    }
 }

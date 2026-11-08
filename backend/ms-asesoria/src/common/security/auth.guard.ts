@@ -65,7 +65,7 @@ export class AuthGuard implements CanActivate {
     };
   }
 
-  /** Rechaza sesiones cerradas y aplica sesión única a ADMIN: gana el login más reciente. */
+  /** Rechaza sesiones cerradas y aplica sesión única a las cuentas administrativas (ADMIN y RECEPTIONIST): gana el login más reciente. */
   private async assertSessionValid(user: AuthenticatedUser, authTime: number): Promise<void> {
     // Las cuentas de servicio no tienen sesión de usuario
     if (!user.sessionId) return;
@@ -74,7 +74,8 @@ export class AuthGuard implements CanActivate {
       if (await this.sessions.isRevoked(user.sessionId)) {
         throw new UnauthorizedException({ code: 'SESSION_CLOSED', message: 'La sesión fue cerrada.' });
       }
-      if (user.roles.includes('ADMIN') && !(await this.holdsActiveSession(user, authTime))) {
+      const administrative = user.roles.includes('ADMIN') || user.roles.includes('RECEPTIONIST');
+      if (administrative && !(await this.holdsActiveSession(user, authTime))) {
         throw new UnauthorizedException({
           code: 'SESSION_SUPERSEDED',
           message: 'Se inició una sesión más reciente en otro dispositivo.',

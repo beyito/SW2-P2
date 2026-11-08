@@ -32,7 +32,7 @@ public class StylistGraphQLController {
     private final StylistRepository stylists;
     private final ReviewRepository reviews;
 
-    @PreAuthorize("hasAnyRole('ADMIN','STYLIST')")
+    @PreAuthorize("hasAnyRole('ADMIN','STYLIST','RECEPTIONIST')")
     @QueryMapping
     public List<Stylist> getAllStylists() {
         return manageStylists.getAll();
@@ -56,8 +56,8 @@ public class StylistGraphQLController {
         return manageStylists.setActive(id, active);
     }
 
-    // Un estilista puede administrar su propio horario
-    @PreAuthorize("hasRole('ADMIN') or (hasRole('STYLIST') and @appointmentAccess.isSelf(authentication, #input.stylistId()))")
+    // La administración y la recepción configuran cualquier horario; un estilista, solo el suyo
+    @PreAuthorize("hasAnyRole('ADMIN','RECEPTIONIST') or (hasRole('STYLIST') and @appointmentAccess.isSelf(authentication, #input.stylistId()))")
     @MutationMapping
     public StylistSchedule setStylistSchedule(@Argument ScheduleInput input) {
         return manageStylists.setSchedule(input);

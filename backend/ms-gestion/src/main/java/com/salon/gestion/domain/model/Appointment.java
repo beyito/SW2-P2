@@ -27,10 +27,15 @@ public class Appointment {
     private AppointmentStatus status;
     private String notes;
     private String sagaId;
+    /** Momento en que la recepción registró la llegada del cliente; null si todavía no llegó. */
+    private LocalDateTime checkedInAt;
 
     public void cancel(String reason) {
         if (this.status == AppointmentStatus.COMPLETED) {
             throw new IllegalStateException("No se puede cancelar una cita completada");
+        }
+        if (this.status == AppointmentStatus.NO_SHOW) {
+            throw new IllegalStateException("No se puede cancelar una cita en la que el cliente no se presentó");
         }
         this.status = AppointmentStatus.CANCELLED;
         if (reason != null && !reason.isBlank()) {
@@ -44,6 +49,12 @@ public class Appointment {
         }
         if (this.status == AppointmentStatus.COMPLETED) {
             throw new IllegalStateException("No se puede reprogramar una cita completada");
+        }
+        if (this.status == AppointmentStatus.NO_SHOW) {
+            throw new IllegalStateException("No se puede reprogramar una cita en la que el cliente no se presentó");
+        }
+        if (this.checkedInAt != null) {
+            throw new IllegalStateException("El cliente ya está en el salón: la cita no se puede reprogramar");
         }
         this.appointmentDate = newDate;
         this.status = AppointmentStatus.RESCHEDULED;
@@ -59,16 +70,51 @@ public class Appointment {
 
     /** Registra que el servicio se prestó; solo es posible una vez iniciada la cita. */
     public void complete(LocalDateTime now) {
-        boolean attendable = this.status == AppointmentStatus.SCHEDULED
-                || this.status == AppointmentStatus.CONFIRMED
-                || this.status == AppointmentStatus.RESCHEDULED;
-        if (!attendable) {
+        if (!isAttendable()) {
             throw new IllegalStateException("La cita no se puede completar en su estado actual");
         }
         if (now.isBefore(this.appointmentDate)) {
             throw new IllegalStateException("La cita todavía no ha comenzado");
         }
         this.status = AppointmentStatus.COMPLETED;
+    }
+
+    /**
+     * La recepción registra que el cliente llegó. Solo el día de la cita y antes de atenderla.
+     * Repetirlo no cambia la hora registrada.
+     */
+    public void checkIn(LocalDateTime now) {
+        if (!isAttendable()) {
+            throw new IllegalStateException("Solo se registra la llegada de una cita pendiente de atención");
+        }
+        if (!now.toLocalDate().equals(this.appointmentDate.toLocalDate())) {
+            throw new IllegalStateException("La llegada solo se registra el día de la cita");
+        }
+        if (this.checkedInAt == null) {
+            // Al segundo: es lo que interesa en el mostrador y se lee igual desde la base y desde la respuesta
+            this.checkedInAt = now.withNano(0);
+        }
+    }
+
+    /** El cliente no se presentó: solo después de la hora de inicio y si no se registró su llegada. */
+    public void markNoShow(LocalDateTime now) {
+        if (!isAttendable()) {
+            throw new IllegalStateException("Solo se marca como ausente una cita pendiente de atención");
+        }
+        if (this.checkedInAt != null) {
+            throw new IllegalStateException("El cliente ya llegó: no se puede marcar como ausente");
+        }
+        if (now.isBefore(this.appointmentDate)) {
+            throw new IllegalStateException("La cita todavía no ha comenzado");
+        }
+        this.status = AppointmentStatus.NO_SHOW;
+    }
+
+    /** Pendiente de atención: con turno firme y sin cerrar. */
+    private boolean isAttendable() {
+        return this.status == AppointmentStatus.SCHEDULED
+                || this.status == AppointmentStatus.CONFIRMED
+                || this.status == AppointmentStatus.RESCHEDULED;
     }
 
     public LocalDateTime endDate() {

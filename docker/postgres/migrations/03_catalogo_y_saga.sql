@@ -44,19 +44,22 @@ ALTER TABLE appointments ADD COLUMN IF NOT EXISTS service_id VARCHAR(36) REFEREN
 ALTER TABLE appointments ADD COLUMN IF NOT EXISTS saga_id VARCHAR(36);
 CREATE UNIQUE INDEX IF NOT EXISTS uq_appointments_saga ON appointments (saga_id) WHERE saga_id IS NOT NULL;
 
+-- Este script se ejecuta en cada arranque: la lista incluye NO_SHOW (Fase M, 09_recepcion.sql)
+-- para no rechazar las citas con ausencia que ya existan
 ALTER TABLE appointments DROP CONSTRAINT IF EXISTS appointments_status_check;
 ALTER TABLE appointments ADD CONSTRAINT appointments_status_check
-    CHECK (status IN ('PENDING_PAYMENT', 'SCHEDULED', 'CONFIRMED', 'COMPLETED', 'CANCELLED', 'RESCHEDULED'));
+    CHECK (status IN ('PENDING_PAYMENT', 'SCHEDULED', 'CONFIRMED', 'COMPLETED', 'CANCELLED', 'RESCHEDULED', 'NO_SHOW'));
 
 ALTER TABLE appointments ADD COLUMN IF NOT EXISTS appointment_end TIMESTAMP
     GENERATED ALWAYS AS (appointment_date + make_interval(mins => duration_minutes)) STORED;
 
 -- 6. Doble reserva imposible: la base de datos rechaza turnos solapados del mismo
---    estilista, incluso si dos solicitudes llegan exactamente al mismo tiempo (RF-02)
+--    estilista, incluso si dos solicitudes llegan exactamente al mismo tiempo (RF-02).
+--    Una cita cancelada o con ausencia (NO_SHOW, Fase M) libera el turno.
 ALTER TABLE appointments DROP CONSTRAINT IF EXISTS appointments_no_overlap;
 ALTER TABLE appointments ADD CONSTRAINT appointments_no_overlap
     EXCLUDE USING gist (stylist_id WITH =, tsrange(appointment_date, appointment_end) WITH &&)
-    WHERE (status <> 'CANCELLED');
+    WHERE (status NOT IN ('CANCELLED', 'NO_SHOW'));
 
 -- Datos semilla
 INSERT INTO services (id, name, description, duration_minutes, price)

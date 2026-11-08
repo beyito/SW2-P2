@@ -9,6 +9,8 @@ enum AppointmentStatus {
     COMPLETED
     CANCELLED
     RESCHEDULED
+    "El cliente no se presentó: el turno queda libre y el pago no se devuelve."
+    NO_SHOW
 }
 
 type SalonService {
@@ -55,6 +57,8 @@ type PanelAppointment {
     durationMinutes: Int!
     totalPrice: Float!
     status: AppointmentStatus!
+    "Hora en que la recepción registró la llegada; vacío si el cliente aún no llegó."
+    checkedInAt: String
 }
 
 type PanelSummary {
@@ -96,6 +100,8 @@ type Appointment {
     status: AppointmentStatus!
     notes: String
     sagaId: String
+    "Hora en que la recepción registró la llegada; vacío si el cliente aún no llegó."
+    checkedInAt: String
     stylistName: String!
     reviewed: Boolean!
 }
@@ -187,6 +193,10 @@ type Mutation {
     cancelAppointment(id: ID!, reason: String): Appointment!
     rescheduleAppointment(id: ID!, newDate: String!): Appointment!
     completeAppointment(id: ID!): Appointment!
+    "La recepción confirma que el cliente llegó (solo el día de la cita)."
+    checkInAppointment(id: ID!): Appointment!
+    "La recepción registra que el cliente no se presentó."
+    markNoShow(id: ID!): Appointment!
 
     # Estilistas y horarios
     createStylist(input: StylistInput!): Stylist!

@@ -130,6 +130,16 @@ class AuthenticatorTest extends TestCase
         );
     }
 
+    public function testLaRecepcionTambienTieneSesionUnica(): void
+    {
+        $this->sessions->active = ['sessionId' => 's2', 'authTime' => 200];
+        $this->assertRejected(
+            'Bearer ' . $this->token(['realm_access' => ['roles' => ['RECEPTIONIST']]]),
+            401,
+            'SESSION_SUPERSEDED'
+        );
+    }
+
     public function testFalloDelRegistroRechazaElAcceso(): void
     {
         $this->sessions->failing = true;

@@ -24,6 +24,7 @@ Registro oficial del desarrollo de la **Plataforma Inteligente para Salón de Be
 | **J** | Agentes de operación, inventario y agenda con Skills sobre MCP (RF-11) | Vie 6 | **COMPLETADA** |
 | **K** | Prueba de conjuntos de ropa en una sola imagen, en web y móvil | Sáb 7 | **COMPLETADA** |
 | **L** | Cierre de entrega: regresión, README, frontends en Docker y pantallas móviles que faltan | Lun 9 | **APROBADA, SIN EMPEZAR** |
+| **M** | Actor Recepcionista: agenda global, llegada y ausencia, cobro en mostrador y horarios | Sáb 7 | **COMPLETADA** |
 
 ---
 
@@ -348,6 +349,35 @@ Hazla en este orden. Si no alcanza el tiempo, lo primero que se recorta es L3, y
 - **Sin gastar crédito de Replicate:** esta fase no necesita generar imágenes reales. La prueba de conjuntos en el móvil queda para un integrante del equipo, que ya tiene previsto hacerla.
 - **Fuera de esta fase, se declara como limitación:** WhatsApp real, iOS, teléfono físico, captura con cámara y video sin conexión.
 
+## Fase M: Actor Recepcionista (CU-01, CU-05, CU-06, CU-07, CU-10, CU-11, RF-01, RF-02, RF-03, RF-07, RF-08, RNF-03, RNF-04) (Completada)
+Actor pedido por el usuario: personal administrativo que opera desde el ERP. Toda reserva se paga; lo presencial es el cliente que llega sin reserva y paga al agendar.
+
+- [x] **Rol `RECEPTIONIST`** en Keycloak, con el usuario `recepcion.salon`. Sesión única en los seis servicios, igual que `ADMIN` (RF-01). `docker/keycloak/crear-recepcion.sh` lo agrega a un Keycloak ya instalado.
+- [x] **Permisos:** agenda global, reprogramar, horarios de cualquier estilista, clientes, facturas y comprobantes. Sin inventario, métricas, moderación, agentes ni registro de estilistas. Tampoco puede agendar sin cobro (`scheduleAppointment`).
+- [x] **Mostrador:** `POST /counter/bookings` inicia la misma SAGA que una reserva en línea, con canal `COUNTER` y `Idempotency-Key`. Aparta turno e insumos y espera el cobro sin crear un pago en Stripe. `POST .../pay` confirma el cobro (paso pivote) y `POST .../void` anula la atención, que se compensa como un pago rechazado. Si nadie cobra en 15 minutos, vence sola.
+- [x] **Factura** con la forma de pago real: tarjeta en línea, efectivo o tarjeta en el terminal. El comprobante la muestra y los puntos se acumulan igual que en línea.
+- [x] **Llegada y ausencia:** `checkInAppointment` solo el día de la cita, y `markNoShow` desde la hora de inicio y sin llegada registrada. La ausencia (`NO_SHOW`) libera el turno y no se reembolsa; un cliente que ya llegó no puede cancelar con reembolso ni reprogramar.
+- [x] **ERP:** pestañas por rol; la recepción entra directo a la Agenda. La pestaña **Mostrador** busca o registra al cliente, ofrece solo turnos futuros, calcula el cambio y abre el comprobante. La Agenda tiene **Llegó** y **No asistió**.
+- [x] **Migración** `09_recepcion.sql`, más el estado `NO_SHOW` en `03` y la vista recreada en `06`, porque todas las migraciones se repiten en cada arranque.
+- [x] La etiqueta "No asistió" también aparece en el portal del cliente y en el móvil, que además mostraba en crudo `PENDING_PAYMENT`.
+
+**Verificación:**
+- [x] Unitarias e integración por servicio: orquestador 47/47 (16 nuevas), `ms-gestion` 77/77 con Testcontainers (9 nuevas), CRM 54/54 (4 nuevas), `ms-ia` 180/180, `ms-asesoria` en seguridad 12/12, MCP 64/64, ERP 37/37 (17 nuevas), Shell 15/15, portal de reservas 11/11 y `flutter analyze` limpio en la pantalla tocada.
+- [x] `tests/integration/test_fase_m_recepcion_live.py`, 21/21 contra los servicios reales: sesión única en los seis servicios, permisos, cobro en efectivo con descuento de insumos, factura, puntos y comprobante, cobro repetido sin duplicar, anulación, misma llave sin doble reserva, turno ocupado, llegada, ausencia y migraciones repetidas con ausencias registradas.
+- [x] `tests/e2e/recepcion.e2e.mjs`, 16/16 en navegador real: entra directo al ERP, registra llegada y ausencia, cobra en efectivo con cambio y comprobante, y anula.
+- [x] Regresión: integración en vivo 325/325 y navegador sin la suite de agentes. Nueve suites de navegador, 193 comprobaciones sin fallos; `ms-asesoria` completa 87/87.
+- [x] Las pruebas encontraron tres errores, ya corregidos: un reinicio habría fallado con una ausencia registrada, porque `03` restauraba la lista de estados sin `NO_SHOW`; anular en el mostrador no mostraba el resultado; y la hora de llegada se leía distinta en la respuesta y en la base.
+
+**Limitaciones conocidas:**
+- **Sin terminal real:** "tarjeta en el terminal" se registra al confirmar el cobro; no hay integración con un datáfono.
+- **Fuera de alcance, por decisión del usuario:** venta de productos en el mostrador y apertura y cierre de caja.
+- **Sin canje de puntos en el mostrador:** el cliente acumula puntos, pero no puede pagar con ellos en caja.
+- **Reembolso en caja:** cancelar una reserva cobrada en el mostrador emite la nota de crédito, pero el dinero se devuelve en caja, sin registro de quién lo entregó.
+- **Fecha de llegada:** el ERP compara el día con el reloj del navegador; debe estar en la hora del salón.
+- **Ausencia manual:** nadie la marca automáticamente; si la recepción no lo hace, la cita queda pendiente.
+- **Keycloak ya instalado:** no recibe el rol nuevo desde el realm; hay que ejecutar `crear-recepcion.sh`.
+- **Agentes:** la recepción no usa los agentes del ERP, y la suite de navegador de agentes no se repitió en esta fase.
+
 ---
 
 ## Matriz de Avance por Caso de Uso
@@ -356,17 +386,17 @@ Estado actualizado al cierre de cada fase. ✅ completo y verificado en vivo. �
 
 | CU | Descripción | Estado | Fase |
 | :---: | :--- | :---: | :---: |
-| CU-01 | Autenticar usuario (SSO y sesión única) | ✅ (web y móvil) | B, H |
+| CU-01 | Autenticar usuario (SSO y sesión única) | ✅ (web y móvil; sesión única para administración y recepción) | B, H, M |
 | CU-02 | Cerrar sesión activa | ✅ (web) | B |
 | CU-03 | Registrar cliente | ✅ | E, F |
 | CU-04 | Registrar o modificar estilista | ✅ (sin crear cuenta de acceso) | C |
-| CU-05 | Horarios y disponibilidad | ✅ | C |
-| CU-06 | Agendar cita | ✅ (web) | D |
-| CU-07 | Reprogramar o cancelar cita | ✅ | D, E, F |
+| CU-05 | Horarios y disponibilidad | ✅ (también la recepción) | C, M |
+| CU-06 | Agendar cita | ✅ (web, en línea y en el mostrador) | D, M |
+| CU-07 | Reprogramar o cancelar cita | ✅ (con llegada y ausencia) | D, E, F, M |
 | CU-08 | Registrar inventario | ✅ | C |
 | CU-09 | Actualizar stock mínimo | ✅ | C |
-| CU-10 | Reserva y pago (SAGA e idempotencia) | ✅ (web) | D |
-| CU-11 | Emitir factura | ✅ (sin validez fiscal) | E, F |
+| CU-10 | Reserva y pago (SAGA e idempotencia) | ✅ (web: Stripe en línea o cobro en el mostrador) | D, M |
+| CU-11 | Emitir factura | ✅ (sin validez fiscal; con la forma de pago) | E, F, M |
 | CU-12 | Puntos de fidelidad | ✅ | E, F |
 | CU-13 | Escaneo capilar y facial | ✅ (web y Android; offline con fotos) | G, H |
 | CU-14 | Recomendaciones | ✅ (con simulación en imagen) | G, I |

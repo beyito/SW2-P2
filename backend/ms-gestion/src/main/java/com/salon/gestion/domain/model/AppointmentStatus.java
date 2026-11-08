@@ -10,5 +10,7 @@ public enum AppointmentStatus {
     CONFIRMED,
     COMPLETED,
     CANCELLED,
-    RESCHEDULED
+    RESCHEDULED,
+    /** El cliente no se presentó: el pago no se devuelve y el turno queda libre. */
+    NO_SHOW
 }

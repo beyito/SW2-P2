@@ -217,7 +217,7 @@ class CrmResolvers
 
     private function isStaff(GraphQLContext $context): bool
     {
-        return array_intersect(['ADMIN', 'STYLIST'], $this->roles($context)) !== [];
+        return array_intersect(['ADMIN', 'STYLIST', 'RECEPTIONIST'], $this->roles($context)) !== [];
     }
 
     private function assertStaff(GraphQLContext $context): void

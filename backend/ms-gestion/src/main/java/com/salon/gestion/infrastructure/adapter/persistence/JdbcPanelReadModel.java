@@ -26,7 +26,8 @@ public class JdbcPanelReadModel implements PanelReadModel {
                         SELECT id, client_id, stylist_id, stylist_name, service_name,
                                to_char(appointment_date, 'YYYY-MM-DD"T"HH24:MI:SS') AS start_text,
                                to_char(appointment_end, 'YYYY-MM-DD"T"HH24:MI:SS') AS end_text,
-                               duration_minutes, total_price::float8 AS total_price, status
+                               duration_minutes, total_price::float8 AS total_price, status,
+                               to_char(checked_in_at, 'YYYY-MM-DD"T"HH24:MI:SS') AS checked_in_text
                         FROM panel_appointments_view
                         WHERE appointment_date >= :from AND appointment_date < :to
                         ORDER BY appointment_date, stylist_name
@@ -43,7 +44,8 @@ public class JdbcPanelReadModel implements PanelReadModel {
                         row.getString("end_text"),
                         row.getInt("duration_minutes"),
                         row.getDouble("total_price"),
-                        AppointmentStatus.valueOf(row.getString("status"))))
+                        AppointmentStatus.valueOf(row.getString("status")),
+                        row.getString("checked_in_text")))
                 .list();
     }
 
@@ -58,7 +60,7 @@ public class JdbcPanelReadModel implements PanelReadModel {
                                 COUNT(*) FILTER (WHERE status IN ('SCHEDULED', 'CONFIRMED', 'RESCHEDULED'))::int AS active,
                                 COUNT(*) FILTER (WHERE status = 'COMPLETED')::int AS completed,
                                 COUNT(*) FILTER (WHERE status = 'CANCELLED')::int AS cancelled,
-                                COALESCE(SUM(total_price) FILTER (WHERE status IN ('SCHEDULED', 'CONFIRMED', 'RESCHEDULED', 'COMPLETED')), 0)::float8 AS booked_value,
+                                COALESCE(SUM(total_price) FILTER (WHERE status IN ('SCHEDULED', 'CONFIRMED', 'RESCHEDULED', 'COMPLETED', 'NO_SHOW')), 0)::float8 AS booked_value,
                                 COALESCE(SUM(duration_minutes) FILTER (WHERE status IN ('SCHEDULED', 'CONFIRMED', 'RESCHEDULED', 'COMPLETED')), 0)::float8 AS booked_minutes
                             FROM panel_appointments_view
                             WHERE appointment_date >= :from AND appointment_date < :to

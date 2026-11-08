@@ -121,7 +121,7 @@ const TRANSITIONS = {
   'payment.succeeded': {
     from: S.AWAITING_PAYMENT,
     to: S.CONFIRMING_APPOINTMENT,
-    patch: () => ({ paid: true, clientSecret: null }),
+    patch: (event) => ({ paid: true, clientSecret: null, ...(event.cashierId ? { cashierId: event.cashierId } : {}) }),
     commands: (saga) => [command(saga, 'appointment.confirm')],
   },
   'payment.failed': {
@@ -157,6 +157,10 @@ const TRANSITIONS = {
         discountCents: saga.discountCents ?? 0,
         pointsRedeemed: saga.pointsRedeemed ?? 0,
         paymentIntentId: saga.paymentIntentId,
+        // Las reservas en línea se pagan con tarjeta en Stripe; las del mostrador, como indicó la recepción
+        paymentMethod: saga.paymentMethod ?? 'CARD',
+        channel: saga.channel ?? 'ONLINE',
+        cashierId: saga.cashierId ?? null,
       },
     }],
   },
@@ -248,4 +252,4 @@ function decide(saga, event, { redelivered = false } = {}) {
   return null;
 }
 
-module.exports = { STATES, TERMINAL_STATES, CANCELLATION_STATES, decide };
+module.exports = { STATES, TERMINAL_STATES, CANCELLATION_STATES, REVERTED_STATES, decide };

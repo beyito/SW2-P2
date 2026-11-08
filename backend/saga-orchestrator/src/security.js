@@ -6,6 +6,8 @@ const { createRemoteJWKSet, jwtVerify } = require('jose');
 const TABLE = 'ActiveUserSessions';
 const CONDITION_FAILED = 'ConditionalCheckFailedException';
 const EIGHT_HOURS = 28800;
+// Cuentas administrativas del salón: solo pueden tener una sesión abierta a la vez (RF-01)
+const ADMINISTRATIVE_ROLES = ['ADMIN', 'RECEPTIONIST'];
 
 /** Error con su código HTTP semántico. */
 class AuthError extends Error {
@@ -88,7 +90,7 @@ async function holdsActiveSession(sessions, claims) {
   return sessions.claimActive(claims.sub, claims.sid, authTime);
 }
 
-/** Rechaza sesiones cerradas y aplica sesión única a ADMIN: gana el login más reciente. */
+/** Rechaza sesiones cerradas y aplica sesión única a las cuentas administrativas: gana el login más reciente. */
 async function assertSessionValid(sessions, claims, roles) {
   // Las cuentas de servicio de los agentes no tienen sesión de usuario
   if (!claims.sid) return;
@@ -96,7 +98,7 @@ async function assertSessionValid(sessions, claims, roles) {
     if (await sessions.isRevoked(claims.sid)) {
       throw new AuthError(401, 'SESSION_CLOSED', 'La sesión fue cerrada.');
     }
-    if (roles.includes('ADMIN') && !(await holdsActiveSession(sessions, claims))) {
+    if (ADMINISTRATIVE_ROLES.some((role) => roles.includes(role)) && !(await holdsActiveSession(sessions, claims))) {
       throw new AuthError(401, 'SESSION_SUPERSEDED', 'Se inició una sesión más reciente en otro dispositivo.');
     }
   } catch (error) {

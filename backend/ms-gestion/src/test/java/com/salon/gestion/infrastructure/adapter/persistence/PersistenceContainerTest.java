@@ -46,7 +46,8 @@ class PersistenceContainerTest {
 
     private static final Path MIGRATIONS = Path.of("../../docker/postgres/migrations");
     private static final List<String> GESTION = List.of(
-            "01_gestion_schema.sql", "03_catalogo_y_saga.sql", "05_reembolsos_gestion.sql", "06_estilistas_resenas_panel.sql");
+            "01_gestion_schema.sql", "03_catalogo_y_saga.sql", "05_reembolsos_gestion.sql", "06_estilistas_resenas_panel.sql",
+            "09_recepcion.sql");
 
     @Container
     static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:16-alpine");
@@ -166,5 +167,23 @@ class PersistenceContainerTest {
         assertThat(agenda.get(0).stylistName()).isEqualTo(nombre);
         assertThat(agenda.get(0).durationMinutes()).isEqualTo(45);
         assertThat(panel.summary(LocalDate.of(2050, 2, 1), LocalDate.of(2050, 2, 1)).totalAppointments()).isEqualTo(1);
+    }
+
+    @Test
+    void unaCitaConAusenciaLiberaElTurno() {
+        String estilista = estilista();
+        cita("tc-g", estilista, "2050-01-05T10:00:00", 60, "NO_SHOW");
+        cita("tc-h", estilista, "2050-01-05T10:00:00", 60, "CONFIRMED");
+    }
+
+    @Test
+    void elReadModelEntregaLaHoraDeLlegada() {
+        String estilista = estilista();
+        cita("tc-i", estilista, "2050-03-01T09:00:00", 45, "CONFIRMED");
+        jdbc.sql("UPDATE appointments SET checked_in_at = '2050-03-01T08:55:00' WHERE id = 'tc-i'").update();
+
+        List<PanelAppointment> agenda = panel.agenda(LocalDate.of(2050, 3, 1), LocalDate.of(2050, 3, 1));
+
+        assertThat(agenda.get(0).checkedInAt()).isEqualTo("2050-03-01T08:55:00");
     }
 }

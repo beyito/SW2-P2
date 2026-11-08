@@ -36,6 +36,40 @@ export interface PanelAppointment {
   durationMinutes: number;
   totalPrice: number;
   status: string;
+  /** Hora en que la recepción registró la llegada; null si el cliente aún no llegó. */
+  checkedInAt: string | null;
+}
+
+export interface SalonService {
+  id: string;
+  name: string;
+  durationMinutes: number;
+  price: number;
+}
+
+export interface TimeSlot {
+  start: string;
+  end: string;
+}
+
+/** Avance de una reserva del mostrador, tal como lo informa el orquestador SAGA. */
+export interface CounterBooking {
+  sagaId: string;
+  status: string;
+  appointmentId: string | null;
+  serviceName: string | null;
+  amountToPayCents: number | null;
+  failureReason: string | null;
+  clientId: string;
+  paymentMethod: string;
+}
+
+export interface Invoice {
+  id: string;
+  invoiceNumber: number | null;
+  appointmentId: string;
+  totalAmount: number;
+  paymentMethod: string;
 }
 
 export interface Client {

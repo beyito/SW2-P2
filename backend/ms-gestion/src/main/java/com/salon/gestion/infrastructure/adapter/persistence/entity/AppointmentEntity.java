@@ -50,6 +50,9 @@ public class AppointmentEntity {
     @Column(name = "notes", columnDefinition = "TEXT")
     private String notes;
 
+    @Column(name = "checked_in_at")
+    private LocalDateTime checkedInAt;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

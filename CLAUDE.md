@@ -29,7 +29,9 @@ Este archivo se escribió el 7 de noviembre de 2026, para que otro integrante de
 
 ## Estado actual
 
-Las fases A a K están completadas y la Fase L está aprobada, sin empezar. Último cambio: prueba de conjuntos de ropa (Fase K).
+Las fases A a K y M están completadas, y la Fase L está aprobada, sin empezar. Último cambio: actor Recepcionista con cobro en el mostrador (Fase M).
+
+Roles de Keycloak: `ADMIN`, `RECEPTIONIST`, `STYLIST` y `CLIENT`. Las cuentas administrativas (`ADMIN` y `RECEPTIONIST`) tienen sesión única en los seis servicios.
 
 Según la matriz del ROADMAP, 21 de 22 casos de uso están completos, varios con salvedades. El único incompleto es CU-19, porque el envío real por WhatsApp no se probó.
 
@@ -113,6 +115,9 @@ Los comandos de cada suite están en el manual, sección 7. Últimos conteos: `m
 - Una SAGA en espera con puntos apartados los devuelve a los 15 minutos, aunque una limpieza ya haya restaurado el saldo. Deja esas SAGAs en estado terminal.
 - Borrar movimientos de inventario no devuelve el stock: restitúyelo antes con la suma de `inventory_logs`.
 - En `appointments`, `appointment_end` es una columna generada: no se inserta.
+- **Las migraciones se ejecutan todas en cada arranque.** La lista de estados de cita y la regla de solapamiento viven en `03_catalogo_y_saga.sql`; un estado nuevo debe agregarse ahí, o el siguiente arranque falla si ya hay citas con ese estado. `panel_appointments_view` se recrea en `06` y `09`. `PersistenceContainerTest` repite las migraciones para detectarlo.
+- **Keycloak ya instalado no recibe cambios del realm.** Para la recepción hay un script: `docker/keycloak/crear-recepcion.sh` (ver el manual).
+- **Fechas de hoy en pruebas:** las citas se guardan en hora de Bolivia y PostgreSQL usa UTC. Después de las 20:00 en Bolivia, `CURRENT_DATE` ya es el día siguiente: calcula la fecha en hora del salón.
 
 **Backend**
 - Las pruebas de `ms-ia` corren dentro de su imagen, porque MediaPipe no existe para Python 3.13. El `.venv` solo sirve para `tests/integration`.
@@ -149,6 +154,7 @@ Los comandos de cada suite están en el manual, sección 7. Últimos conteos: `m
 ## Decisiones que no se deben revertir sin preguntar
 
 - **Pago real en modo prueba:** Stripe, no un simulador.
+- **Toda reserva se paga:** en línea con Stripe, o en el mostrador. El cobro del mostrador pasa por la misma SAGA (canal `COUNTER`), con idempotencia y compensaciones; la recepción confirma el cobro y ese es el paso pivote. No hay reservas sin pago.
 - **Agentes:** nunca tocan una base de datos; todo pasa por MCP con token y rol (RNF-02). Cualquier cambio de datos requiere que una persona pulse **Confirmar**. `confirmar_accion` y `rechazar_accion` no pueden estar en una Skill.
 - **Fotos:** no se guardan ni la foto ni el resultado de la simulación. Requiere autorización propia (`image_generation_consents`), distinta de la biométrica. Al proveedor solo se envían imágenes y opciones cerradas, nunca el nombre ni texto del cliente.
 - **Cupo de imágenes:** 5 por cliente y 30 por salón al día, en DynamoDB. Si el cupo no se puede comprobar, no se genera.

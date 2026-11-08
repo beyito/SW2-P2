@@ -51,7 +51,10 @@ export default function App() {
     initAuth()
       .then((authenticated) => {
         if (!authenticated) return;
-        setUser(currentUser());
+        const identity = currentUser();
+        setUser(identity);
+        // La recepción trabaja en el ERP: empieza ahí y no en el estudio del cliente
+        if (identity.role === 'RECEPTIONIST') setActiveTab('gestion');
         setStatus('ready');
       })
       .catch(() => setStatus('error'));
@@ -130,7 +133,7 @@ export default function App() {
     );
   }
 
-  const canManage = user.role === 'ADMIN' || user.role === 'STYLIST';
+  const canManage = ['ADMIN', 'STYLIST', 'RECEPTIONIST'].includes(user.role);
   const offlineReady = offlineStore !== null || storageFailed;
 
   return (

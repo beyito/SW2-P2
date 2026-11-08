@@ -10,6 +10,13 @@ class Invoice
 {
     public const TAX_RATE = 0.13;
 
+    /** Formas de pago: tarjeta en línea (Stripe), y efectivo o terminal de tarjeta en el mostrador. */
+    public const PAYMENT_METHODS = [
+        'CARD' => 'Tarjeta en línea',
+        'CASH' => 'Efectivo en el mostrador',
+        'CARD_TERMINAL' => 'Tarjeta en el mostrador',
+    ];
+
     private float $taxAmount;
     private string $issuedAt;
 
@@ -40,6 +47,17 @@ class Invoice
     public function getTotalAmount(): float { return $this->totalAmount; }
     public function getTaxAmount(): float { return $this->taxAmount; }
     public function getPaymentMethod(): string { return $this->paymentMethod; }
+
+    /** Una forma de pago desconocida se registra como tarjeta en línea, el único cobro sin mostrador. */
+    public static function normalizePaymentMethod(?string $method): string
+    {
+        return array_key_exists((string) $method, self::PAYMENT_METHODS) ? $method : 'CARD';
+    }
+
+    public static function paymentMethodLabel(string $method): string
+    {
+        return self::PAYMENT_METHODS[$method] ?? $method;
+    }
     public function getStatus(): string { return $this->status; }
     public function getIssuedAt(): string { return $this->issuedAt; }
     public function getSagaId(): ?string { return $this->sagaId; }

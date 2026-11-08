@@ -56,6 +56,29 @@ export class ApiService {
     return payload;
   }
 
+  /** Orquestador SAGA: reservas y cobro en el mostrador. La llave evita apartar o cobrar dos veces (RNF-04). */
+  async saga<T>(path: string, method = 'GET', body?: object, idempotencyKey?: string): Promise<T> {
+    const headers: Record<string, string> = body ? { 'Content-Type': 'application/json' } : {};
+    if (idempotencyKey) headers['Idempotency-Key'] = idempotencyKey;
+    const response = await this.send(`${CONFIG.sagaUrl}${path}`, {
+      method,
+      headers,
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(payload.message ?? `El servicio respondió ${response.status}.`);
+    return payload;
+  }
+
+  /** Abre el comprobante en una pestaña nueva; la petición lleva el token, un enlace normal no podría. */
+  async openReceipt(invoiceId: string): Promise<void> {
+    const response = await this.send(`${CONFIG.crmBaseUrl}/api/invoices/${encodeURIComponent(invoiceId)}/comprobante`, {});
+    if (!response.ok) throw new Error(`No se pudo obtener el comprobante (${response.status}).`);
+    const url = URL.createObjectURL(new Blob([await response.text()], { type: 'text/html' }));
+    window.open(url, '_blank', 'noopener');
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  }
+
   /** Convierte en texto una pregunta hablada, con Whisper en ms-ia. */
   async transcribe(audio: Blob): Promise<string> {
     const form = new FormData();

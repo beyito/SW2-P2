@@ -44,7 +44,7 @@ class ProcessCompletedBookingUseCase
             clientId: $clientId,
             clientName: $this->clients->findById($clientId)?->getFullName() ?? 'Cliente',
             totalAmount: $paidCents / 100,
-            paymentMethod: 'CARD',
+            paymentMethod: Invoice::normalizePaymentMethod($event['paymentMethod'] ?? null),
             sagaId: $sagaId,
             serviceName: $event['serviceName'] ?? null,
             subtotalAmount: $subtotalCents / 100,

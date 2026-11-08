@@ -3,7 +3,7 @@
 namespace App\InterfaceAdapters\Security;
 
 /**
- * Exige token válido, sesión vigente y rol suficiente; aplica sesión única a ADMIN.
+ * Exige token válido, sesión vigente y rol suficiente; aplica sesión única a las cuentas administrativas.
  */
 class Authenticator
 {
@@ -46,7 +46,9 @@ class Authenticator
             if ($this->sessions->isRevoked($sessionId)) {
                 throw new AuthException(401, 'SESSION_CLOSED', 'La sesión fue cerrada.');
             }
-            if (in_array('ADMIN', $roles, true) && !$this->holdsActiveSession($claims, $sessionId)) {
+            // Administración y recepción son cuentas administrativas: una sola sesión a la vez (RF-01)
+            $administrative = array_intersect(['ADMIN', 'RECEPTIONIST'], $roles) !== [];
+            if ($administrative && !$this->holdsActiveSession($claims, $sessionId)) {
                 throw new AuthException(
                     401,
                     'SESSION_SUPERSEDED',

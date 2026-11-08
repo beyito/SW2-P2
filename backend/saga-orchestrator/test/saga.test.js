@@ -324,6 +324,7 @@ function apiContext() {
     authenticate: async (authorization) => {
       if (authorization === 'Bearer cliente') return { subject: 'u1', id: 'cli-001', roles: ['CLIENT'] };
       if (authorization === 'Bearer otro') return { subject: 'u2', id: 'cli-002', roles: ['CLIENT'] };
+      if (authorization === 'Bearer recepcion') return { subject: 'u9', id: 'rec-001', roles: ['RECEPTIONIST'] };
       throw new AuthError(401, 'TOKEN_MISSING', 'Sin token');
     },
     runner: context.runner,
@@ -446,4 +447,180 @@ test('API: CORS solo para orígenes permitidos', () => withApi(async (base) => {
   const denied = await fetch(`${base}/health`, { headers: { Origin: 'http://atacante.test' } });
   assert.equal(allowed.headers.get('access-control-allow-origin'), 'http://localhost:3002');
   assert.equal(denied.headers.get('access-control-allow-origin'), null);
+}));
+
+// --- Mostrador: cliente sin reserva que paga al agendar (Fase M)
+
+const COUNTER = { ...START, channel: 'COUNTER', paymentMethod: 'CASH', cashierId: 'rec-001', clientName: 'Ana Pérez' };
+
+async function counterAwaitingPayment(context) {
+  await context.runner.start(COUNTER);
+  await context.runner.handle({ type: 'appointment.reserved', sagaId: 's1', appointmentId: 'apt-1', serviceName: 'Corte', amountCents: 4500 });
+  await context.runner.handle({ type: 'inventory.reserved', sagaId: 's1' });
+}
+
+test('mostrador: espera el cobro sin crear un pago en Stripe', async () => {
+  const context = setup();
+  await counterAwaitingPayment(context);
+  const saga = await context.repository.get('s1');
+  assert.equal(saga.state, S.AWAITING_PAYMENT);
+  assert.equal(saga.clientSecret, null);
+  assert.equal(context.payments.created, 0);
+  assert.equal(context.delayed.length, 1, 'también vence si nadie confirma el cobro');
+});
+
+test('mostrador: el cobro confirmado emite la factura con la forma de pago y la cajera', async () => {
+  const context = setup();
+  await counterAwaitingPayment(context);
+  await context.runner.handle({ type: 'payment.succeeded', sagaId: 's1', cashierId: 'rec-001' });
+  await context.runner.handle({ type: 'appointment.confirmed', sagaId: 's1' });
+  await context.runner.handle({ type: 'inventory.committed', sagaId: 's1' });
+  const completed = context.published.find((message) => message.routingKey === 'saga.completed').body;
+  assert.equal(completed.paymentMethod, 'CASH');
+  assert.equal(completed.channel, 'COUNTER');
+  assert.equal(completed.cashierId, 'rec-001');
+  assert.equal(completed.clientName, 'Ana Pérez');
+});
+
+test('en línea: la factura sigue indicando tarjeta', async () => {
+  const context = setup();
+  await untilAwaitingPayment(context);
+  await context.runner.handle({ type: 'payment.succeeded', sagaId: 's1' });
+  await context.runner.handle({ type: 'appointment.confirmed', sagaId: 's1' });
+  await context.runner.handle({ type: 'inventory.committed', sagaId: 's1' });
+  const completed = context.published.find((message) => message.routingKey === 'saga.completed').body;
+  assert.equal(completed.paymentMethod, 'CARD');
+  assert.equal(completed.channel, 'ONLINE');
+});
+
+test('mostrador: vence sin cobro y compensa sin consultar a Stripe', async () => {
+  const context = setup({ cancelPayment: async () => assert.fail('no debe llamar a Stripe') });
+  await counterAwaitingPayment(context);
+  await context.runner.handle({ type: 'payment.timeout', sagaId: 's1' });
+  assert.equal((await context.repository.get('s1')).state, S.COMPENSATING_STOCK);
+});
+
+test('mostrador: anular libera stock y turno', async () => {
+  const context = setup();
+  await counterAwaitingPayment(context);
+  await context.runner.handle({ type: 'payment.failed', sagaId: 's1', reason: 'COUNTER_VOIDED' });
+  await context.runner.handle({ type: 'inventory.released', sagaId: 's1' });
+  await context.runner.handle({ type: 'appointment.released', sagaId: 's1' });
+  const saga = await context.repository.get('s1');
+  assert.equal(saga.state, S.COMPENSATED);
+  assert.equal(saga.failureReason, 'COUNTER_VOIDED');
+});
+
+test('mostrador: cancelar una reserva cobrada no llama a Stripe y emite nota de crédito', async () => {
+  const context = setup({ refundPayment: async () => assert.fail('no debe llamar a Stripe') });
+  await counterAwaitingPayment(context);
+  for (const type of ['payment.succeeded', 'appointment.confirmed', 'inventory.committed', 'cancel.requested', 'appointment.cancelled']) {
+    await context.runner.handle({ type, sagaId: 's1' });
+  }
+  assert.equal((await context.repository.get('s1')).state, S.ISSUING_CREDIT_NOTE);
+  assert.ok(routingKeys(context.published).includes('crm.command.refund.apply'));
+});
+
+test('mostrador: un cobro sobre una reserva ya revertida solo queda registrado', async () => {
+  const context = setup({ refundPayment: async () => assert.fail('no debe llamar a Stripe') });
+  await counterAwaitingPayment(context);
+  await context.runner.handle({ type: 'payment.failed', sagaId: 's1', reason: 'COUNTER_VOIDED' });
+  await context.runner.handle({ type: 'payment.succeeded', sagaId: 's1' });
+  assert.equal((await context.repository.get('s1')).refunded, true);
+});
+
+const DESK = { ...BOOKING, clientId: 'cli-002', clientName: 'Ana Pérez', clientEmail: 'ana@correo.test', paymentMethod: 'CASH' };
+
+function postCounter(base, body, { token = 'recepcion', key = 'm1' } = {}) {
+  return fetch(`${base}/counter/bookings`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}`, ...(key ? { 'Idempotency-Key': key } : {}) },
+    body: JSON.stringify(body),
+  });
+}
+
+const counterAction = (base, sagaId, action, token = 'recepcion') =>
+  fetch(`${base}/counter/bookings/${sagaId}/${action}`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
+
+/** Avanza en memoria la SAGA creada por la API hasta esperar el cobro. */
+async function counterReady(context, sagaId) {
+  await context.runner.handle({ type: 'appointment.reserved', sagaId, appointmentId: 'apt-9', serviceName: 'Corte', amountCents: 4500 });
+  await context.runner.handle({ type: 'inventory.reserved', sagaId });
+}
+
+test('API mostrador: un cliente no puede usarlo', () => withApi(async (base) => {
+  assert.equal((await postCounter(base, DESK, { token: 'cliente' })).status, 403);
+}));
+
+test('API mostrador: agenda al cliente elegido, no a la recepcionista', () => withApi(async (base, { published, repository }) => {
+  const response = await postCounter(base, DESK);
+  assert.equal(response.status, 202);
+  const view = await response.json();
+  assert.equal(view.channel, 'COUNTER');
+  assert.equal(published[0].body.clientId, 'cli-002');
+  const saga = await repository.get(view.sagaId);
+  assert.equal(saga.cashierId, 'rec-001');
+  assert.equal(saga.pointsRequested, 0);
+}));
+
+test('API mostrador: exige llave, cliente y forma de pago válida', () => withApi(async (base) => {
+  assert.equal((await postCounter(base, DESK, { key: null })).status, 400);
+  assert.equal((await postCounter(base, { ...DESK, clientId: '' }, { key: 'a' })).status, 400);
+  assert.equal((await postCounter(base, { ...DESK, paymentMethod: 'BITCOIN' }, { key: 'b' })).status, 400);
+  assert.equal((await postCounter(base, { ...DESK, clientEmail: 'no-es-correo' }, { key: 'c' })).status, 400);
+}));
+
+test('API mostrador: reintentar no agenda dos veces', () => withApi(async (base, { published }) => {
+  const first = await (await postCounter(base, DESK)).json();
+  const retry = await postCounter(base, DESK);
+  assert.equal(retry.status, 200);
+  assert.equal((await retry.json()).sagaId, first.sagaId);
+  assert.equal(published.filter((message) => message.routingKey === 'saga.command.appointment.reserve').length, 1);
+}));
+
+test('API mostrador: cobrar antes de apartar el turno responde 409', () => withApi(async (base) => {
+  const { sagaId } = await (await postCounter(base, DESK)).json();
+  const response = await counterAction(base, sagaId, 'pay');
+  assert.equal(response.status, 409);
+  assert.equal((await response.json()).code, 'NOT_READY');
+}));
+
+test('API mostrador: cobrar publica el pago una vez y repetir no cobra de nuevo', () => withApi(async (base, context) => {
+  const { sagaId } = await (await postCounter(base, DESK)).json();
+  await counterReady(context, sagaId);
+  assert.equal((await counterAction(base, sagaId, 'pay')).status, 202);
+  const paid = context.published.filter((message) => message.routingKey === 'saga.event.payment.succeeded');
+  assert.equal(paid.length, 1);
+  assert.equal(paid[0].body.cashierId, 'rec-001');
+  await context.runner.handle({ type: 'payment.succeeded', sagaId, cashierId: 'rec-001' });
+  assert.equal((await counterAction(base, sagaId, 'pay')).status, 200);
+  assert.equal(context.published.filter((message) => message.routingKey === 'saga.event.payment.succeeded').length, 1);
+  assert.equal((await counterAction(base, sagaId, 'void')).status, 409, 'lo cobrado no se anula sin reembolso');
+}));
+
+test('API mostrador: anular publica el rechazo y luego ya no se puede cobrar', () => withApi(async (base, context) => {
+  const { sagaId } = await (await postCounter(base, DESK)).json();
+  await counterReady(context, sagaId);
+  assert.equal((await counterAction(base, sagaId, 'void')).status, 202);
+  const failed = context.published.find((message) => message.routingKey === 'saga.event.payment.failed');
+  assert.equal(failed.body.reason, 'COUNTER_VOIDED');
+  await context.runner.handle({ type: 'payment.failed', sagaId, reason: 'COUNTER_VOIDED' });
+  const response = await counterAction(base, sagaId, 'pay');
+  assert.equal(response.status, 409);
+  assert.equal((await response.json()).code, 'BOOKING_REVERTED');
+}));
+
+test('API mostrador: no cobra reservas en línea ni deja cobrar a un cliente', () => withApi(async (base) => {
+  const online = await (await post(base, BOOKING)).json();
+  assert.equal((await counterAction(base, online.sagaId, 'pay')).status, 409);
+  const { sagaId } = await (await postCounter(base, DESK)).json();
+  assert.equal((await counterAction(base, sagaId, 'pay', 'cliente')).status, 403);
+  assert.equal((await counterAction(base, 'no-existe', 'pay')).status, 404);
+}));
+
+test('API mostrador: la recepción puede consultar la reserva que agendó', () => withApi(async (base) => {
+  const { sagaId } = await (await postCounter(base, DESK)).json();
+  const response = await fetch(`${base}/bookings/${sagaId}`, { headers: { Authorization: 'Bearer recepcion' } });
+  assert.equal(response.status, 200);
+  assert.equal((await response.json()).paymentMethod, 'CASH');
 }));
