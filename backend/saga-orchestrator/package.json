@@ -5,7 +5,7 @@
   "main": "src/main.js",
   "scripts": {
     "start": "node src/main.js",
-    "test": "node --test test/saga.test.js"
+    "test": "node --test test/saga.test.js test/aws-sigv4.test.js"
   },
   "dependencies": {
     "amqplib": "0.10.4",

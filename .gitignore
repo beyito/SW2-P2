@@ -59,3 +59,10 @@ mobile/salon_mobile/assets/models/
 # Fotos personales usadas en pruebas de generacion de imagenes: nunca versionar
 /ROSTRO.jpeg
 /CUERPO-COMPLETO.jpeg
+
+# Despliegue en la nube: configuración con claves y lo que generan los guiones
+deploy/configuracion.env
+deploy/salida/
+frontend/firebase.json
+frontend/.firebaserc
+frontend/.firebase/

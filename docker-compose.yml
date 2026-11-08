@@ -210,6 +210,8 @@ services:
       # Emisor fijo: el navegador y los servicios deben ver el mismo "iss"
       KC_HOSTNAME: http://localhost:${KEYCLOAK_PORT:-8080}
       KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "true"
+      # Valores del realm; solo se aplican cuando el realm se importa por primera vez
+      SALON_AGENT_SECRET: ${SALON_AGENT_SECRET:-salon-agent-secret-local}
     networks:
       - salon-network
     depends_on:

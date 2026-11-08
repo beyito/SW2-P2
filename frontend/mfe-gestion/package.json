@@ -5,7 +5,7 @@
   "description": "Microfrontend ERP y Gestión Operativa en Angular",
   "scripts": {
     "start": "ng serve --port 3003 --host 0.0.0.0",
-    "build": "ng build",
+    "build": "node scripts/build.mjs",
     "test": "ng test --watch=false"
   },
   "dependencies": {

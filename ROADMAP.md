@@ -27,6 +27,7 @@ Registro oficial del desarrollo de la **Plataforma Inteligente para Salón de Be
 | **M** | Actor Recepcionista: agenda global, llegada y ausencia, cobro en mostrador y horarios | Sáb 7 | **COMPLETADA** |
 | **N** | Móvil a la par de la web: cierre de sesión en el servidor y canje de puntos | Dom 8 | **COMPLETADA** |
 | **O** | Móvil completo: comprobante imprimible, cancelación con reembolso y reprogramación | Dom 8 | **COMPLETADA** |
+| **P** | Despliegue en AWS, Azure y Google Cloud | Lun 9 | **EN CURSO**: código listo; falta desplegar con las cuentas |
 
 ---
 
@@ -431,6 +432,39 @@ Pedida por el usuario el 8 de noviembre de 2026 para que el móvil no dependa de
 - **Validación sin conexión:** el salón valida al recibir el cambio. Si la cita ya empezó o el turno se ocupó mientras tanto, la operación aparece como conflicto en la cola y la cita no cambia.
 - **Hora elegida a mano:** sin copia de los turnos, no se puede saber si está libre hasta enviarla.
 - **Comprobante del móvil:** se arma en el teléfono con los datos del CRM, sin la referencia del pago de Stripe, que GraphQL no expone.
+
+## Fase P: Despliegue en tres nubes (RNF-01, RNF-02, RNF-04) (En curso)
+Aprobada el 8 de noviembre de 2026: el docente exige AWS, Azure y Google Cloud. El diseño, los pasos y lo que falta verificar están en [DESPLIEGUE_MULTICLOUD.md](DESPLIEGUE_MULTICLOUD.md).
+
+**Distribución:** AWS aloja Keycloak, `ms-gestion`, MCP, RDS y DynamoDB. Azure aloja el CRM, su worker, el orquestador, n8n y su PostgreSQL. Google Cloud aloja `ms-asesoria`, `ms-ia` y los cuatro frontends. MongoDB va en Atlas y RabbitMQ en CloudAMQP.
+
+**Cambios de código (hechos):**
+- [x] **Firma SigV4 de DynamoDB en los seis servicios,** sin SDK, con las credenciales del entorno. Sin ellas se usan las de relleno, así que DynamoDB Local sigue igual.
+- [x] **RabbitMQ con TLS y vhost** en el worker del CRM y en la credencial de n8n.
+- [x] **Direcciones de los frontends al compilar:** argumentos `VITE_*` del Dockerfile. El ERP en Angular las recibe con `--define`.
+- [x] **Móvil:** una dirección por servicio con `--dart-define`.
+- [x] **Keycloak:** realm con variables (portal, secreto del agente y `sslRequired`) e imagen de producción en `deploy/keycloak`.
+- [x] **Migraciones en dos servidores PostgreSQL** (AWS y Azure) y base de n8n.
+- [x] **Guiones** `deploy/aws`, `deploy/azure`, `deploy/gcp` y `deploy/base-de-datos.sh`, más una simulación sin cuentas en `deploy/simulacion`.
+
+**Verificación en local:**
+- [x] **Firma:** los seis servicios coinciden con tres vectores calculados con botocore, el SDK oficial; uno es el ejemplo de la documentación de AWS. Suites: orquestador 51, MCP 68, `ms-asesoria` 91, CRM 58, `ms-gestion` 81 y `ms-ia` 184.
+- [x] **Integración en vivo contra DynamoDB Local con los servicios reconstruidos:** 324 de 327 en la primera corrida. Las 3 restantes se debían a un mensaje muerto de hacía 14 horas, de una corrida anterior; tras vaciar la cola, pasaron. Con el worker y n8n nuevos, n8n, CRM y SAGA dieron 75/75.
+- [x] **Keycloak:**
+  - Con un Keycloak desechable, el realm toma las variables y, sin ellas, los valores locales.
+  - La imagen de producción arrancó contra una base desechable, con emisor `https://auth...`, salud en el puerto 9000 y caché local. Las bases de prueba se borraron.
+- [x] **ERP compilado con una dirección de prueba:** la incluye. Sin argumentos sigue en localhost. ERP 37/37.
+- [x] **Migraciones:** el guion nuevo corrió en local, también con la base de n8n, que luego se borró.
+- [x] **Guiones:** los cinco pasos corren completos con CLI simuladas, con 222 llamadas. La simulación encontró un error: la lista de subredes de Fargate iba separada por tabuladores. Ya está corregido.
+
+**Pendiente:**
+- [ ] Crear las cuentas (AWS, Azure for Students, Google Cloud, Atlas y CloudAMQP) y el dominio.
+- [ ] Desplegar y probar en vivo contra las direcciones reales, también con la app móvil.
+
+**Limitaciones conocidas:**
+- **Guiones sin probar en la nube:** el primer despliegue puede pedir ajustes.
+- **Cuentas de demostración:** el realm las importa para la presentación; hay que cambiar sus contraseñas al desplegar.
+- **Atlas abierto:** Atlas queda abierto a cualquier IP (con TLS y contraseña), salvo que se agregue Cloud NAT con IP fija.
 
 ## WhatsApp con la cuenta de Meta (CU-19, RF-12) (En curso)
 El 8 de noviembre de 2026 se conectó la app de Meta de un compañero del usuario.

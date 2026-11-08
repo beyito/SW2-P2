@@ -11,11 +11,12 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
 
 /**
- * Adaptador del registro de sesiones sobre la tabla ActiveUserSessions de DynamoDB Local.
+ * Adaptador del registro de sesiones sobre la tabla ActiveUserSessions de DynamoDB (real o Local).
  */
 @Component
 public class DynamoSessionRegistry implements SessionRegistry {
@@ -26,6 +27,7 @@ public class DynamoSessionRegistry implements SessionRegistry {
 
     private final HttpClient http = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(2)).build();
     private final ObjectMapper mapper = new ObjectMapper();
+    private final AwsSigV4.Credentials credentials = AwsSigV4.Credentials.fromEnv(System.getenv());
     private final String endpoint;
 
     public DynamoSessionRegistry(@Value("${salon.security.dynamodb-endpoint}") String endpoint) {
@@ -75,15 +77,17 @@ public class DynamoSessionRegistry implements SessionRegistry {
 
     private JsonNode call(String target, Map<String, Object> payload) {
         try {
-            HttpRequest request = HttpRequest.newBuilder(URI.create(endpoint))
+            // Firma SigV4: la exige DynamoDB real y DynamoDB Local la acepta
+            String requestBody = mapper.writeValueAsString(payload);
+            URI uri = URI.create(endpoint);
+            HttpRequest.Builder builder = HttpRequest.newBuilder(uri)
                     .timeout(Duration.ofSeconds(3))
-                    .header("Content-Type", "application/x-amz-json-1.0")
-                    .header("X-Amz-Target", "DynamoDB_20120810." + target)
-                    .header("Authorization",
-                            "AWS4-HMAC-SHA256 Credential=local/20260101/us-east-1/dynamodb/aws4_request, "
-                                    + "SignedHeaders=host, Signature=local")
-                    .POST(HttpRequest.BodyPublishers.ofString(mapper.writeValueAsString(payload)))
-                    .build();
+                    .POST(HttpRequest.BodyPublishers.ofString(requestBody));
+            AwsSigV4.sign("POST", uri, Map.of(
+                            "Content-Type", "application/x-amz-json-1.0",
+                            "X-Amz-Target", "DynamoDB_20120810." + target),
+                    requestBody, "dynamodb", credentials, Instant.now()).forEach(builder::header);
+            HttpRequest request = builder.build();
             HttpResponse<String> response = http.send(request, HttpResponse.BodyHandlers.ofString());
             JsonNode body = mapper.readTree(response.body());
             boolean conditionFailed = body.path("__type").asText().contains(CONDITION_FAILED);

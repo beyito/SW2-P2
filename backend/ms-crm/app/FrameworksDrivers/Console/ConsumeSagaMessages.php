@@ -5,7 +5,8 @@ namespace App\FrameworksDrivers\Console;
 use App\InterfaceAdapters\Messaging\SagaMessageHandler;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
-use PhpAmqpLib\Connection\AMQPStreamConnection;
+use PhpAmqpLib\Connection\AMQPConnectionConfig;
+use PhpAmqpLib\Connection\AMQPConnectionFactory;
 use PhpAmqpLib\Message\AMQPMessage;
 use PhpAmqpLib\Wire\AMQPTable;
 
@@ -22,14 +23,27 @@ class ConsumeSagaMessages extends Command
     protected $signature = 'crm:consume-saga-messages';
     protected $description = 'Consume eventos y comandos de la SAGA destinados al CRM';
 
+    /**
+     * Conexión local sin cifrar o, en la nube (CloudAMQP), con TLS y un vhost propio.
+     */
+    public static function connectionConfig(): AMQPConnectionConfig
+    {
+        $config = new AMQPConnectionConfig();
+        $config->setHost(env('RABBITMQ_HOST', 'localhost'));
+        $config->setPort((int) env('RABBITMQ_PORT', 5672));
+        $config->setUser(env('RABBITMQ_USER', 'rabbit_admin'));
+        $config->setPassword(env('RABBITMQ_PASSWORD', 'rabbit_secret_pass'));
+        $config->setVhost(env('RABBITMQ_VHOST', '/'));
+        if (filter_var(env('RABBITMQ_SSL', false), FILTER_VALIDATE_BOOLEAN)) {
+            $config->setIsSecure(true);
+            $config->setSslVerify(true);
+        }
+        return $config;
+    }
+
     public function handle(SagaMessageHandler $handler): int
     {
-        $connection = new AMQPStreamConnection(
-            env('RABBITMQ_HOST', 'localhost'),
-            (int) env('RABBITMQ_PORT', 5672),
-            env('RABBITMQ_USER', 'rabbit_admin'),
-            env('RABBITMQ_PASSWORD', 'rabbit_secret_pass')
-        );
+        $connection = AMQPConnectionFactory::create(self::connectionConfig());
         $channel = $connection->channel();
         $channel->confirm_select();
 

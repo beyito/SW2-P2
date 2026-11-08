@@ -1,0 +1,5 @@
+# Solo entran los flujos y el arranque de n8n al contexto de compilación
+*
+!docker/n8n/start.sh
+!docker/n8n/credentials.template.json
+!docker/n8n/workflows

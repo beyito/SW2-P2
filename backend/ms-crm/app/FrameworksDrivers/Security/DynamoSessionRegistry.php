@@ -61,17 +61,23 @@ class DynamoSessionRegistry implements SessionRegistryInterface
 
     private function call(string $target, array $payload): array
     {
+        // Firma SigV4: la exige DynamoDB real y DynamoDB Local la acepta
+        $body = json_encode($payload);
+        $headers = AwsSigV4::sign('POST', $this->endpoint, [
+            'Content-Type' => 'application/x-amz-json-1.0',
+            'X-Amz-Target' => 'DynamoDB_20120810.' . $target,
+        ], $body, 'dynamodb', AwsSigV4::credentialsFromEnv());
+
         $context = stream_context_create(['http' => [
             'method' => 'POST',
             'timeout' => 3,
             'ignore_errors' => true,
-            'header' => implode("\r\n", [
-                'Content-Type: application/x-amz-json-1.0',
-                'X-Amz-Target: DynamoDB_20120810.' . $target,
-                'Authorization: AWS4-HMAC-SHA256 Credential=local/20260101/us-east-1/dynamodb/aws4_request, '
-                    . 'SignedHeaders=host, Signature=local',
-            ]),
-            'content' => json_encode($payload),
+            'header' => implode("\r\n", array_map(
+                fn ($name, $value) => "{$name}: {$value}",
+                array_keys($headers),
+                $headers,
+            )),
+            'content' => $body,
         ]]);
 
         $body = @file_get_contents($this->endpoint, false, $context);

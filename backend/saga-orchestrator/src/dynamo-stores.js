@@ -1,6 +1,7 @@
 /**
  * Persistencia en DynamoDB: estado de las SAGAs e idempotencia atómica (RF-07, RNF-04).
  */
+const { dynamoRequest } = require('./aws-sigv4');
 const CONDITION_FAILED = 'ConditionalCheckFailedException';
 const ONE_DAY = 86400;
 
@@ -11,14 +12,8 @@ class DynamoClient {
 
   async call(target, payload) {
     const response = await fetch(this.endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-amz-json-1.0',
-        'X-Amz-Target': `DynamoDB_20120810.${target}`,
-        Authorization:
-          'AWS4-HMAC-SHA256 Credential=local/20260101/us-east-1/dynamodb/aws4_request, SignedHeaders=host, Signature=local',
-      },
-      body: JSON.stringify(payload),
+      // Firma SigV4: la exige DynamoDB real y DynamoDB Local la acepta
+      ...dynamoRequest(this.endpoint, target, payload),
       signal: AbortSignal.timeout(3000),
     });
     const body = await response.json();

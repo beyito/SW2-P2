@@ -2,7 +2,7 @@
   "realm": "salon",
   "enabled": true,
   "displayName": "Salón & IA Studio",
-  "sslRequired": "none",
+  "sslRequired": "${KC_REALM_SSL_REQUIRED:none}",
   "registrationAllowed": true,
   "registrationEmailAsUsername": false,
   "loginWithEmailAllowed": true,
@@ -69,14 +69,14 @@
       "standardFlowEnabled": true,
       "directAccessGrantsEnabled": false,
       "redirectUris": [
-        "http://localhost:3000/*"
+        "${SALON_PORTAL_URL:http://localhost:3000}/*"
       ],
       "webOrigins": [
-        "http://localhost:3000"
+        "${SALON_PORTAL_URL:http://localhost:3000}"
       ],
       "attributes": {
         "pkce.code.challenge.method": "S256",
-        "post.logout.redirect.uris": "http://localhost:3000/*"
+        "post.logout.redirect.uris": "${SALON_PORTAL_URL:http://localhost:3000}/*"
       },
       "protocolMappers": [
         {
@@ -149,7 +149,7 @@
       "name": "Agentes de IA (cuenta de servicio para el Servidor MCP)",
       "enabled": true,
       "publicClient": false,
-      "secret": "salon-agent-secret-local",
+      "secret": "${SALON_AGENT_SECRET:salon-agent-secret-local}",
       "standardFlowEnabled": false,
       "directAccessGrantsEnabled": false,
       "serviceAccountsEnabled": true,

@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+# Sustituto de las CLI de nube: registra la llamada y responde lo mínimo para que el guion siga.
+# Primera corrida: nada existe (las consultas "describe/show/get" fallan o devuelven None).
+nombre=$(basename "$0")
+todo="$*"
+printf '%s %s\n' "$nombre" "$todo" >> "$SIM_LOG"
+# Lee la entrada estándar si la hay, para no romper tuberías
+[ -t 0 ] || cat > /dev/null
+
+case "$nombre" in
+  curl) echo "203.0.113.7" ;;
+  docker|npm|firebase|openssl)
+    [ "$nombre" = openssl ] && echo "Q0xBVkVERVBSVUVCQURFMzJCWVRFU1hYWFhYWFhYWFg=" ;;
+  aws)
+    case "$todo" in
+      *"sts get-caller-identity"*) echo 123456789012 ;;
+      *"ec2 describe-vpcs"*) echo vpc-0sim ;;
+      *"ec2 describe-subnets"*) printf 'subnet-a\tsubnet-b\n' ;;
+      *"ec2 describe-security-groups"*) echo None ;;
+      *"ec2 create-security-group"*) echo "sg-$(echo "$todo" | grep -o 'group-name [a-z-]*' | cut -d' ' -f2)" ;;
+      *"dynamodb describe-table"*|*"iam get-user"*|*"iam get-role"*|*"ecr describe-repositories"*|*"rds describe-db-instances --db-instance-identifier salon-postgres" ) exit 1 ;;
+      *"iam create-access-key"*) printf 'AKIASIMULADA\tsecretoSimulado/+=\n' ;;
+      *"rds describe-db-instances"*) echo salon-postgres.abc.us-east-1.rds.amazonaws.com ;;
+      *"ecr get-login-password"*) echo token ;;
+      *"acm list-certificates"*) echo None ;;
+      *"acm request-certificate"*) echo arn:aws:acm:us-east-1:123456789012:certificate/sim ;;
+      *"acm describe-certificate"*"Status"*) echo ISSUED ;;
+      *"elbv2 describe-load-balancers"*"DNSName"*) echo salon-alb-123.us-east-1.elb.amazonaws.com ;;
+      *"elbv2 describe-load-balancers"*|*"elbv2 describe-target-groups"*) echo None ;;
+      *"elbv2 create-load-balancer"*) echo arn:aws:elasticloadbalancing:sim:loadbalancer/app/salon-alb ;;
+      *"elbv2 create-target-group"*) echo "arn:tg:$(echo "$todo" | grep -o 'name salon-[a-z]*' | cut -d' ' -f2)" ;;
+      *"elbv2 describe-listeners"*) echo None ;;
+      *"elbv2 create-listener"*) echo arn:listener:443 ;;
+      *"ecs register-task-definition"*)
+        archivo=$(echo "$todo" | grep -o 'file://[^ ]*' | sed 's|file://||')
+        python -c "import json,sys; json.load(open(sys.argv[1], encoding='utf-8'))" "$archivo" || { echo "JSON INVALIDO: $archivo" >&2; exit 3; }
+        echo "arn:task:$(basename "$archivo" .json)" ;;
+      *"ecs describe-services"*) echo "" ;;
+    esac ;;
+  az)
+    case "$todo" in
+      *"show"*"--query properties.defaultDomain"*) echo "salonenv.eastus.azurecontainerapps.io" ;;
+      *"flexible-server show"*|*"acr show"*|*"containerapp env show"*|*"containerapp show"*) exit 1 ;;
+      *"credential show"*"username"*) echo usuarioacr ;;
+      *"credential show"*) echo claveacr ;;
+    esac ;;
+  gcloud)
+    case "$todo" in
+      *"describe"*"projectNumber"*) echo 987654321 ;;
+      *"run services describe salon-asesoria"*) echo https://salon-asesoria-987654321.us-east4.run.app ;;
+      *"run services describe salon-ia"*) echo https://salon-ia-987654321.us-east4.run.app ;;
+      *"artifacts repositories describe"*|*"secrets describe"*) exit 1 ;;
+    esac ;;
+esac
+exit 0

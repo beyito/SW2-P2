@@ -1,6 +1,7 @@
 /**
  * Seguridad del orquestador: token válido de Keycloak y sesión vigente (RF-01).
  */
+const { dynamoRequest } = require('./aws-sigv4');
 const { createRemoteJWKSet, jwtVerify } = require('jose');
 
 const TABLE = 'ActiveUserSessions';
@@ -26,14 +27,8 @@ class DynamoSessionRegistry {
 
   async call(target, payload) {
     const response = await fetch(this.endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-amz-json-1.0',
-        'X-Amz-Target': `DynamoDB_20120810.${target}`,
-        Authorization:
-          'AWS4-HMAC-SHA256 Credential=local/20260101/us-east-1/dynamodb/aws4_request, SignedHeaders=host, Signature=local',
-      },
-      body: JSON.stringify(payload),
+      // Firma SigV4: la exige DynamoDB real y DynamoDB Local la acepta
+      ...dynamoRequest(this.endpoint, target, payload),
       signal: AbortSignal.timeout(3000),
     });
     const body = await response.json();

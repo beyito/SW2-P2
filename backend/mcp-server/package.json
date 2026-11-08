@@ -5,7 +5,7 @@
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
-    "test": "node --test test/security.test.js test/tools.test.js test/agent.test.js test/skills.test.js"
+    "test": "node --test test/security.test.js test/tools.test.js test/agent.test.js test/skills.test.js test/aws-sigv4.test.js"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.32.2",

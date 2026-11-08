@@ -1,7 +1,11 @@
 #!/bin/sh
 # Importa los flujos versionados y los activa en cada arranque, sin pasos manuales. Es idempotente.
+# La credencial de RabbitMQ se arma con el entorno: local sin cifrar o, en la nube, con TLS y vhost propio.
 set -e
-sed -e "s|__RABBIT_USER__|$RABBIT_USER|" -e "s|__RABBIT_PASS__|$RABBIT_PASS|" /seed/credentials.template.json > /tmp/credentials.json
+sed -e "s|__RABBIT_USER__|$RABBIT_USER|" -e "s|__RABBIT_PASS__|$RABBIT_PASS|" \
+    -e "s|__RABBIT_HOST__|${RABBIT_HOST:-rabbitmq}|" -e "s|__RABBIT_PORT__|${RABBIT_PORT:-5672}|" \
+    -e "s|__RABBIT_VHOST__|${RABBIT_VHOST:-/}|" -e "s|__RABBIT_SSL__|${RABBIT_SSL:-false}|" \
+    /seed/credentials.template.json > /tmp/credentials.json
 n8n import:credentials --input=/tmp/credentials.json
 rm -f /tmp/credentials.json
 n8n import:workflow --separate --input=/seed/workflows

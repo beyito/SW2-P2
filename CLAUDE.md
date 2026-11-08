@@ -29,7 +29,7 @@ Este archivo se escribió el 7 de noviembre de 2026, para que otro integrante de
 
 ## Estado actual
 
-Las fases A a O están completadas. Último cambio: comprobante imprimible, cancelación con reembolso y reprogramación en el móvil (Fase O). El móvil ya no depende de la web para ninguna función del cliente.
+Las fases A a O están completadas. La Fase P (despliegue en AWS, Azure y Google Cloud, exigido por el docente) está en curso: el código y los guiones están hechos y probados en local, pero falta desplegar con las cuentas reales. Ver [DESPLIEGUE_MULTICLOUD.md](DESPLIEGUE_MULTICLOUD.md).
 
 Roles de Keycloak: `ADMIN`, `RECEPTIONIST`, `STYLIST` y `CLIENT`. Las cuentas administrativas (`ADMIN` y `RECEPTIONIST`) tienen sesión única en los seis servicios.
 
@@ -49,7 +49,9 @@ Según la matriz del ROADMAP, 21 de 22 casos de uso están completos, varios con
 
 ## Qué falta
 
-No hay fases pendientes. Cualquier fase nueva requiere aprobación del equipo antes de empezar.
+**Fase P:** crear las cuentas (AWS, Azure for Students, Google Cloud, MongoDB Atlas y CloudAMQP) y un dominio, y seguir la sección 8 de `DESPLIEGUE_MULTICLOUD.md`. Los guiones nunca corrieron contra una nube real: espera ajustes. Antes de editarlos, corre `bash deploy/simulacion/correr.sh`. `deploy/configuracion.env` y `deploy/salida/` tienen claves y están en `.gitignore`: nunca los subas.
+
+Cualquier fase nueva requiere aprobación del equipo antes de empezar.
 
 **Lo único que depende de terceros:**
 - **WhatsApp real (CU-19):** los flujos de n8n están hechos y probados contra un servidor local que imita a Meta. Falta una cuenta de Meta: ver `MANUAL_EJECUCION.md`, sección "WhatsApp".
@@ -72,7 +74,7 @@ Son mejoras, no requisitos. Haz estas solo después de lo anterior y con aprobac
 - **Comunidad:** comentarios y reseñas sin paginación; las imágenes subidas y no usadas quedan huérfanas en GridFS.
 - **Agentes:** responden cuando se les pregunta, pero no vigilan ni actúan por su cuenta.
 - **IA:** la clase "ondulado" acierta un 60%. No se midió el comportamiento por tono de piel o etnia. Trenzas y rastas no se entrenaron.
-- **Solo para operar con clientes reales (en Docker Compose local no hace falta):** `php -S` como servidor web, llamadas a DynamoDB sin firma SigV4, secretos de desarrollo en el realm y facturas sin validez fiscal.
+- **Solo para operar con clientes reales (en Docker Compose local no hace falta):** `php -S` como servidor web, contraseñas de las cuentas de demostración del realm y facturas sin validez fiscal.
 
 ## Primer arranque en otro equipo
 
@@ -86,7 +88,7 @@ Tu base de datos parte de las semillas del proyecto, no de los datos de otro int
 
 ## Pruebas
 
-Los comandos de cada suite están en el manual, sección 7. Últimos conteos: orquestador 47, `ms-gestion` 77, CRM 54, `ms-asesoria` 87, `ms-ia` 180, `mcp-server` 64, `mfe-gestion` 37, `mfe-estudio-ia` 38, Shell 18, `mfe-reservas` 11, móvil 83, integración en vivo 325 y navegador 193 comprobaciones.
+Los comandos de cada suite están en el manual, sección 7. Últimos conteos: orquestador 51, `ms-gestion` 81, CRM 58, `ms-asesoria` 91, `ms-ia` 184, `mcp-server` 68, `mfe-gestion` 37, `mfe-estudio-ia` 38, Shell 18, `mfe-reservas` 11, móvil 83, integración en vivo 325 y navegador 193 comprobaciones.
 
 **Gastan dinero o cupo:**
 - **Replicate:** `IMAGENES_REALES=1` en `tests/e2e/generacion_imagenes.e2e.mjs` y `integration_test/image_generation_real_test.dart`. Nunca los ejecutes sin permiso. Las pruebas de `TestConjunto` usan una imagen dañada a propósito para detenerse antes del proveedor: mantén ese diseño.
@@ -122,6 +124,8 @@ Los comandos de cada suite están en el manual, sección 7. Últimos conteos: or
 - Testcontainers en Java exige 1.21.4 o superior con Docker 29.
 - Laravel se mantiene en la versión 12; Composer bloquea la 11 por avisos de seguridad.
 - La colección del clóset en Mongo es `virtual_closet_items`.
+- **Firma SigV4:** cada servicio tiene su propio firmador, sin SDK. `aws-sigv4.js` está copiado igual en el orquestador y en `mcp-server`: si cambias uno, cambia el otro. Todos se prueban con los mismos tres vectores de botocore.
+- **Realm con variables:** `salon-realm.json` usa `${SALON_PORTAL_URL:...}`, `${SALON_AGENT_SECRET:...}` y `${KC_REALM_SSL_REQUIRED:...}`, con los valores locales por defecto. Los `${username}` del perfil de usuario son de Keycloak; no los toques.
 
 **Replicate**
 - Rechaza el User-Agent por defecto de urllib (error 1010): usa uno propio.
