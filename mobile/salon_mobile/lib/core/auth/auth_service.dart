@@ -1,8 +1,10 @@
 import 'package:flutter_appauth/flutter_appauth.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:http/http.dart' as http;
 
 import '../config.dart';
 import 'session.dart';
+import 'session_revoker.dart';
 
 /// Inicio de sesión con Keycloak por authorization code + PKCE (CU-01).
 /// Los tokens se guardan cifrados por el sistema: la app puede abrir sin conexión.
@@ -35,8 +37,21 @@ class AuthService implements TokenProvider {
     return Session.fromToken(result.accessToken!);
   }
 
-  Future<void> logout() async {
-    await _storage.deleteAll();
+  /// La sesión ya terminó en el servidor (cerrada en otro lugar o desplazada): solo se olvida aquí.
+  Future<void> forget() => _storage.deleteAll();
+
+  /// Cierra la sesión en el servidor y borra los tokens del teléfono, aunque no haya conexión (CU-02).
+  /// Devuelve falso si el servidor no pudo confirmar el cierre.
+  Future<bool> logout() async {
+    final refresh = await _storage.read(key: _refresh);
+    final access = await token();
+    final client = http.Client();
+    try {
+      return await SessionRevoker(client).revoke(accessToken: access, refreshToken: refresh);
+    } finally {
+      client.close();
+      await _storage.deleteAll();
+    }
   }
 
   /// Renovación en curso: las pestañas piden el token a la vez al abrir la app, y AppAuth

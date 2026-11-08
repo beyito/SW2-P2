@@ -80,8 +80,21 @@ class _AuthGateState extends State<AuthGate> {
   }
 
   Future<void> _logout() async {
-    await _auth.logout();
-    setState(() => _session = null);
+    final closed = await _auth.logout();
+    setState(() {
+      _session = null;
+      _error = closed ? null : 'Se cerró la sesión en este teléfono. Sin conexión no se pudo cerrar en el servidor: vencerá sola en unos minutos.';
+    });
+  }
+
+  Future<void> _sessionLost() async {
+    await _auth.forget();
+    if (mounted) {
+      setState(() {
+        _session = null;
+        _error = 'Tu sesión terminó. Inicia sesión de nuevo.';
+      });
+    }
   }
 
   @override
@@ -103,7 +116,7 @@ class _AuthGateState extends State<AuthGate> {
         ),
       );
     }
-    return HomeScreen(key: ValueKey(session.userId), session: session, tokens: _auth, onLogout: _logout);
+    return HomeScreen(key: ValueKey(session.userId), session: session, tokens: _auth, onLogout: _logout, onSessionLost: _sessionLost);
   }
 }
 
@@ -111,8 +124,9 @@ class HomeScreen extends StatefulWidget {
   final Session session;
   final TokenProvider tokens;
   final Future<void> Function() onLogout;
+  final Future<void> Function() onSessionLost;
 
-  const HomeScreen({super.key, required this.session, required this.tokens, required this.onLogout});
+  const HomeScreen({super.key, required this.session, required this.tokens, required this.onLogout, required this.onSessionLost});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -140,7 +154,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _start() async {
     final database = await LocalDatabase.open(widget.session.userId);
-    final queue = OfflineQueue(database, widget.tokens, _client, onSessionLost: widget.onLogout);
+    final queue = OfflineQueue(database, widget.tokens, _client, onSessionLost: widget.onSessionLost);
     final connectivity = ConnectivityStatus(onOnline: queue.sync);
     _changes = queue.changes.listen((_) => _refreshQueue(queue));
     connectivity.addListener(() {

@@ -29,7 +29,7 @@ Este archivo se escribió el 7 de noviembre de 2026, para que otro integrante de
 
 ## Estado actual
 
-Las fases A a M están completadas. Último cambio: cierre de entrega (Fase L): frontends en Docker Compose, README, y reserva con pago, comunidad, cuenta y asesoría para redes en el móvil.
+Las fases A a N están completadas. Último cambio: cierre de sesión en el servidor y canje de puntos en el móvil (Fase N).
 
 Roles de Keycloak: `ADMIN`, `RECEPTIONIST`, `STYLIST` y `CLIENT`. Las cuentas administrativas (`ADMIN` y `RECEPTIONIST`) tienen sesión única en los seis servicios.
 
@@ -58,7 +58,7 @@ No hay fases pendientes. Cualquier fase nueva requiere aprobación del equipo an
 - **iOS:** requiere macOS y nunca se compiló.
 - **Teléfono físico y cámara del móvil:** sin probar; se usó un emulador con fotos.
 - **Video sin conexión en el móvil (CU-13):** sin conexión solo analiza fotos.
-- **Móvil frente a la web:** no tiene canje de puntos al reservar, ni comprobante imprimible, ni cancelación con reembolso. Esas tres funciones siguen en la web.
+- **Móvil frente a la web:** no tiene comprobante imprimible ni cancelación con reembolso. Esas dos funciones siguen en la web.
 - **Conjuntos de ropa con el modelo real:** un integrante del equipo los probará en el móvil. No los ejecutes, porque gastan crédito. El conjunto con abrigo, y por tanto el de 3 prendas, nunca se probó con el modelo real.
 
 ## Qué se podría mejorar
@@ -87,7 +87,7 @@ Tu base de datos parte de las semillas del proyecto, no de los datos de otro int
 
 ## Pruebas
 
-Los comandos de cada suite están en el manual, sección 7. Últimos conteos: orquestador 47, `ms-gestion` 77, CRM 54, `ms-asesoria` 87, `ms-ia` 180, `mcp-server` 64, `mfe-gestion` 37, `mfe-estudio-ia` 38, Shell 15, `mfe-reservas` 11, móvil 60, integración en vivo 325 y navegador 193 comprobaciones.
+Los comandos de cada suite están en el manual, sección 7. Últimos conteos: orquestador 47, `ms-gestion` 77, CRM 54, `ms-asesoria` 87, `ms-ia` 180, `mcp-server` 64, `mfe-gestion` 37, `mfe-estudio-ia` 38, Shell 15, `mfe-reservas` 11, móvil 69, integración en vivo 325 y navegador 193 comprobaciones.
 
 **Gastan dinero o cupo:**
 - **Replicate:** `IMAGENES_REALES=1` en `tests/e2e/generacion_imagenes.e2e.mjs` y `integration_test/image_generation_real_test.dart`. Nunca los ejecutes sin permiso. Las pruebas de `TestConjunto` usan una imagen dañada a propósito para detenerse antes del proveedor: mantén ese diseño.

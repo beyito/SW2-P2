@@ -16,7 +16,18 @@ const _failures = {
   'PAYMENT_DECLINED': 'El pago fue rechazado. El turno quedó libre.',
   'PAYMENT_TIMEOUT': 'Venció el plazo de 15 minutos para pagar. El turno quedó libre.',
   'PAYMENT_UNAVAILABLE': 'El cobro no está disponible ahora. Inténtalo más tarde.',
+  'POINTS_INSUFFICIENT': 'No tienes puntos suficientes. El turno quedó libre.',
+  'POINTS_EXCEED_LIMIT': 'Esa cantidad de puntos supera el máximo para este servicio. El turno quedó libre.',
 };
+
+/// Cobro mínimo de la pasarela: el canje no puede dejarlo por debajo (igual que la web y el CRM).
+const minimumChargeCents = 50;
+
+/// Puntos que se pueden canjear en un servicio: cada punto vale un centavo.
+int maxRedeemablePoints(int balance, num price) {
+  final limit = (price * 100).round() - minimumChargeCents;
+  return balance.clamp(0, limit < 0 ? 0 : limit);
+}
 
 /// Mensaje para el usuario según el motivo que informa la SAGA.
 String failureMessage(String? reason) => _failures[reason] ?? 'No se pudo completar la reserva. El turno quedó libre.';
@@ -73,12 +84,19 @@ class BookingFlow {
 
   BookingFlow(this.api, this.gateway, {this.pollEvery = const Duration(milliseconds: 800), this.maxPolls = 40});
 
-  /// Aparta el turno. Sin conexión, la solicitud queda en la cola y se envía después.
-  Future<BookingStep> start({required String serviceId, required String stylistId, required String appointmentDate, required String label}) async {
+  /// Aparta el turno y, si se piden, los puntos. Sin conexión, la solicitud queda en la cola y se envía después.
+  Future<BookingStep> start({
+    required String serviceId,
+    required String stylistId,
+    required String appointmentDate,
+    required String label,
+    int pointsToRedeem = 0,
+  }) async {
     final result = await api.write('booking', label, 'POST', '${Config.saga}/bookings', body: {
       'serviceId': serviceId,
       'stylistId': stylistId,
       'appointmentDate': appointmentDate,
+      if (pointsToRedeem > 0) 'pointsToRedeem': pointsToRedeem,
     });
     if (result.queued) return const BookingStep(queued: true);
     final started = BookingView.fromJson(result.data as Map<String, dynamic>);

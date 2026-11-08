@@ -25,6 +25,7 @@ Registro oficial del desarrollo de la **Plataforma Inteligente para Salón de Be
 | **K** | Prueba de conjuntos de ropa en una sola imagen, en web y móvil | Sáb 7 | **COMPLETADA** |
 | **L** | Cierre de entrega: regresión, README, frontends en Docker y pantallas móviles que faltan | Sáb 7 | **COMPLETADA** |
 | **M** | Actor Recepcionista: agenda global, llegada y ausencia, cobro en mostrador y horarios | Sáb 7 | **COMPLETADA** |
+| **N** | Móvil a la par de la web: cierre de sesión en el servidor y canje de puntos | Dom 8 | **COMPLETADA** |
 
 ---
 
@@ -348,7 +349,7 @@ Aprobada completa por el equipo el 7 de noviembre de 2026. Se hizo en una sola s
 - [x] También apareció un dato dañado previo: la publicación semilla de la comunidad tenía los acentos rotos en MongoDB. Se corrigió en la base; el script de semillas ya estaba bien.
 
 **Limitaciones conocidas:**
-- **Canje en el móvil:** no hay canje de puntos al reservar; la web sí lo tiene.
+- **Canje en el móvil:** no había canje de puntos al reservar. Cerrada en la Fase N.
 - **Comprobante en el móvil:** se ve el detalle de la factura, pero no el comprobante imprimible de la web.
 - **Hora de las facturas:** se muestra en UTC, como la entrega el CRM.
 - **Cancelar desde el móvil:** no hay cancelación con reembolso; sigue en la web.
@@ -385,6 +386,24 @@ Actor pedido por el usuario: personal administrativo que opera desde el ERP. Tod
 - **Keycloak ya instalado:** no recibe el rol nuevo desde el realm; hay que ejecutar `crear-recepcion.sh`.
 - **Agentes:** la recepción no usa los agentes del ERP, y la suite de navegador de agentes no se repitió en esta fase.
 
+## Fase N: Móvil a la par de la web (CU-02, CU-10, CU-12) (Completada)
+Aprobada por el usuario el 8 de noviembre de 2026, mientras consigue las credenciales de Meta para WhatsApp.
+
+- [x] **Cerrar sesión en el servidor (CU-02):** el móvil hace lo mismo que la web. Primero revoca la sesión en los servicios (`POST /auth/logout`) y después la cierra en Keycloak con el refresh token, sin abrir el navegador. Sin conexión borra la sesión del teléfono y lo avisa: el token vence solo en minutos.
+- [x] **Sesión terminada en otro lugar:** si un servicio responde 401, la app olvida la sesión y pide iniciarla de nuevo, sin intentar revocarla.
+- [x] **Canje de puntos al reservar (CU-12):** muestra el saldo y permite elegir cuántos puntos usar, o "Usar el máximo". Aplica el mismo límite que la web y el CRM: el cobro no baja de 0,50 USD. Muestra el total a pagar, y los rechazos `POINTS_INSUFFICIENT` y `POINTS_EXCEED_LIMIT` tienen su mensaje.
+
+**Verificación:**
+- [x] Móvil 69/69 (9 nuevas) y `flutter analyze` limpio.
+- [x] En el emulador, como `camila.fernandez`, con los servicios y Stripe reales:
+  - **Reserva con canje:** Keratina de 95 USD con 500 puntos; el formulario de Stripe cobró 90 USD. La factura 213 salió con subtotal 95, descuento 5 y total 90. Se canjearon 500 puntos y se sumaron 900, solo por lo pagado.
+  - **Cierre de sesión:** la sesión del móvil desapareció de Keycloak y su `sid` quedó revocado en DynamoDB.
+  - Al terminar se borró la reserva y se restituyeron stock y puntos.
+
+**Limitaciones conocidas:**
+- **Canje sin conexión:** la reserva guardada en la cola lleva los puntos elegidos, y la SAGA los valida al enviarse. Si el saldo cambió mientras tanto, se rechaza con su mensaje.
+- **Sin conexión al cerrar sesión:** no se puede revocar la sesión; el token vence solo en 5 minutos.
+
 ---
 
 ## Matriz de Avance por Caso de Uso
@@ -394,7 +413,7 @@ Estado actualizado al cierre de cada fase. ✅ completo y verificado en vivo. �
 | CU | Descripción | Estado | Fase |
 | :---: | :--- | :---: | :---: |
 | CU-01 | Autenticar usuario (SSO y sesión única) | ✅ (web y móvil; sesión única para administración y recepción) | B, H, M |
-| CU-02 | Cerrar sesión activa | ✅ (web) | B |
+| CU-02 | Cerrar sesión activa | ✅ (web y móvil) | B, N |
 | CU-03 | Registrar cliente | ✅ | E, F |
 | CU-04 | Registrar o modificar estilista | ✅ (sin crear cuenta de acceso) | C |
 | CU-05 | Horarios y disponibilidad | ✅ (también la recepción) | C, M |
@@ -404,7 +423,7 @@ Estado actualizado al cierre de cada fase. ✅ completo y verificado en vivo. �
 | CU-09 | Actualizar stock mínimo | ✅ | C |
 | CU-10 | Reserva y pago (SAGA e idempotencia) | ✅ (Stripe en web y móvil, o cobro en el mostrador) | D, L, M |
 | CU-11 | Emitir factura | ✅ (sin validez fiscal; con la forma de pago; también en el móvil) | E, F, L, M |
-| CU-12 | Puntos de fidelidad | ✅ (web y móvil; canje solo en la web) | E, F, L |
+| CU-12 | Puntos de fidelidad | ✅ (web y móvil, con canje) | E, F, L, N |
 | CU-13 | Escaneo capilar y facial | ✅ (web y Android; offline con fotos) | G, H |
 | CU-14 | Recomendaciones | ✅ (con simulación en imagen) | G, I |
 | CU-15 | Armario virtual | ✅ (con prueba de ropa en imagen) | F, I |

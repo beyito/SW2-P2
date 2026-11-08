@@ -43,6 +43,7 @@ class Backend {
   List<String> states = ['RESERVING_APPOINTMENT', 'AWAITING_PAYMENT'];
   String? failure;
   bool offline = false;
+  int points = 0;
   List<Map<String, dynamic>> appointments = [];
 
   Future<http.Response> handle(http.Request request) async {
@@ -56,6 +57,7 @@ class Backend {
       final state = states.length > 1 ? states.removeAt(0) : states.first;
       return _json(_view(state));
     }
+    if (url.contains('8083/graphql')) return _json({'data': {'getMyProfile': {'loyaltyPoints': points}}});
     if (url.contains('8081/graphql')) {
       final query = jsonDecode(request.body)['query'] as String;
       if (query.contains('getAvailableSlots')) {
@@ -111,6 +113,9 @@ void main() {
 
   tearDown(() => db.close());
 
+  Map<String, dynamic> cuerpoDeLaReserva() =>
+      jsonDecode(backend.calls.firstWhere((call) => call.method == 'POST' && call.url.path == '/bookings').body) as Map<String, dynamic>;
+
   Future<BookingStep> reservar() => flow.start(serviceId: 'srv-03', stylistId: 'sty-101', appointmentDate: '2031-05-05T10:00:00', label: 'Reservar');
 
   group('flujo de reserva y pago', () {
@@ -155,6 +160,26 @@ void main() {
       expect(gateway.secrets, isEmpty);
     });
 
+    test('el canje no deja el cobro por debajo del mínimo de la pasarela', () {
+      expect(maxRedeemablePoints(10000, 45), 4450);
+      expect(maxRedeemablePoints(300, 45), 300);
+      expect(maxRedeemablePoints(300, 0.40), 0);
+    });
+
+    test('los puntos solo viajan si se piden', () async {
+      await flow.start(serviceId: 'srv-03', stylistId: 'sty-101', appointmentDate: '2031-05-05T10:00:00', label: 'Reservar', pointsToRedeem: 300);
+      expect(cuerpoDeLaReserva()['pointsToRedeem'], 300);
+      backend.calls.clear();
+      await reservar();
+      expect(cuerpoDeLaReserva().containsKey('pointsToRedeem'), isFalse);
+    });
+
+    test('un canje rechazado por saldo se explica', () async {
+      backend.states = ['FAILED'];
+      backend.failure = 'POINTS_INSUFFICIENT';
+      expect((await reservar()).error, contains('No tienes puntos suficientes'));
+    });
+
     test('sin conexión la reserva queda en la cola con su llave', () async {
       backend.offline = true;
       final step = await reservar();
@@ -195,6 +220,33 @@ void main() {
       await abrir(tester);
       expect(find.byKey(const Key('slot-10:00')), findsOneWidget);
       expect(find.byKey(const Key('slot-09:00')), findsNothing);
+    });
+
+    testWidgets('sin puntos no ofrece canje', (tester) async {
+      await abrir(tester);
+      expect(find.byKey(const Key('booking-points')), findsNothing);
+    });
+
+    testWidgets('con puntos ofrece usar hasta el máximo y envía lo elegido', (tester) async {
+      backend.points = 10000;
+      await abrir(tester);
+      expect(find.textContaining('Puedes usar hasta 4450'), findsOneWidget);
+      await tester.tap(find.byKey(const Key('booking-points-max')));
+      await tester.pump();
+      expect(find.text('Total a pagar: 0.50 USD'), findsOneWidget);
+
+      await tester.enterText(find.byKey(const Key('booking-points')), '99999');
+      await tester.pump();
+      expect(find.text('Total a pagar: 0.50 USD'), findsOneWidget, reason: 'lo que supera el máximo se ajusta');
+      await tester.enterText(find.byKey(const Key('booking-points')), '500');
+      await tester.pump();
+      expect(find.text('Total a pagar: 40.00 USD'), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('slot-10:00')));
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('booking-reserve')));
+      await settle(tester);
+      expect(cuerpoDeLaReserva()['pointsToRedeem'], 500);
     });
 
     testWidgets('reserva, muestra el total, paga y confirma', (tester) async {

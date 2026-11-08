@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../core/api/api_client.dart';
@@ -5,6 +7,7 @@ import '../../core/config.dart';
 import 'booking_flow.dart';
 
 const _catalog = '{ getServices { id name durationMinutes price } getStylists { id name } }';
+const _pointsQuery = '{ getMyProfile { loyaltyPoints } }';
 const _slots = r'query ($s: String!, $v: String!, $d: String!) { getAvailableSlots(stylistId: $s, serviceId: $v, date: $d) { start end } }';
 
 String _isoDate(DateTime date) =>
@@ -31,6 +34,9 @@ class _BookingScreenState extends State<BookingScreen> {
   String? _stylistId;
   late DateTime _date = _now();
   String? _slot;
+  int _balance = 0;
+  int _points = 0;
+  final _pointsField = TextEditingController();
   bool _busy = false;
   String? _error;
   String? _notice;
@@ -45,7 +51,27 @@ class _BookingScreenState extends State<BookingScreen> {
     _loadCatalog();
   }
 
+  Future<void> _loadPoints() async {
+    try {
+      final data = await widget.api.graphql(Config.crm, _pointsQuery);
+      final balance = (data['getMyProfile']?['loyaltyPoints'] as int?) ?? 0;
+      if (mounted) setState(() => _balance = balance);
+    } on Exception {
+      // Sin saldo visible se reserva igual, sin canje
+    }
+  }
+
+  num _price() => (_services.firstWhere((service) => service['id'] == _serviceId, orElse: () => {'price': 0})['price']) as num;
+
+  int _maxPoints() => maxRedeemablePoints(_balance, _price());
+
+  void _setPoints(String text) {
+    final requested = int.tryParse(text) ?? 0;
+    setState(() => _points = requested.clamp(0, _maxPoints()));
+  }
+
   Future<void> _loadCatalog() async {
+    unawaited(_loadPoints());
     try {
       final data = await widget.api.graphql(Config.gestion, _catalog);
       if (mounted) {
@@ -101,6 +127,7 @@ class _BookingScreenState extends State<BookingScreen> {
           stylistId: _stylistId!,
           appointmentDate: slot,
           label: 'Reservar ${_serviceName()} ${slot.replaceFirst('T', ' ').substring(0, 16)}',
+          pointsToRedeem: _points.clamp(0, _maxPoints()),
         ));
   }
 
@@ -182,7 +209,12 @@ class _BookingScreenState extends State<BookingScreen> {
                 ),
             ],
             onChanged: (value) {
-              setState(() => _serviceId = value);
+              setState(() {
+                _serviceId = value;
+                // El máximo depende del precio: lo pedido se ajusta al servicio nuevo
+                _points = _points.clamp(0, _maxPoints());
+                _pointsField.text = _points == 0 ? '' : '$_points';
+              });
               _loadSlots();
             },
           ),
@@ -210,6 +242,30 @@ class _BookingScreenState extends State<BookingScreen> {
                   onSelected: (_) => setState(() => _slot = slot['start'] as String),
                 ),
             ]),
+          if (_balance > 0 && _serviceId != null) ...[
+            const SizedBox(height: 12),
+            Text('Tienes $_balance puntos; cada punto vale 0.01 USD. Puedes usar hasta ${_maxPoints()}.', key: const Key('booking-balance')),
+            Row(children: [
+              Expanded(
+                child: TextField(
+                  key: const Key('booking-points'),
+                  controller: _pointsField,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(labelText: 'Puntos a usar'),
+                  onChanged: _setPoints,
+                ),
+              ),
+              TextButton(
+                key: const Key('booking-points-max'),
+                onPressed: () {
+                  _pointsField.text = '${_maxPoints()}';
+                  _setPoints(_pointsField.text);
+                },
+                child: const Text('Usar el máximo'),
+              ),
+            ]),
+            Text('Total a pagar: ${(_price() - _points / 100).toStringAsFixed(2)} USD', key: const Key('booking-to-pay')),
+          ],
           const SizedBox(height: 16),
           FilledButton(key: const Key('booking-reserve'), onPressed: _busy || _slot == null ? null : _reserve, child: const Text('Apartar turno')),
         ],
