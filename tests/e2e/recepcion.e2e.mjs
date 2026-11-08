@@ -54,6 +54,8 @@ try {
   await erp.locator('#erp-tab-agenda').waitFor(ESPERA);
   const pestanas = await erp.locator('nav.tabs button').evaluateAll((botones) => botones.map((boton) => boton.id));
   check('la recepción empieza en el ERP con sus cuatro pestañas', pestanas.join() === 'erp-tab-agenda,erp-tab-counter,erp-tab-stylists,erp-tab-clients', pestanas.join());
+  const barra = await pagina.locator('header nav button').evaluateAll((botones) => botones.map((boton) => boton.id));
+  check('la barra del Shell solo ofrece el ERP, sin estudio ni reservas', barra.join() === 'tab-mfe-gestion', barra.join());
 
   // 2. Agenda: llegada y ausencia
   const filaLlegada = erp.locator('.agenda-row', { hasText: 'Prueba llegada' });

@@ -86,7 +86,7 @@ Tu base de datos parte de las semillas del proyecto, no de los datos de otro int
 
 ## Pruebas
 
-Los comandos de cada suite están en el manual, sección 7. Últimos conteos: orquestador 47, `ms-gestion` 77, CRM 54, `ms-asesoria` 87, `ms-ia` 180, `mcp-server` 64, `mfe-gestion` 37, `mfe-estudio-ia` 38, Shell 15, `mfe-reservas` 11, móvil 83, integración en vivo 325 y navegador 193 comprobaciones.
+Los comandos de cada suite están en el manual, sección 7. Últimos conteos: orquestador 47, `ms-gestion` 77, CRM 54, `ms-asesoria` 87, `ms-ia` 180, `mcp-server` 64, `mfe-gestion` 37, `mfe-estudio-ia` 38, Shell 18, `mfe-reservas` 11, móvil 83, integración en vivo 325 y navegador 193 comprobaciones.
 
 **Gastan dinero o cupo:**
 - **Replicate:** `IMAGENES_REALES=1` en `tests/e2e/generacion_imagenes.e2e.mjs` y `integration_test/image_generation_real_test.dart`. Nunca los ejecutes sin permiso. Las pruebas de `TestConjunto` usan una imagen dañada a propósito para detenerse antes del proveedor: mantén ese diseño.

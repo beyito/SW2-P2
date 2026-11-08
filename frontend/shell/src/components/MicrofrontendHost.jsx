@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { visibleTabsFor } from '../tabs';
 import { Sparkles, Calendar, LayoutDashboard, RefreshCw } from 'lucide-react';
 
 // Contratos de integración de los tres microfrontends, cargados con Module Federation
@@ -48,9 +49,10 @@ export default function MicrofrontendHost({ activeTab, currentUser, getToken, on
   const canManage = currentUser.role !== 'CLIENT';
   useEffect(() => {
     Object.entries(MFE_CONFIGS)
-      .filter(([tab]) => tab !== 'gestion' || canManage)
+      // Solo se precargan los módulos que este rol puede abrir
+      .filter(([tab]) => visibleTabsFor(currentUser.role, canManage).some((visible) => visible.id === tab))
       .forEach(([, remote]) => remote.load().catch(() => {}));
-  }, [canManage]);
+  }, [canManage, currentUser.role]);
 
   // Un microfrontend que no carga solo afecta a su pestaña: el Shell y los demás siguen funcionando
   useEffect(() => {

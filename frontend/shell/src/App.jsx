@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { initialTabFor } from './tabs';
 import Navbar from './components/Navbar';
 import MicrofrontendHost from './components/MicrofrontendHost';
 import OfflineBanner from './components/OfflineBanner';
@@ -53,8 +54,8 @@ export default function App() {
         if (!authenticated) return;
         const identity = currentUser();
         setUser(identity);
-        // La recepción trabaja en el ERP: empieza ahí y no en el estudio del cliente
-        if (identity.role === 'RECEPTIONIST') setActiveTab('gestion');
+        // Cada rol empieza en su primera pestaña: la recepción, en el ERP
+        setActiveTab(initialTabFor(identity.role, ['ADMIN', 'STYLIST', 'RECEPTIONIST'].includes(identity.role)));
         setStatus('ready');
       })
       .catch(() => setStatus('error'));

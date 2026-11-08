@@ -1,15 +1,10 @@
 import React from 'react';
-import { Sparkles, Calendar, LayoutDashboard, LogOut, UserCheck } from 'lucide-react';
-
-const TABS = [
-  { id: 'estudio-ia', label: 'Estudio IA & Comunidad', icon: Sparkles },
-  { id: 'reservas', label: 'Reservas', icon: Calendar },
-  { id: 'gestion', label: 'ERP & Inventario', icon: LayoutDashboard, staffOnly: true },
-];
+import { Sparkles, LogOut, UserCheck } from 'lucide-react';
+import { visibleTabsFor } from '../tabs';
 
 export default function Navbar({ activeTab, setActiveTab, currentUser, canManage, onLogout }) {
-  // El módulo de gestión solo se ofrece al personal; el backend también lo exige
-  const visibleTabs = TABS.filter((tab) => !tab.staffOnly || canManage);
+  // Cada rol ve sus pestañas; el backend también exige el rol en cada petición
+  const visibleTabs = visibleTabsFor(currentUser.role, canManage);
 
   return (
     <header className="glass-panel" style={{ margin: '16px 24px', padding: '14px 28px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: '16px', zIndex: 100 }}>
