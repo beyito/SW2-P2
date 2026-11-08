@@ -3,5 +3,5 @@
 *.js text eol=lf
 *.sql text eol=lf
 *.py text eol=lf
-# Bash lee los guiones y la configuración del despliegue: un  al final rompería los valores
+# Bash lee los guiones y la configuración del despliegue: un retorno de carro (CR) rompería los valores
 deploy/** text eol=lf
