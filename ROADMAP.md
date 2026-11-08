@@ -432,6 +432,20 @@ Pedida por el usuario el 8 de noviembre de 2026 para que el móvil no dependa de
 - **Hora elegida a mano:** sin copia de los turnos, no se puede saber si está libre hasta enviarla.
 - **Comprobante del móvil:** se arma en el teléfono con los datos del CRM, sin la referencia del pago de Stripe, que GraphQL no expone.
 
+## WhatsApp con la cuenta de Meta (CU-19, RF-12) (En curso)
+El 8 de noviembre de 2026 se conectó la app de Meta de un compañero del usuario.
+
+- [x] Variables en `.env`, cargadas en n8n, y el webhook expuesto con un túnel de `cloudflared`.
+- [x] **Webhook verificado por Meta:** n8n devuelve el desafío solo con el `WHATSAPP_VERIFY_TOKEN` correcto.
+- [x] **Mensaje de prueba recibido:** el mensaje de prueba del panel llegó y se procesó. La respuesta falló con el error 131030 de Meta, porque el remitente de prueba es ficticio y no está en la lista de destinatarios; es lo esperado.
+- [x] **Firma de Meta:** el flujo entrante comprueba `X-Hub-Signature-256` con `WHATSAPP_APP_SECRET` y descarta lo que no esté firmado o esté firmado con otra clave. Las pruebas en vivo firman sus mensajes como Meta y usan su propia configuración, sin heredar la cuenta real del `.env`. Pasaron 24/24, 2 de ellas nuevas. Con la configuración real, un aviso sin firma enviado por el túnel se descartó antes de responder.
+- [ ] **Envío real:** confirmación, recordatorio y alerta de stock, cuando Meta apruebe las plantillas.
+
+**Limitaciones conocidas:**
+- **App sin publicar:** las respuestas de clientes reales no llegan, solo las pruebas del panel. Publicarla requiere, entre otras cosas, una política de privacidad.
+- **Túnel rápido:** su dirección cambia al reabrirlo; no sirve para producción.
+- **Lista de destinatarios:** solo se puede escribir a los números agregados en ella.
+
 ---
 
 ## Matriz de Avance por Caso de Uso
@@ -458,7 +472,7 @@ Estado actualizado al cierre de cada fase. ✅ completo y verificado en vivo. �
 | CU-16 | Asesoría para redes sociales | ✅ (web y móvil) | G, L |
 | CU-17 | Métricas por agente (MCP) | ✅ (tres agentes con Skills; cambios con confirmación de una persona) | F, H, J |
 | CU-18 | Reportes por lenguaje natural | ✅ (texto y voz) | F, G |
-| CU-19 | Recordatorios y reservas por WhatsApp | 🟡 (flujos reales; envío a Meta sin probar por falta de cuenta) | H |
+| CU-19 | Recordatorios y reservas por WhatsApp | 🟡 (cuenta de Meta conectada: webhook verificado y mensaje de prueba recibido; envío real pendiente de la aprobación de las plantillas) | H |
 | CU-20 | Publicar look | ✅ (web y móvil) | F, L |
 | CU-21 | Reaccionar y comentar | ✅ (web y móvil) | F, L |
 | CU-22 | Sincronizar cola offline | ✅ (web y Android) | H |

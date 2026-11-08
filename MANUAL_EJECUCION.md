@@ -167,7 +167,34 @@ El Shell carga los tres microfrontends con Module Federation, en una sola págin
 
 ## 10. WhatsApp
 
-Sin credenciales, los recordatorios y las confirmaciones llegan como avisos dentro de la aplicación. Para enviarlos de verdad, cree una app en [Meta for Developers](https://developers.facebook.com/), defina en `.env` las variables `WHATSAPP_*` de `.env.example` y ejecute `docker compose up -d n8n`. El cliente debe autorizarlo en "Mi perfil". Para recibir respuestas, Meta debe poder llegar a `/webhook/whatsapp/entrante`, lo que requiere una dirección pública. Fuera de una conversación abierta, Meta solo admite plantillas aprobadas.
+Sin credenciales, los recordatorios y las confirmaciones llegan como avisos dentro de la aplicación. Para enviarlos de verdad, cree una app en [Meta for Developers](https://developers.facebook.com/), defina en `.env` las variables `WHATSAPP_*` de `.env.example` y ejecute `docker compose up -d n8n`. El cliente debe autorizarlo en "Mi perfil" y tener su teléfono en el CRM con código de país, solo dígitos.
+
+| Variable | De dónde sale |
+| :--- | :--- |
+| `WHATSAPP_TOKEN` y `WHATSAPP_PHONE_NUMBER_ID` | Panel de la app de Meta, en WhatsApp > Configuración de la API. Use un token permanente de un usuario del sistema. |
+| `WHATSAPP_APP_SECRET` | Panel de la app, en Configuración > Básica > Clave secreta de la app. Con ella n8n descarta los mensajes entrantes que no firmó Meta. |
+| `WHATSAPP_VERIFY_TOKEN` | Una clave que usted inventa; debe coincidir con la del webhook en Meta. |
+| `WHATSAPP_ADMIN_PHONE` | Número que recibe las alertas de stock, con código de país, por ejemplo `59170000000`. |
+| `WHATSAPP_TEMPLATE_*` | Nombres de las plantillas aprobadas en Meta. |
+| `WHATSAPP_API_URL` | Versión de la API de Graph, por ejemplo `https://graph.facebook.com/v23.0`. |
+
+**Plantillas.** Fuera de una conversación abierta en las últimas 24 horas, Meta solo admite plantillas aprobadas. Créelas en categoría "Utilidad" e idioma "Español" (`es`), con las variables en este orden:
+
+| Plantilla | Variables |
+| :--- | :--- |
+| Confirmación | {{1}} nombre del cliente, {{2}} servicio |
+| Recordatorio | {{1}} servicio, {{2}} estilista, {{3}} fecha y hora ("lunes 30 de noviembre a las 10:00") |
+| Stock | {{1}} insumos en nivel crítico |
+
+**Recibir respuestas.** Meta envía los mensajes del cliente a `/webhook/whatsapp/entrante`, y para eso necesita una dirección HTTPS pública. En un equipo local, abra un túnel y déjelo abierto:
+
+```powershell
+cloudflared tunnel --no-autoupdate --url http://localhost:5678
+```
+
+En Meta, en WhatsApp > Configuración > Webhook, ponga la dirección que muestra el túnel con `/webhook/whatsapp/entrante` al final y el mismo `WHATSAPP_VERIFY_TOKEN`; después, suscríbase al campo `messages`. La dirección de este túnel rápido cambia cada vez que se abre: es para pruebas. En producción se usa un túnel con nombre y dominio propio, o un servidor con dirección pública.
+
+**Mientras la app de Meta no esté publicada:** solo se puede escribir a los números agregados en la lista de destinatarios (error 131030 si no está), y solo llegan los mensajes de prueba enviados desde el panel.
 
 ## Recepción y mostrador
 

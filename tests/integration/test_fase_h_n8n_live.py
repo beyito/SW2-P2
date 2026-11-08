@@ -4,6 +4,8 @@ La API de WhatsApp se sustituye por un servidor local que captura lo que n8n le 
 Reinicia n8n con esa configuración y lo restaura al terminar. Lo que crea se borra.
 """
 import datetime
+import hashlib
+import hmac
 import http.server
 import json
 import os
@@ -26,6 +28,19 @@ CLAVE = "clave-local-de-automatizacion"
 PUERTO = 19099
 TOKEN_WA = "token-de-prueba"
 TELEFONO_ADMIN = "59170000000"
+SECRETO_APP = "secreto-de-app-de-prueba"
+# Configuración propia de la prueba: no debe heredar del .env la cuenta real de Meta ni sus plantillas
+WHATSAPP_PRUEBA = {
+    "WHATSAPP_API_URL": f"http://host.docker.internal:{PUERTO}",
+    "WHATSAPP_TOKEN": TOKEN_WA,
+    "WHATSAPP_PHONE_NUMBER_ID": "123",
+    "WHATSAPP_VERIFY_TOKEN": "verificar",
+    "WHATSAPP_ADMIN_PHONE": f"+{TELEFONO_ADMIN}",
+    "WHATSAPP_APP_SECRET": SECRETO_APP,
+    "WHATSAPP_TEMPLATE_CONFIRMACION": "",
+    "WHATSAPP_TEMPLATE_RECORDATORIO": "",
+    "WHATSAPP_TEMPLATE_STOCK": "",
+}
 ZONA = zoneinfo.ZoneInfo("America/La_Paz")
 ESTILISTA = "sty-103"
 
@@ -66,13 +81,7 @@ def reiniciar_n8n(**entorno):
 def whatsapp():
     servidor = http.server.ThreadingHTTPServer(("0.0.0.0", PUERTO), WhatsappFalso)
     threading.Thread(target=servidor.serve_forever, daemon=True).start()
-    reiniciar_n8n(
-        WHATSAPP_API_URL=f"http://host.docker.internal:{PUERTO}",
-        WHATSAPP_TOKEN=TOKEN_WA,
-        WHATSAPP_PHONE_NUMBER_ID="123",
-        WHATSAPP_VERIFY_TOKEN="verificar",
-        WHATSAPP_ADMIN_PHONE=f"+{TELEFONO_ADMIN}",
-    )
+    reiniciar_n8n(**WHATSAPP_PRUEBA)
     yield WhatsappFalso
     servidor.shutdown()
     reiniciar_n8n()
@@ -250,10 +259,7 @@ class TestRecordatorio:
             assert cita.avisos() == "0"
 
     def test_usa_la_plantilla_aprobada_si_esta_configurada(self, whatsapp):
-        reiniciar_n8n(
-            WHATSAPP_API_URL=f"http://host.docker.internal:{PUERTO}", WHATSAPP_TOKEN=TOKEN_WA, WHATSAPP_PHONE_NUMBER_ID="123",
-            WHATSAPP_TEMPLATE_RECORDATORIO="recordatorio_cita",
-        )
+        reiniciar_n8n(**{**WHATSAPP_PRUEBA, "WHATSAPP_TEMPLATE_RECORDATORIO": "recordatorio_cita"})
         try:
             autorizar()
             with CitaProxima():
@@ -263,10 +269,7 @@ class TestRecordatorio:
                 assert cuerpo["template"]["name"] == "recordatorio_cita"
                 assert cuerpo["template"]["components"][0]["parameters"][0]["text"] == "[prueba] Corte"
         finally:
-            reiniciar_n8n(
-                WHATSAPP_API_URL=f"http://host.docker.internal:{PUERTO}", WHATSAPP_TOKEN=TOKEN_WA, WHATSAPP_PHONE_NUMBER_ID="123",
-                WHATSAPP_VERIFY_TOKEN="verificar", WHATSAPP_ADMIN_PHONE=f"+{TELEFONO_ADMIN}",
-            )
+            reiniciar_n8n(**WHATSAPP_PRUEBA)
 
 
 class TestStock:
@@ -277,10 +280,27 @@ class TestStock:
         assert "E2E-KERATINA" in mensaje["text"]["body"]
 
 
+def enviar_a_n8n(cuerpo, firma=True, secreto=SECRETO_APP):
+    """Envía el aviso como Meta: el cuerpo exacto y su firma HMAC-SHA256 con la clave de la app."""
+    datos = json.dumps(cuerpo).encode()
+    cabeceras = {"Content-Type": "application/json"}
+    if firma:
+        cabeceras["X-Hub-Signature-256"] = "sha256=" + hmac.new(secreto.encode(), datos, hashlib.sha256).hexdigest()
+    return httpx.post(f"{N8N}/webhook/whatsapp/entrante", content=datos, headers=cabeceras, timeout=15)
+
+
 class TestEntrante:
-    def entrante(self, texto, tipo="text"):
+    def entrante(self, texto, tipo="text", **firma):
         cuerpo = {"entry": [{"changes": [{"value": {"messages": [{"from": "59171111111", "type": tipo, "text": {"body": texto}}]}}]}]}
-        assert httpx.post(f"{N8N}/webhook/whatsapp/entrante", json=cuerpo, timeout=15).status_code == 200
+        assert enviar_a_n8n(cuerpo, **firma).status_code == 200
+
+    def test_un_aviso_sin_firma_se_descarta(self, whatsapp):
+        self.entrante("Quiero reservar una cita", firma=False)
+        sin_mensajes(whatsapp, 4)
+
+    def test_un_aviso_con_otra_clave_se_descarta(self, whatsapp):
+        self.entrante("Quiero reservar una cita", secreto="clave-de-un-atacante")
+        sin_mensajes(whatsapp, 4)
 
     def test_reservar_responde_con_los_servicios_y_precios_reales(self, whatsapp):
         self.entrante("Quiero reservar una cita")
@@ -297,7 +317,7 @@ class TestEntrante:
 
     def test_ignora_los_avisos_de_entrega_de_meta(self, whatsapp):
         cuerpo = {"entry": [{"changes": [{"value": {"statuses": [{"status": "delivered"}]}}]}]}
-        assert httpx.post(f"{N8N}/webhook/whatsapp/entrante", json=cuerpo, timeout=15).status_code == 200
+        assert enviar_a_n8n(cuerpo).status_code == 200
         sin_mensajes(whatsapp, 3)
 
     def test_verificacion_de_meta(self):

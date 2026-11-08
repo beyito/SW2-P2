@@ -8,7 +8,9 @@
         "httpMethod": "POST",
         "path": "whatsapp/entrante",
         "responseMode": "onReceived",
-        "options": {}
+        "options": {
+          "rawBody": true
+        }
       },
       "name": "Mensaje de WhatsApp",
       "type": "n8n-nodes-base.webhook",
@@ -108,6 +110,21 @@
         500
       ],
       "id": "salonentrante-5"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "// Meta firma cada aviso con la clave secreta de la app (X-Hub-Signature-256): lo que no esté firmado no se procesa.\n// Sin clave configurada (desarrollo local con la API simulada) se acepta como antes; en producción debe estar definida.\nconst secret = $env.WHATSAPP_APP_SECRET;\nif (!secret) return $input.all();\n\nconst crypto = require('crypto');\nconst item = $input.first();\nconst header = String(item.json.headers?.['x-hub-signature-256'] ?? '');\nlet raw;\ntry {\n  raw = await this.helpers.getBinaryDataBuffer(0, 'data');\n} catch (error) {\n  throw new Error('El aviso llegó sin cuerpo: se descarta.');\n}\nconst expected = 'sha256=' + crypto.createHmac('sha256', secret).update(raw).digest('hex');\nconst received = Buffer.from(header);\nconst valid = Buffer.from(expected);\n// Comparación en tiempo constante: no revela cuántos caracteres coinciden\nif (received.length !== valid.length || !crypto.timingSafeEqual(received, valid)) {\n  throw new Error('Firma de Meta inválida: el aviso se descarta.');\n}\nreturn $input.all();\n"
+      },
+      "id": "salonentrante-firma",
+      "name": "Comprobar firma",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        360,
+        200
+      ]
     }
   ],
   "connections": {
@@ -115,7 +132,7 @@
       "main": [
         [
           {
-            "node": "Preparar respuesta",
+            "node": "Comprobar firma",
             "type": "main",
             "index": 0
           }
@@ -154,11 +171,22 @@
           }
         ]
       ]
+    },
+    "Comprobar firma": {
+      "main": [
+        [
+          {
+            "node": "Preparar respuesta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "settings": {
     "executionOrder": "v1"
   },
   "pinData": {},
-  "versionId": "salonentrante-v1"
+  "versionId": "salonentrante-v2"
 }
