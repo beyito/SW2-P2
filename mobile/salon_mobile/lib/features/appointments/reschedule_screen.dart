@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/api/api_client.dart';
 import '../../core/config.dart';
+import '../booking/booking_flow.dart';
 
 const _slots = r'query ($s: String!, $v: String!, $d: String!) { getAvailableSlots(stylistId: $s, serviceId: $v, date: $d) { start end } }';
 const _reschedule = r'mutation ($id: ID!, $d: String!) { rescheduleAppointment(id: $id, newDate: $d) { id } }';
@@ -30,6 +31,8 @@ class _RescheduleScreenState extends State<RescheduleScreen> {
   bool _busy = false;
   String? _error;
   int _request = 0;
+  /// Sin conexión y sin copia de los turnos de ese día, se elige la hora a mano y se confirma al volver la red.
+  bool _manual = false;
 
   DateTime _now() => (widget.now ?? DateTime.now)();
 
@@ -52,6 +55,7 @@ class _RescheduleScreenState extends State<RescheduleScreen> {
       _available = null;
       _slot = null;
       _error = null;
+      _manual = false;
     });
     try {
       final data = await widget.api.graphql(Config.gestion, _slots, variables: {
@@ -62,6 +66,8 @@ class _RescheduleScreenState extends State<RescheduleScreen> {
       final now = _now();
       final slots = (data['getAvailableSlots'] as List).where((slot) => DateTime.parse(slot['start'] as String).isAfter(now)).toList();
       if (mounted && request == _request) setState(() => _available = slots);
+    } on OfflineException {
+      if (mounted && request == _request) setState(() => _manual = true);
     } on Exception catch (error) {
       if (mounted && request == _request) setState(() => _error = error.toString());
     }
@@ -81,6 +87,22 @@ class _RescheduleScreenState extends State<RescheduleScreen> {
     }
   }
 
+  Future<void> _pickTime() async {
+    final picked = await showTimePicker(context: context, initialTime: const TimeOfDay(hour: 10, minute: 0));
+    if (picked == null) return;
+    final slot = '${_isoDate(_date)}T${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}:00';
+    if (!DateTime.parse(slot).isAfter(_now())) {
+      setState(() => _error = 'Elige una hora futura.');
+      return;
+    }
+    setState(() {
+      _slot = slot;
+      _error = null;
+    });
+  }
+
+  /// Con conexión se confirma al instante; sin ella queda en la cola y el salón la valida al recibirla.
+  /// Devuelve a "Mis citas" 'done' o 'queued'.
   Future<void> _confirm() async {
     final slot = _slot;
     if (slot == null) return;
@@ -89,15 +111,9 @@ class _RescheduleScreenState extends State<RescheduleScreen> {
       _error = null;
     });
     try {
-      final response = await widget.api.send('POST', Config.gestion, body: {
-        'query': _reschedule,
-        'variables': {'id': widget.appointment['id'], 'd': slot},
-      }) as Map<String, dynamic>;
-      final errors = response['errors'] as List?;
-      if (errors != null && errors.isNotEmpty) throw ApiException(errors.first['message'] as String);
-      if (mounted) Navigator.of(context).pop(true);
-    } on OfflineException {
-      setState(() => _error = 'Reprogramar requiere conexión.');
+      final label = 'Reprogramar ${widget.appointment['serviceName']} al ${slot.replaceFirst('T', ' ').substring(0, 16)}';
+      final result = await widget.api.mutate(rescheduleKind, label, Config.gestion, _reschedule, {'id': widget.appointment['id'], 'd': slot});
+      if (mounted) Navigator.of(context).pop(result.queued ? 'queued' : 'done');
     } on Exception catch (error) {
       setState(() => _error = error.toString());
     } finally {
@@ -116,6 +132,17 @@ class _RescheduleScreenState extends State<RescheduleScreen> {
         const SizedBox(height: 12),
         OutlinedButton.icon(key: const Key('reschedule-date'), onPressed: _pickDate, icon: const Icon(Icons.calendar_month), label: Text('Fecha: ${_isoDate(_date)}')),
         const SizedBox(height: 8),
+        if (_manual) ...[
+          const Text('Sin conexión no se ven los turnos libres. Elige una hora: se confirmará al volver la red, y si el turno '
+              'ya está ocupado te avisaremos.', key: Key('reschedule-offline')),
+          const SizedBox(height: 8),
+          OutlinedButton.icon(
+            key: const Key('reschedule-time'),
+            onPressed: _pickTime,
+            icon: const Icon(Icons.access_time),
+            label: Text(_slot == null ? 'Elegir hora' : 'Hora: ${_slot!.substring(11, 16)}'),
+          ),
+        ],
         if (_available != null && _available!.isEmpty) const Text('No quedan turnos libres ese día.'),
         if (_available != null)
           Wrap(spacing: 8, runSpacing: 8, children: [

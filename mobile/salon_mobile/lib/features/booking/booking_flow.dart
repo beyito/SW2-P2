@@ -20,6 +20,13 @@ const _failures = {
   'POINTS_EXCEED_LIMIT': 'Esa cantidad de puntos supera el máximo para este servicio. El turno quedó libre.',
 };
 
+/// Tipos de operación en la cola para una cita: "Mis citas" los usa para mostrar lo pendiente.
+const cancelKind = 'appointment-cancel';
+const rescheduleKind = 'appointment-reschedule';
+
+/// La cancelación sin conexión se envía después: el reembolso llega cuando se procese.
+const queuedCancelMessage = 'Sin conexión: la cancelación se enviará al volver la red y entonces se reembolsará tu pago.';
+
 const _cancelRejections = {
   'TOO_LATE': 'La cita ya comenzó o ya pasó: no se puede cancelar.',
   'NOT_CANCELLABLE': 'La cita ya no se puede cancelar.',
@@ -135,9 +142,11 @@ class BookingFlow {
   }
 
   /// Cancela una reserva pagada y espera el reembolso (CU-07): cita, dinero y nota de crédito, en ese orden.
-  /// Devuelve null si se reembolsó, o el motivo para mostrar si no se pudo.
-  Future<String?> cancel(String sagaId) async {
-    await api.send('POST', '${Config.saga}/bookings/$sagaId/cancel');
+  /// Devuelve null si se reembolsó, o el motivo para mostrar si no se pudo. Sin conexión, la cancelación
+  /// queda en la cola: el orquestador la acepta una sola vez aunque llegue repetida.
+  Future<String?> cancel(String sagaId, {String label = 'Cancelar una cita'}) async {
+    final result = await api.write(cancelKind, label, 'POST', '${Config.saga}/bookings/$sagaId/cancel');
+    if (result.queued) return queuedCancelMessage;
     // El reembolso pasa por Stripe y el CRM: puede tardar varios segundos
     var current = await view(sagaId);
     for (var attempt = 0; attempt < maxPolls * 2 && !current.refunded && current.cancelRejectedReason == null; attempt++) {

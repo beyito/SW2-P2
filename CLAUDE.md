@@ -86,7 +86,7 @@ Tu base de datos parte de las semillas del proyecto, no de los datos de otro int
 
 ## Pruebas
 
-Los comandos de cada suite están en el manual, sección 7. Últimos conteos: orquestador 47, `ms-gestion` 77, CRM 54, `ms-asesoria` 87, `ms-ia` 180, `mcp-server` 64, `mfe-gestion` 37, `mfe-estudio-ia` 38, Shell 15, `mfe-reservas` 11, móvil 77, integración en vivo 325 y navegador 193 comprobaciones.
+Los comandos de cada suite están en el manual, sección 7. Últimos conteos: orquestador 47, `ms-gestion` 77, CRM 54, `ms-asesoria` 87, `ms-ia` 180, `mcp-server` 64, `mfe-gestion` 37, `mfe-estudio-ia` 38, Shell 15, `mfe-reservas` 11, móvil 83, integración en vivo 325 y navegador 193 comprobaciones.
 
 **Gastan dinero o cupo:**
 - **Replicate:** `IMAGENES_REALES=1` en `tests/e2e/generacion_imagenes.e2e.mjs` y `integration_test/image_generation_real_test.dart`. Nunca los ejecutes sin permiso. Las pruebas de `TestConjunto` usan una imagen dañada a propósito para detenerse antes del proveedor: mantén ese diseño.
@@ -133,6 +133,7 @@ Los comandos de cada suite están en el manual, sección 7. Últimos conteos: or
 - `position: fixed` queda atrapado por el `backdrop-filter` del Shell: las ventanas modales de un microfrontend van con portal a `document.body`.
 - Ya no hay iframes: las pruebas E2E usan `page.locator('#mfe-root')`.
 - **Frontends en Docker:** Compose los sirve compilados en los puertos 3000 a 3003. Para desarrollar uno, detén su contenedor (`docker compose stop shell`) antes de `npm run dev`, o el puerto estará ocupado. Tras cambiar su código, reconstrúyelo con `docker compose up -d --build <servicio>`.
+- **Mutaciones sin conexión en el móvil:** usa `ApiClient.mutate`, no `send`: deja la operación en la cola si no hay red y revisa los errores de GraphQL, que llegan con HTTP 200.
 - **Consultas GraphQL:** escribe cada consulta en un solo texto literal. `test_contratos_frontend.py` las extrae del código, también de los `.dart`, y las valida contra el esquema real; una consulta armada por partes la rompe.
 - `route.fulfill` de Playwright no sirve aquí, porque Chrome bloquea el acceso a localhost desde esa respuesta: usa `route.continue` hacia un servidor local.
 

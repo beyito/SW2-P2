@@ -154,6 +154,14 @@ class ApiClient {
     }
   }
 
+  /// Mutación GraphQL que no se pierde: sin conexión queda en la cola con su llave, como cualquier escritura.
+  Future<WriteResult> mutate(String kind, String label, String url, String query, Map<String, dynamic> variables) async {
+    final result = await write(kind, label, 'POST', url, body: {'query': query, 'variables': variables});
+    final errors = result.data is Map ? (result.data as Map)['errors'] : null;
+    if (errors is List && errors.isNotEmpty) throw ApiException('${errors.first['message']}');
+    return result;
+  }
+
   /// Sube un archivo para procesarlo en el servidor. Generar una imagen puede tardar más de un minuto.
   Future<dynamic> upload(String url, List<int> bytes, String filename, {Map<String, String> fields = const {}}) async {
     try {

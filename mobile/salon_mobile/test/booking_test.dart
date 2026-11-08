@@ -375,4 +375,99 @@ void main() {
       expect(find.text('Cita reprogramada.'), findsOneWidget);
     });
   });
+
+  group('sin conexión', () {
+    Map<String, dynamic> cita(String id, String status, {String? sagaId}) => {
+          'id': id, 'stylistId': 'sty-101', 'serviceId': 'srv-03', 'serviceName': 'Corte', 'stylistName': 'Valentina',
+          'appointmentDate': '2031-05-06T10:00:00', 'status': status, 'totalPrice': 45, 'sagaId': sagaId,
+        };
+
+    Future<void> abrirCitas(WidgetTester tester) async {
+      tester.view.physicalSize = const Size(800, 2000);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(MaterialApp(home: AppointmentsScreen(api: api, flow: flow, now: () => DateTime(2031, 5, 5, 8))));
+      await settle(tester);
+    }
+
+    Future<void> elegir(WidgetTester tester, String id, String accion) async {
+      await tester.tap(find.byKey(Key('manage-$id')));
+      await settle(tester);
+      await tester.tap(find.byKey(Key(accion)));
+      await settle(tester);
+    }
+
+    Future<List<QueuedOperation>> cola(WidgetTester tester) async => (await tester.runAsync(() => api.queue.list()))!;
+
+    testWidgets('cancelar una cita pagada queda en la cola y se envía al volver la red', (tester) async {
+      backend.appointments = [cita('futura', 'CONFIRMED', sagaId: 'saga-1')];
+      await abrirCitas(tester);
+      backend.offline = true;
+      await elegir(tester, 'futura', 'action-cancel');
+      await tester.tap(find.byKey(const Key('cancel-yes')));
+      await settle(tester);
+
+      expect(find.textContaining('se enviará al volver la red'), findsOneWidget);
+      final pendiente = (await cola(tester)).single;
+      expect(pendiente.url, endsWith('/bookings/saga-1/cancel'));
+      expect(find.byKey(const Key('pending-futura')), findsOneWidget);
+      expect(find.byKey(const Key('manage-futura')), findsNothing, reason: 'no se puede pedir dos veces');
+
+      backend.offline = false;
+      backend.calls.clear();
+      await tester.runAsync(() => api.queue.sync());
+      await settle(tester);
+      final enviada = backend.calls.singleWhere((call) => call.url.path.endsWith('/cancel'));
+      expect(enviada.headers['Idempotency-Key'], pendiente.idempotencyKey);
+      expect(await cola(tester), isEmpty);
+    });
+
+    testWidgets('cancelar una cita sin pago en línea queda en la cola como mutación', (tester) async {
+      backend.appointments = [cita('agendada', 'SCHEDULED')];
+      await abrirCitas(tester);
+      backend.offline = true;
+      await elegir(tester, 'agendada', 'action-cancel');
+      await tester.tap(find.byKey(const Key('cancel-yes')));
+      await settle(tester);
+      final pendiente = (await cola(tester)).single;
+      expect(jsonDecode(pendiente.body!)['variables'], {'id': 'agendada'});
+      expect(find.byKey(const Key('pending-agendada')), findsOneWidget);
+    });
+
+    testWidgets('reprogramar sin copia de turnos deja elegir la hora y queda en la cola', (tester) async {
+      backend.appointments = [cita('futura', 'CONFIRMED', sagaId: 'saga-1')];
+      await abrirCitas(tester);
+      backend.offline = true;
+      await elegir(tester, 'futura', 'action-reschedule');
+      expect(find.byKey(const Key('reschedule-offline')), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('reschedule-time')));
+      await settle(tester);
+      await tester.tap(find.text('OK'));
+      await settle(tester);
+      await tester.tap(find.byKey(const Key('reschedule-confirm')));
+      await settle(tester);
+
+      final pendiente = (await cola(tester)).single;
+      expect(jsonDecode(pendiente.body!)['variables'], {'id': 'futura', 'd': '2031-05-06T10:00:00'});
+      expect(find.textContaining('se enviará al volver la red'), findsOneWidget);
+      expect(find.byKey(const Key('pending-futura')), findsOneWidget);
+    });
+
+    testWidgets('reprogramar sin conexión usa los turnos que ya se vieron ese día', (tester) async {
+      backend.appointments = [cita('futura', 'CONFIRMED', sagaId: 'saga-1')];
+      await abrirCitas(tester);
+      await elegir(tester, 'futura', 'action-reschedule');
+      expect(find.byKey(const Key('reslot-10:00')), findsOneWidget);
+      tester.state<NavigatorState>(find.byType(Navigator)).pop();
+      // La pantalla anima su salida: un toque durante la animación no llega a la lista
+      await tester.pump(const Duration(seconds: 1));
+      await settle(tester);
+
+      backend.offline = true;
+      await elegir(tester, 'futura', 'action-reschedule');
+      expect(find.byKey(const Key('reschedule-offline')), findsNothing);
+      expect(find.byKey(const Key('reslot-10:00')), findsOneWidget);
+    });
+  });
 }

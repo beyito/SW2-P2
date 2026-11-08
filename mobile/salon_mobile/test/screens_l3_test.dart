@@ -220,6 +220,20 @@ void main() {
       expect(String.fromCharCodes(printer.printed.values.single.take(4)), '%PDF');
     });
 
+    testWidgets('sin conexión la cuenta muestra la última copia y el comprobante se imprime igual', (tester) async {
+      await abrir(tester, AccountScreen(api: api));
+      backend.offline = true;
+      final printer = FakePrinter();
+      await abrir(tester, AccountScreen(api: api, printer: printer));
+      expect(find.text('450 puntos'), findsOneWidget);
+      await tester.tap(find.byKey(const Key('invoice-inv-1')));
+      await settle(tester);
+      await tester.tap(find.byKey(const Key('invoice-print')));
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 500)));
+      await settle(tester);
+      expect(printer.printed.keys, ['Comprobante 17']);
+    });
+
     testWidgets('una cuenta sin ficha en el CRM la crea', (tester) async {
       backend.profile = null;
       await abrir(tester, AccountScreen(api: api));

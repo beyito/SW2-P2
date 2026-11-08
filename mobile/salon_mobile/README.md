@@ -3,7 +3,8 @@
 Flutter para Android e iOS. Inicia sesión con Keycloak y funciona sin conexión (RF-10, CU-13, CU-22).
 
 - **Diagnóstico:** en línea analiza `ms-ia`; sin conexión analiza el dispositivo, con los mismos modelos de MediaPipe y el clasificador propio en TFLite. Solo se guarda el resultado, nunca la foto.
-- **Cola local:** SQLite, con orden, `Idempotency-Key` y envío automático al recuperar la red. Cada usuario tiene su base.
+- **Cola local:** SQLite, con orden, `Idempotency-Key` y envío automático al recuperar la red. Cada usuario tiene su base. Sin conexión se puede reservar, reaccionar, comentar, cancelar y reprogramar; los rechazos del servidor, incluidos los de GraphQL, quedan como conflicto visible.
+- **Comprobantes:** se imprimen o guardan en PDF también sin conexión, con la última copia de las facturas.
 - **Lecturas:** se muestra sin conexión lo último que se vio.
 
 ## Preparación

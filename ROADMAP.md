@@ -417,8 +417,19 @@ Pedida por el usuario el 8 de noviembre de 2026 para que el móvil no dependa de
 - [x] En el emulador, como `camila.fernandez`, con los servicios y Stripe reales: reserva de Keratina pagada con el formulario de Stripe y reprogramada de las 10:00 a las 14:00, con estado `RESCHEDULED`. El comprobante 214 se abrió en el diálogo de impresión con todos sus datos. Al cancelar, la SAGA pasó de `COMPLETED` a `REFUNDED` con el reembolso de Stripe. La cita quedó cancelada y la keratina volvió a 3. La factura quedó reembolsada, con la nota de crédito 70 por 95 USD, y se revirtieron los 950 puntos. Al terminar se borraron los registros de la prueba.
 - [x] La prueba mostró que reprogramar empezaba en el día de hoy y no en el de la cita. Ya está corregido.
 
+**Sin conexión (ampliación pedida por el usuario):**
+- [x] **Imprimir** funciona sin red: el PDF se arma en el teléfono con la copia guardada de la factura. Antes se había declarado, por error, que requería conexión.
+- [x] **Cancelar y reprogramar** quedan en la cola local con su `Idempotency-Key` y se envían al volver la red. Reprogramar usa los turnos ya vistos ese día; si no hay copia, se elige la hora a mano. La cita muestra "Cancelación pendiente" o "Reprogramación pendiente" y oculta sus acciones, para no pedir dos veces.
+- [x] **La cola detecta los rechazos de GraphQL:** GraphQL responde 200 aunque la operación falle, y la cola los daba por hechos. Ahora quedan como conflicto con su mensaje, también si la respuesta trae bytes mal codificados.
+- [x] **Verificación:** móvil 83/83 (6 nuevas). En el emulador, con la red cortada (sin túneles de `adb`):
+  - **Reprogramar:** se reprogramó usando los turnos guardados; al volver la red, el servidor la dejó a las 14:00.
+  - **Imprimir:** el comprobante 215 se imprimió sin red.
+  - **Cancelar:** la cita pagada se canceló sin red. Al volver la red, la SAGA llegó a `REFUNDED` con el reembolso de Stripe, se emitió la nota de crédito 71 y volvieron el stock y los puntos.
+  - Al terminar se borraron los registros de la prueba.
+
 **Limitaciones conocidas:**
-- **Sin conexión:** cancelar, reprogramar e imprimir requieren conexión; la app lo avisa.
+- **Validación sin conexión:** el salón valida al recibir el cambio. Si la cita ya empezó o el turno se ocupó mientras tanto, la operación aparece como conflicto en la cola y la cita no cambia.
+- **Hora elegida a mano:** sin copia de los turnos, no se puede saber si está libre hasta enviarla.
 - **Comprobante del móvil:** se arma en el teléfono con los datos del CRM, sin la referencia del pago de Stripe, que GraphQL no expone.
 
 ---

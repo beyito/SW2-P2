@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -116,6 +118,17 @@ void main() {
     expect(calls, 2);
     await queue.discard(items.single.id);
     expect(await queue.list(), isEmpty);
+  });
+
+  test('un rechazo de GraphQL con HTTP 200 queda como conflicto con su mensaje', () async {
+    final queue = queueWith((_) async => http.Response.bytes(
+        utf8.encode(jsonEncode({'errors': [{'message': 'El turno ya no está disponible'}], 'data': null})), 200,
+        headers: {'content-type': 'application/json'}));
+    await add(queue);
+    await queue.sync();
+    final item = (await queue.list()).single;
+    expect(item.status, QueuedOperation.conflict);
+    expect(item.error, 'El turno ya no está disponible');
   });
 
   test('borrar algo que ya no existe cuenta como hecho', () async {

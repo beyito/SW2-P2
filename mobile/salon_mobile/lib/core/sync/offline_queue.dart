@@ -84,6 +84,10 @@ class OfflineQueue {
     _changes.add(null);
   }
 
+  /// Operaciones de un tipo que siguen pendientes de envío.
+  Future<List<QueuedOperation>> pendingOf(String kind) async =>
+      (await list()).where((item) => item.kind == kind && item.status == QueuedOperation.pending).toList();
+
   /// Retira de la cola las operaciones de un tipo; por ejemplo, los diagnósticos al revocar el consentimiento.
   Future<void> discardKind(String kind) async {
     await _db.delete('queue', where: 'kind = ?', whereArgs: [kind]);
@@ -126,7 +130,7 @@ class OfflineQueue {
     }
     // Un error del servidor puede ser pasajero: se conserva el orden y se reintenta después
     if (response.statusCode >= 500) return false;
-    final ok = response.statusCode >= 200 && response.statusCode < 300;
+    final ok = response.statusCode >= 200 && response.statusCode < 300 && _graphqlError(response) == null;
     if (ok || (item.method == 'DELETE' && response.statusCode == 404)) {
       await _db.delete('queue', where: 'id = ?', whereArgs: [item.id]);
       return true;
@@ -141,7 +145,21 @@ class OfflineQueue {
     return true;
   }
 
+  /// GraphQL informa los rechazos con HTTP 200 y una lista de errores: sin esto se perderían en silencio.
+  String? _graphqlError(http.Response response) {
+    try {
+      // Tolerante con bytes mal codificados: un rechazo nunca debe confundirse con un éxito
+      final body = jsonDecode(utf8.decode(response.bodyBytes, allowMalformed: true));
+      final errors = body is Map ? body['errors'] : null;
+      return errors is List && errors.isNotEmpty ? '${errors.first['message']}' : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
   String _messageOf(http.Response response) {
+    final graphql = _graphqlError(response);
+    if (graphql != null) return graphql;
     try {
       final body = jsonDecode(utf8.decode(response.bodyBytes));
       final detail = body['detail'];

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'dart:async';
+
 import '../../core/api/api_client.dart';
 import '../../core/config.dart';
 import '../../core/tab_refresh.dart';
@@ -40,6 +42,9 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
   List<dynamic>? _items;
   String? _error;
   String? _paying;
+  /// Cambios de cada cita que esperan conexión: id de la cita y qué se pidió.
+  Map<String, String> _pending = {};
+  StreamSubscription<void>? _queueChanges;
 
   VoidCallback? _stopListening;
 
@@ -48,20 +53,42 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
     super.initState();
     _reload();
     _stopListening = widget.refresh?.listen(_reload);
+    // Al enviarse la cola, la cita cambia en el servidor: se vuelve a leer
+    _queueChanges = widget.api.queue.changes.listen((_) => _reload());
   }
 
   @override
   void dispose() {
     _stopListening?.call();
+    _queueChanges?.cancel();
     super.dispose();
+  }
+
+  /// Relaciona cada operación pendiente con su cita: la cancelación pagada lleva el sagaId en la ruta,
+  /// lo demás lleva el id de la cita en el cuerpo.
+  Future<Map<String, String>> _pendingChanges(List<dynamic> items) async {
+    final pending = <String, String>{};
+    for (final kind in [cancelKind, rescheduleKind]) {
+      for (final operation in await widget.api.queue.pendingOf(kind)) {
+        for (final item in items) {
+          final saga = item['sagaId'] as String?;
+          final matches = (saga != null && operation.url.contains(saga)) || (operation.body?.contains('"${item['id']}"') ?? false);
+          if (matches) pending[item['id'] as String] = kind == cancelKind ? 'Cancelación pendiente' : 'Reprogramación pendiente';
+        }
+      }
+    }
+    return pending;
   }
 
   Future<void> _reload() async {
     try {
       final data = await widget.api.graphql(Config.gestion, _query);
+      final items = data['getMyAppointments'] as List;
+      final pending = await _pendingChanges(items);
       if (mounted) {
         setState(() {
-          _items = data['getMyAppointments'] as List;
+          _items = items;
+          _pending = pending;
           _error = null;
         });
       }
@@ -124,8 +151,9 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
   }
 
   Future<void> _reschedule(Map<String, dynamic> item) async {
-    final done = await Navigator.of(context).push<bool>(MaterialPageRoute(builder: (_) => RescheduleScreen(api: widget.api, appointment: item, now: widget.now)));
-    if (done == true) _notify('Cita reprogramada.');
+    final done = await Navigator.of(context).push<String>(MaterialPageRoute(builder: (_) => RescheduleScreen(api: widget.api, appointment: item, now: widget.now)));
+    if (done == 'done') _notify('Cita reprogramada.');
+    if (done == 'queued') _notify('Sin conexión: el cambio de horario se enviará al volver la red.');
     await _reload();
   }
 
@@ -145,16 +173,14 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
     if (confirmed != true) return;
     setState(() => _paying = item['id'] as String);
     try {
+      final label = 'Cancelar ${item['serviceName']} del ${(item['appointmentDate'] as String).replaceFirst('T', ' ').substring(0, 16)}';
       if (paid) {
-        final problem = await widget.flow.cancel(item['sagaId'] as String);
+        final problem = await widget.flow.cancel(item['sagaId'] as String, label: label);
         _notify(problem ?? 'Cita cancelada y pago reembolsado.');
       } else {
-        final response = await widget.api.send('POST', Config.gestion, body: {'query': _cancelUnpaid, 'variables': {'id': item['id']}}) as Map<String, dynamic>;
-        final errors = response['errors'] as List?;
-        _notify(errors != null && errors.isNotEmpty ? errors.first['message'] as String : 'Cita cancelada.');
+        final result = await widget.api.mutate(cancelKind, label, Config.gestion, _cancelUnpaid, {'id': item['id']});
+        _notify(result.queued ? 'Sin conexión: la cancelación se enviará al volver la red.' : 'Cita cancelada.');
       }
-    } on OfflineException {
-      _notify('Cancelar requiere conexión.');
     } on Exception catch (error) {
       _notify(error.toString());
     } finally {
@@ -190,7 +216,9 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                         onPressed: _paying == null ? () => _pay(item['sagaId'] as String) : null,
                         child: Text(_paying == item['sagaId'] ? 'Pagando...' : 'Pagar'),
                       )
-                    : _isOpen(item as Map<String, dynamic>)
+                    : _pending.containsKey(item['id'])
+                        ? Text(_pending[item['id']]!, key: Key('pending-${item['id']}'), style: const TextStyle(color: Color(0xFFF5D061)))
+                        : _isOpen(item as Map<String, dynamic>)
                         ? TextButton(
                             key: Key('manage-${item['id']}'),
                             onPressed: _paying == null ? () => _manage(item) : null,
