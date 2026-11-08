@@ -32,7 +32,7 @@ Guía para poner en marcha el entorno local. El avance real de cada funcionalida
 ## 2. Requisitos Previos
 
 - Docker Desktop con Docker Compose.
-- Node.js 22 o superior, para los microfrontends (Angular 21 lo exige).
+- Node.js 22 o superior, solo para desarrollar los microfrontends o correr sus pruebas (Angular 21 lo exige).
 - Flutter SDK, solo para el cliente móvil.
 
 ---
@@ -67,7 +67,7 @@ Desde la raíz del proyecto:
 .\start-all.ps1
 ```
 
-El script construye y levanta el backend con Docker Compose, espera a que esté `healthy` y abre una ventana por cada microfrontend.
+El script construye y levanta toda la plataforma con Docker Compose, incluidos los cuatro microfrontends, y espera a que esté `healthy`.
 
 ---
 
@@ -80,17 +80,17 @@ docker compose up -d --build --wait
 docker compose ps -a
 ```
 
-**Resultado esperado:** 13 servicios en estado `healthy` y `stripe-cli` en ejecución, que no define healthcheck. Las tareas `db-migrate`, `mongo-init` y `dynamodb-init` deben figurar como `Exited (0)`: crean bases, tablas, colecciones y semillas sin duplicarlas, y se ejecutan en cada arranque.
+**Resultado esperado:** 17 servicios en estado `healthy`, incluidos los cuatro microfrontends, y `stripe-cli` en ejecución, que no define healthcheck. Las tareas `db-migrate`, `mongo-init` y `dynamodb-init` deben figurar como `Exited (0)`: crean bases, tablas, colecciones y semillas sin duplicarlas, y se ejecutan en cada arranque.
 
 ### Microfrontends
 
-La primera vez, ejecute `npm install` en cada carpeta.
+Compose los compila y los sirve con nginx en los puertos 3000 a 3003 (`frontend/Dockerfile`). Las direcciones de la API se fijan al compilar: después de cambiar el código, ejecute `docker compose up -d --build shell mfe-estudio-ia mfe-reservas mfe-gestion`.
+
+Para desarrollar uno con recarga en caliente, detenga su contenedor y use el servidor de desarrollo en el mismo puerto. La primera vez, ejecute `npm install` en su carpeta.
 
 ```powershell
-cd frontend\shell;          npm run dev   # Puerto 3000
-cd frontend\mfe-estudio-ia; npm run dev   # Puerto 3001
-cd frontend\mfe-reservas;   npm run dev   # Puerto 3002
-cd frontend\mfe-gestion;    npm start     # Puerto 3003
+docker compose stop mfe-reservas
+cd frontend\mfe-reservas; npm run dev   # Shell: 3000, Estudio IA: 3001, Reservas: 3002; el ERP usa npm start en el 3003
 ```
 
 ---

@@ -1,0 +1,28 @@
+# Servidor estático de un microfrontend. ${PORT} lo reemplaza la imagen de nginx al arrancar.
+server {
+    listen ${PORT};
+    root /usr/share/nginx/html;
+    server_tokens off;
+
+    # El Shell carga los remotos desde otro origen (otro puerto) como módulos: necesitan CORS
+    add_header Access-Control-Allow-Origin "*" always;
+
+    # La entrada de Module Federation nunca se guarda en caché: así un despliegue nuevo se ve al recargar
+    location = /remoteEntry.js {
+        add_header Access-Control-Allow-Origin "*" always;
+        add_header Cache-Control "no-cache" always;
+        try_files $uri =404;
+    }
+
+    # Comprobación de salud del contenedor
+    location = /healthz {
+        access_log off;
+        default_type text/plain;
+        return 200 "ok";
+    }
+
+    # Aplicación de una sola página: las rutas desconocidas cargan index.html
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}

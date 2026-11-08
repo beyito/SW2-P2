@@ -23,7 +23,7 @@ Registro oficial del desarrollo de la **Plataforma Inteligente para Salón de Be
 | **I** | Simulación de cortes y ropa con IA en web y móvil | Vie 6 | **COMPLETADA** |
 | **J** | Agentes de operación, inventario y agenda con Skills sobre MCP (RF-11) | Vie 6 | **COMPLETADA** |
 | **K** | Prueba de conjuntos de ropa en una sola imagen, en web y móvil | Sáb 7 | **COMPLETADA** |
-| **L** | Cierre de entrega: regresión, README, frontends en Docker y pantallas móviles que faltan | Lun 9 | **APROBADA, SIN EMPEZAR** |
+| **L** | Cierre de entrega: regresión, README, frontends en Docker y pantallas móviles que faltan | Sáb 7 | **COMPLETADA** |
 | **M** | Actor Recepcionista: agenda global, llegada y ausencia, cobro en mostrador y horarios | Sáb 7 | **COMPLETADA** |
 
 ---
@@ -316,38 +316,45 @@ Función adicional pedida por el usuario: probarse varias prendas a la vez en un
 - **Móvil:** verificado con pruebas de pantalla en el equipo; no se ejecutó en el emulador porque su flujo real gasta crédito.
 - **Fidelidad:** una imagen en espejo se copia en espejo: una prenda con letras invertidas sale igual. Detalles como los rotos de un pantalón pueden variar.
 
-## Fase L: Cierre de entrega (CU-06, CU-10, CU-11, CU-12, CU-16, CU-20, CU-21) (Aprobada, sin empezar)
-**Aprobada el 7 de noviembre de 2026 por el equipo, completa.** No hace falta volver a pedir aprobación para empezarla. La ejecuta el agente de otro integrante del equipo; nada de esta fase se ha implementado todavía.
-
-Hazla en este orden. Si no alcanza el tiempo, lo primero que se recorta es L3, y hay que avisarlo al equipo con antelación.
+## Fase L: Cierre de entrega (CU-06, CU-10, CU-11, CU-12, CU-16, CU-20, CU-21) (Completada)
+Aprobada completa por el equipo el 7 de noviembre de 2026. Se hizo en una sola sesión, después de la Fase M.
 
 ### L1: Asegurar lo existente y empaquetar
-- [ ] **Regresión completa:** todas las suites de `MANUAL_EJECUCION.md`, sección 7. No se corrió después de la Fase K, solo las suites afectadas.
-- [ ] **`README.md` en la raíz:** qué es el proyecto, cómo arrancarlo, enlaces al manual y al ROADMAP, y limitaciones conocidas. No existe.
-- [ ] **Frontends en Docker Compose:** Dockerfile para `shell`, `mfe-estudio-ia`, `mfe-reservas` y `mfe-gestion`, y sus servicios con healthcheck. Hoy se ejecutan con `npm run dev`. Los módulos federados deben seguir cargando desde el Shell, y el login de Keycloak debe seguir funcionando en los puertos 3000 a 3003.
-- [ ] **Manual:** actualizar `MANUAL_EJECUCION.md` y `start-all.ps1` con el nuevo arranque.
-
-**Aceptación:** en un entorno limpio, `docker compose up -d --build --wait` levanta toda la plataforma, con todos los servicios en `healthy`. Las suites E2E pasan contra los frontends en contenedores, incluido el login y un pago de prueba.
+- [x] **Regresión completa:** la de la Fase M, con integración en vivo 325/325 y nueve suites de navegador. Después de la L1 se repitieron las suites de navegador contra los frontends en contenedores.
+- [x] **`README.md` en la raíz:** qué es, arquitectura, puesta en marcha, usuarios, funcionalidades, pruebas y limitaciones.
+- [x] **Frontends en Docker Compose:** `frontend/Dockerfile` compila cada aplicación con Node y la sirve con nginx en su mismo puerto (`frontend/nginx.conf.template`): CORS para los remotos, `remoteEntry.js` sin caché y `/healthz` para el healthcheck. Son cuatro servicios nuevos: `shell`, `mfe-estudio-ia`, `mfe-reservas` y `mfe-gestion`.
+- [x] **Manual y `start-all.ps1`:** una sola orden levanta toda la plataforma. El manual explica cómo desarrollar un microfrontend con recarga en caliente.
 
 ### L2: Reserva y pago en el móvil (CU-06, CU-10)
-- [ ] Elegir servicio, estilista, fecha y turno disponible. "Mis citas" hoy solo lee.
-- [ ] Pagar con Stripe en modo prueba, por la misma SAGA de la web y con `Idempotency-Key`. Reutilizar la API existente, sin un camino de cobro propio.
-- [ ] Sin conexión, guardar la solicitud en la cola de `lib/core/sync/offline_queue.dart`. Una reserva enviada debe pagarse en 15 minutos.
-- [ ] Mostrar el pago rechazado y el turno ya ocupado con un mensaje claro.
-
-**Aceptación:** en el emulador, contra los servicios reales, una reserva pagada queda `CONFIRMED`, descuenta insumos y genera factura y puntos. Un reintento no cobra dos veces, y una tarjeta rechazada libera el turno.
+- [x] **Reservar:** servicio, estilista, fecha y turnos libres, solo futuros. "Mis citas" tiene **Reservar**.
+- [x] **Pagar:** con el formulario oficial de Stripe (Payment Sheet, `flutter_stripe`), sobre el cobro que crea la misma SAGA de la web y con `Idempotency-Key`. Tras pagar se concilia con `/sync`, por si el aviso de Stripe tarda. La tarjeta nunca pasa por la aplicación ni por la plataforma.
+- [x] **Sin conexión:** la reserva queda en la cola de SQLite. Una vez enviada, "Mis citas" muestra **Pagar** en toda cita pendiente de pago, con plazo de 15 minutos.
+- [x] **Mensajes claros:** turno ocupado, pago rechazado o cancelado, y plazo vencido.
 
 ### L3: Resto de las pantallas móviles
-- [ ] **Comunidad (CU-20, CU-21):** ver el muro, publicar un look, reaccionar y comentar.
-- [ ] **Facturas y puntos (CU-11, CU-12):** consultar facturas y saldo de puntos.
-- [ ] **Asesoría para redes (CU-16):** pedir y ver la asesoría por red social.
+- [x] **Comunidad (CU-20, CU-21):** muro sin publicaciones ocultas, publicar un look con foto, reacción y comentarios en cascada con respuestas. Sin conexión, reacciones y comentarios quedan en la cola.
+- [x] **Cuenta (CU-11, CU-12):** saldo y movimientos de puntos, y facturas con detalle, IVA y forma de pago.
+- [x] **Asesoría para redes (CU-16):** red, sector y objetivo; usa el perfil de estilo, el último diagnóstico y el clóset.
+- [x] Las pestañas Mis citas, Comunidad y Cuenta se recargan al abrirse, para no mostrar datos de antes de un pago.
 
-**Aceptación:** cada pantalla funciona en el emulador contra los servicios reales, y sus pruebas de pantalla pasan con `flutter test` y `flutter analyze` limpio.
+**Verificación:**
+- [x] Navegador contra los frontends en contenedores: nueve suites con 193 comprobaciones sin fallos, con inicio de sesión, pago con Stripe, recepción, offline y Module Federation.
+- [x] Móvil 60/60 (18 nuevas) y `flutter analyze` limpio. Contratos 11/11, que también validan las consultas GraphQL de las pantallas nuevas.
+- [x] `integration_test/booking_real_test.dart` en el emulador contra la SAGA, Stripe y PostgreSQL reales: reserva, pago, cita `CONFIRMED`, factura y rechazo del mismo turno.
+- [x] Manual en el emulador, como `camila.fernandez` con el inicio de sesión real de Keycloak: Keratina el 30 de noviembre, pago con el formulario de Stripe y la tarjeta 4242. La cita quedó `CONFIRMED` y la keratina bajó de 3 a 2. Se emitió la factura 212 con tarjeta por 95 USD y se sumaron 950 puntos. Cuenta, Comunidad (reacción y su reversión) y la asesoría para redes se vieron con datos reales. Al terminar se borró la reserva y se restituyeron stock y puntos.
+- [x] La prueba en el emulador encontró dos errores, ya corregidos:
+  - **Datos viejos:** las pestañas no se recargaban después de pagar.
+  - **Token vencido al abrir:** al abrir la app con el token vencido, las pestañas lo renovaban a la vez y AppAuth rechazaba las renovaciones simultáneas. Ahora comparten una sola.
+- [x] También apareció un dato dañado previo: la publicación semilla de la comunidad tenía los acentos rotos en MongoDB. Se corrigió en la base; el script de semillas ya estaba bien.
 
-### Reglas de la fase
-- **Cierre:** actualizar en este archivo las casillas, el estado global y la matriz de casos de uso, y agregar la verificación y las limitaciones conocidas de cada parte. Una casilla solo se marca después de verificarla en vivo.
-- **Sin gastar crédito de Replicate:** esta fase no necesita generar imágenes reales. La prueba de conjuntos en el móvil queda para un integrante del equipo, que ya tiene previsto hacerla.
-- **Fuera de esta fase, se declara como limitación:** WhatsApp real, iOS, teléfono físico, captura con cámara y video sin conexión.
+**Limitaciones conocidas:**
+- **Canje en el móvil:** no hay canje de puntos al reservar; la web sí lo tiene.
+- **Comprobante en el móvil:** se ve el detalle de la factura, pero no el comprobante imprimible de la web.
+- **Hora de las facturas:** se muestra en UTC, como la entrega el CRM.
+- **Cancelar desde el móvil:** no hay cancelación con reembolso; sigue en la web.
+- **Teléfono físico e iOS:** sin probar, como el resto de la app.
+- **Frontends compilados:** las direcciones de la API se fijan al compilar y apuntan a `localhost`, suficiente para Docker Compose local.
+- **Sin integración continua.**
 
 ## Fase M: Actor Recepcionista (CU-01, CU-05, CU-06, CU-07, CU-10, CU-11, RF-01, RF-02, RF-03, RF-07, RF-08, RNF-03, RNF-04) (Completada)
 Actor pedido por el usuario: personal administrativo que opera desde el ERP. Toda reserva se paga; lo presencial es el cliente que llega sin reserva y paga al agendar.
@@ -391,20 +398,20 @@ Estado actualizado al cierre de cada fase. ✅ completo y verificado en vivo. �
 | CU-03 | Registrar cliente | ✅ | E, F |
 | CU-04 | Registrar o modificar estilista | ✅ (sin crear cuenta de acceso) | C |
 | CU-05 | Horarios y disponibilidad | ✅ (también la recepción) | C, M |
-| CU-06 | Agendar cita | ✅ (web, en línea y en el mostrador) | D, M |
+| CU-06 | Agendar cita | ✅ (web, móvil y mostrador) | D, L, M |
 | CU-07 | Reprogramar o cancelar cita | ✅ (con llegada y ausencia) | D, E, F, M |
 | CU-08 | Registrar inventario | ✅ | C |
 | CU-09 | Actualizar stock mínimo | ✅ | C |
-| CU-10 | Reserva y pago (SAGA e idempotencia) | ✅ (web: Stripe en línea o cobro en el mostrador) | D, M |
-| CU-11 | Emitir factura | ✅ (sin validez fiscal; con la forma de pago) | E, F, M |
-| CU-12 | Puntos de fidelidad | ✅ | E, F |
+| CU-10 | Reserva y pago (SAGA e idempotencia) | ✅ (Stripe en web y móvil, o cobro en el mostrador) | D, L, M |
+| CU-11 | Emitir factura | ✅ (sin validez fiscal; con la forma de pago; también en el móvil) | E, F, L, M |
+| CU-12 | Puntos de fidelidad | ✅ (web y móvil; canje solo en la web) | E, F, L |
 | CU-13 | Escaneo capilar y facial | ✅ (web y Android; offline con fotos) | G, H |
 | CU-14 | Recomendaciones | ✅ (con simulación en imagen) | G, I |
 | CU-15 | Armario virtual | ✅ (con prueba de ropa en imagen) | F, I |
-| CU-16 | Asesoría para redes sociales | ✅ | G |
+| CU-16 | Asesoría para redes sociales | ✅ (web y móvil) | G, L |
 | CU-17 | Métricas por agente (MCP) | ✅ (tres agentes con Skills; cambios con confirmación de una persona) | F, H, J |
 | CU-18 | Reportes por lenguaje natural | ✅ (texto y voz) | F, G |
 | CU-19 | Recordatorios y reservas por WhatsApp | 🟡 (flujos reales; envío a Meta sin probar por falta de cuenta) | H |
-| CU-20 | Publicar look | ✅ | F |
-| CU-21 | Reaccionar y comentar | ✅ | F |
+| CU-20 | Publicar look | ✅ (web y móvil) | F, L |
+| CU-21 | Reaccionar y comentar | ✅ (web y móvil) | F, L |
 | CU-22 | Sincronizar cola offline | ✅ (web y Android) | H |

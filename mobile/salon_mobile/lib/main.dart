@@ -9,10 +9,15 @@ import 'core/auth/session.dart';
 import 'core/connectivity_status.dart';
 import 'core/database/local_database.dart';
 import 'core/sync/offline_queue.dart';
+import 'core/tab_refresh.dart';
+import 'features/account/account_screen.dart';
 import 'features/appointments/appointments_screen.dart';
 import 'features/biometrics/biometrics_screen.dart';
 import 'features/biometrics/on_device_analyzer.dart';
+import 'features/booking/booking_flow.dart';
+import 'features/booking/payment_gateway.dart';
 import 'features/closet/closet_screen.dart';
+import 'features/community/community_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -117,13 +122,15 @@ class _HomeScreenState extends State<HomeScreen> {
   static const _retry = Duration(seconds: 30);
 
   final _analyzer = OnDeviceAnalyzer();
+  final _payments = StripePaymentGateway();
   final _client = http.Client();
   ApiClient? _api;
   ConnectivityStatus? _connectivity;
   StreamSubscription<void>? _changes;
   Timer? _timer;
   List<QueuedOperation> _queue = [];
-  int _tab = 0;
+  final _selectedTab = ValueNotifier<int>(0);
+  int get _tab => _selectedTab.value;
 
   @override
   void initState() {
@@ -164,6 +171,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _timer?.cancel();
     _connectivity?.dispose();
     _analyzer.dispose();
+    _selectedTab.dispose();
     _client.close();
     super.dispose();
   }
@@ -203,17 +211,21 @@ class _HomeScreenState extends State<HomeScreen> {
           child: IndexedStack(index: _tab, children: [
             BiometricsScreen(api: api, analyzer: _analyzer, connectivity: connectivity),
             ClosetScreen(api: api, clientId: widget.session.userId),
-            AppointmentsScreen(api: api),
+            AppointmentsScreen(api: api, flow: BookingFlow(api, _payments), refresh: TabRefresh(_selectedTab, 2)),
+            CommunityScreen(api: api, refresh: TabRefresh(_selectedTab, 3)),
+            AccountScreen(api: api, refresh: TabRefresh(_selectedTab, 4)),
           ]),
         ),
       ]),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _tab,
-        onDestinationSelected: (index) => setState(() => _tab = index),
+        onDestinationSelected: (index) => setState(() => _selectedTab.value = index),
         destinations: const [
           NavigationDestination(icon: Icon(Icons.face), label: 'Diagnóstico'),
           NavigationDestination(icon: Icon(Icons.checkroom), label: 'Clóset'),
           NavigationDestination(icon: Icon(Icons.event), label: 'Mis citas'),
+          NavigationDestination(icon: Icon(Icons.forum), label: 'Comunidad'),
+          NavigationDestination(icon: Icon(Icons.person), label: 'Cuenta'),
         ],
       ),
     );

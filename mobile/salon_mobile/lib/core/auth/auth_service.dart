@@ -39,12 +39,20 @@ class AuthService implements TokenProvider {
     await _storage.deleteAll();
   }
 
+  /// Renovación en curso: las pestañas piden el token a la vez al abrir la app, y AppAuth
+  /// no admite dos renovaciones simultáneas. Todas esperan la misma.
+  Future<String?>? _renewing;
+
   /// Token vigente; si no se puede renovar, por ejemplo sin red, entrega el que tiene:
   /// la petición fallará por la red y la operación pasará a la cola local.
   @override
   Future<String?> token() async {
     final access = await _storage.read(key: _access);
     if (access == null || !_expiresSoon(access)) return access;
+    return _renewing ??= _renew(access).whenComplete(() => _renewing = null);
+  }
+
+  Future<String?> _renew(String access) async {
     final refresh = await _storage.read(key: _refresh);
     if (refresh == null) return access;
     try {

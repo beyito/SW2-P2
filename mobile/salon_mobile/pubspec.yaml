@@ -19,6 +19,7 @@ dependencies:
   sqflite: ^2.4.5
   tflite_flutter: ^0.12.1
   uuid: ^4.4.0
+  flutter_stripe: ^14.2.0
 
 dev_dependencies:
   archive: ^4.0.0

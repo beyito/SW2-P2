@@ -501,6 +501,99 @@ services:
       saga-orchestrator:
         condition: service_healthy
 
+  # ------------------------------------------------------------------
+  # Microfrontends compilados y servidos con nginx (Module Federation).
+  # El navegador los carga desde localhost; para desarrollar con recarga en caliente,
+  # detenga el servicio correspondiente (docker compose stop shell) y use npm run dev.
+  # ------------------------------------------------------------------
+  shell:
+    build:
+      context: ./frontend
+      args:
+        APP: shell
+        PORT: "3000"
+        DIST: dist
+    image: salon-shell
+    container_name: salon-shell
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    networks:
+      - salon-network
+    healthcheck:
+      # Contenedor principal: React y Module Federation
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/healthz >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  mfe-estudio-ia:
+    build:
+      context: ./frontend
+      args:
+        APP: mfe-estudio-ia
+        PORT: "3001"
+        DIST: dist
+    image: salon-mfe-estudio-ia
+    container_name: salon-mfe-estudio-ia
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    networks:
+      - salon-network
+    healthcheck:
+      # Remoto React: Estudio IA y Comunidad
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3001/healthz >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  mfe-reservas:
+    build:
+      context: ./frontend
+      args:
+        APP: mfe-reservas
+        PORT: "3002"
+        DIST: dist
+    image: salon-mfe-reservas
+    container_name: salon-mfe-reservas
+    restart: unless-stopped
+    ports:
+      - "3002:3002"
+    networks:
+      - salon-network
+    healthcheck:
+      # Remoto Vue: Reservas y Checkout
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3002/healthz >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  mfe-gestion:
+    build:
+      context: ./frontend
+      args:
+        APP: mfe-gestion
+        PORT: "3003"
+        DIST: dist/browser
+    image: salon-mfe-gestion
+    container_name: salon-mfe-gestion
+    restart: unless-stopped
+    ports:
+      - "3003:3003"
+    networks:
+      - salon-network
+    healthcheck:
+      # Remoto Angular: ERP de gestión
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3003/healthz >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
 # --------------------------------------------------------------------
 # Redes y Volúmenes Persistentes
 # --------------------------------------------------------------------

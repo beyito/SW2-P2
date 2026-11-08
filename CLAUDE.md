@@ -29,7 +29,7 @@ Este archivo se escribió el 7 de noviembre de 2026, para que otro integrante de
 
 ## Estado actual
 
-Las fases A a K y M están completadas, y la Fase L está aprobada, sin empezar. Último cambio: actor Recepcionista con cobro en el mostrador (Fase M).
+Las fases A a M están completadas. Último cambio: cierre de entrega (Fase L): frontends en Docker Compose, README, y reserva con pago, comunidad, cuenta y asesoría para redes en el móvil.
 
 Roles de Keycloak: `ADMIN`, `RECEPTIONIST`, `STYLIST` y `CLIENT`. Las cuentas administrativas (`ADMIN` y `RECEPTIONIST`) tienen sesión única en los seis servicios.
 
@@ -49,19 +49,16 @@ Según la matriz del ROADMAP, 21 de 22 casos de uso están completos, varios con
 
 ## Qué falta
 
-**Tu tarea es la Fase L de [ROADMAP.md](ROADMAP.md).** El equipo ya la aprobó completa, así que puedes empezarla sin volver a pedir aprobación. Nada de ella se ha implementado todavía. Las fases siguientes sí requieren aprobación.
+No hay fases pendientes. Cualquier fase nueva requiere aprobación del equipo antes de empezar.
 
-- **L1:** regresión completa, `README.md` y frontends en Docker Compose.
-- **L2:** reservar y pagar desde el móvil (CU-06, CU-10). Es lo más importante del móvil, porque es el flujo central.
-- **L3:** comunidad, facturas y puntos, y asesoría para redes en el móvil.
+**Lo único que depende de terceros:**
+- **WhatsApp real (CU-19):** los flujos de n8n están hechos y probados contra un servidor local que imita a Meta. Falta una cuenta de Meta: ver `MANUAL_EJECUCION.md`, sección "WhatsApp".
 
-El detalle y los criterios de aceptación están en el ROADMAP. Hazla en ese orden. Si no alcanza el tiempo, recorta L3 y avisa con antelación.
-
-**Queda fuera, y se declara como limitación:**
-- **WhatsApp real (CU-19):** requiere cuenta de Meta, dirección pública y plantillas aprobadas. Hoy se prueba con un servidor local que imita a Meta.
+**Limitaciones declaradas en el ROADMAP:**
 - **iOS:** requiere macOS y nunca se compiló.
-- **Teléfono físico y captura con cámara del móvil:** sin probar; se usó un emulador con fotos.
+- **Teléfono físico y cámara del móvil:** sin probar; se usó un emulador con fotos.
 - **Video sin conexión en el móvil (CU-13):** sin conexión solo analiza fotos.
+- **Móvil frente a la web:** no tiene canje de puntos al reservar, ni comprobante imprimible, ni cancelación con reembolso. Esas tres funciones siguen en la web.
 - **Conjuntos de ropa con el modelo real:** un integrante del equipo los probará en el móvil. No los ejecutes, porque gastan crédito. El conjunto con abrigo, y por tanto el de 3 prendas, nunca se probó con el modelo real.
 
 ## Qué se podría mejorar
@@ -90,7 +87,7 @@ Tu base de datos parte de las semillas del proyecto, no de los datos de otro int
 
 ## Pruebas
 
-Los comandos de cada suite están en el manual, sección 7. Últimos conteos: `ms-ia` 179, `mfe-estudio-ia` 38, móvil 42, `mcp-server` 64, `mfe-gestion` 20.
+Los comandos de cada suite están en el manual, sección 7. Últimos conteos: orquestador 47, `ms-gestion` 77, CRM 54, `ms-asesoria` 87, `ms-ia` 180, `mcp-server` 64, `mfe-gestion` 37, `mfe-estudio-ia` 38, Shell 15, `mfe-reservas` 11, móvil 60, integración en vivo 325 y navegador 193 comprobaciones.
 
 **Gastan dinero o cupo:**
 - **Replicate:** `IMAGENES_REALES=1` en `tests/e2e/generacion_imagenes.e2e.mjs` y `integration_test/image_generation_real_test.dart`. Nunca los ejecutes sin permiso. Las pruebas de `TestConjunto` usan una imagen dañada a propósito para detenerse antes del proveedor: mantén ese diseño.
@@ -136,6 +133,8 @@ Los comandos de cada suite están en el manual, sección 7. Últimos conteos: `m
 **Frontend**
 - `position: fixed` queda atrapado por el `backdrop-filter` del Shell: las ventanas modales de un microfrontend van con portal a `document.body`.
 - Ya no hay iframes: las pruebas E2E usan `page.locator('#mfe-root')`.
+- **Frontends en Docker:** Compose los sirve compilados en los puertos 3000 a 3003. Para desarrollar uno, detén su contenedor (`docker compose stop shell`) antes de `npm run dev`, o el puerto estará ocupado. Tras cambiar su código, reconstrúyelo con `docker compose up -d --build <servicio>`.
+- **Consultas GraphQL:** escribe cada consulta en un solo texto literal. `test_contratos_frontend.py` las extrae del código, también de los `.dart`, y las valida contra el esquema real; una consulta armada por partes la rompe.
 - `route.fulfill` de Playwright no sirve aquí, porque Chrome bloquea el acceso a localhost desde esa respuesta: usa `route.continue` hacia un servidor local.
 
 **Windows**
@@ -150,6 +149,9 @@ Los comandos de cada suite están en el manual, sección 7. Últimos conteos: `m
 - `android:taskAffinity=""` rompe la vuelta del login con AppAuth.
 - `flutter test` en emulador desinstala la app al terminar. Las fotos de prueba se sirven por `adb reverse`, nunca dentro de la app.
 - Gradle suma cerca de 1 GB y queda activo después de compilar.
+- `adb shell input text` no escribe `#`: escribe la contraseña en partes y el `#` con `input keyevent 18`.
+- El emulador usa UTC: después de las 20:00 en Bolivia ya es el día siguiente.
+- El formulario de pago de Stripe exige `FlutterFragmentActivity` y un tema AppCompat; están en `android/app/src/main`.
 
 ## Decisiones que no se deben revertir sin preguntar
 

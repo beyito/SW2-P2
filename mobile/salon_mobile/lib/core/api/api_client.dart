@@ -92,12 +92,17 @@ class ApiClient {
     }
   }
 
-  /// Consulta GraphQL con copia local.
-  Future<dynamic> graphql(String url, String query) async {
-    final key = '$url#$query';
+  /// Consulta GraphQL con copia local. Las variables viajan aparte: nunca se pegan dentro de la consulta.
+  Future<dynamic> graphql(String url, String query, {Map<String, dynamic>? variables}) async {
+    // Sin variables se conserva la llave anterior: la copia guardada sigue sirviendo sin conexión
+    final key = variables == null ? '$url#$query' : '$url#$query#${jsonEncode(variables)}';
     try {
       final response = await _http
-          .post(Uri.parse(url), headers: {...await _auth(), 'Content-Type': 'application/json'}, body: jsonEncode({'query': query}))
+          .post(
+            Uri.parse(url),
+            headers: {...await _auth(), 'Content-Type': 'application/json'},
+            body: jsonEncode({'query': query, 'variables': ?variables}),
+          )
           .timeout(_timeout);
       final body = _parse(response) as Map<String, dynamic>;
       final errors = body['errors'] as List?;

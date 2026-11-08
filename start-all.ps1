@@ -1,21 +1,15 @@
 # ====================================================================
 # Script de Inicio Rápido - Salón & IA Studio
-# El backend y la infraestructura corren en Docker Compose.
-# Los microfrontends corren en modo desarrollo en ventanas separadas.
+# Infraestructura, microservicios y microfrontends corren en Docker Compose.
+# Para desarrollar un microfrontend con recarga en caliente, vea MANUAL_EJECUCION.md.
 # ====================================================================
 
-Write-Host ">>> Levantando infraestructura y microservicios (Docker Compose)..." -ForegroundColor Cyan
+Write-Host ">>> Levantando la plataforma completa (Docker Compose)..." -ForegroundColor Cyan
 docker compose up -d --build --wait
 if ($LASTEXITCODE -ne 0) {
     Write-Host "ERROR: algun contenedor no llego a estado healthy. Revise 'docker compose ps' y 'docker compose logs'." -ForegroundColor Red
     exit 1
 }
-
-Write-Host ">>> Iniciando Microfrontends..." -ForegroundColor Yellow
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd frontend\shell; npm run dev"
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd frontend\mfe-estudio-ia; npm run dev"
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd frontend\mfe-reservas; npm run dev"
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd frontend\mfe-gestion; npm start"
 
 Write-Host "==========================================================" -ForegroundColor Cyan
 Write-Host " Plataforma iniciada" -ForegroundColor Cyan
