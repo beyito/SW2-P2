@@ -18,6 +18,7 @@ import 'features/booking/booking_flow.dart';
 import 'features/booking/payment_gateway.dart';
 import 'features/closet/closet_screen.dart';
 import 'features/community/community_screen.dart';
+import 'core/salon_theme.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,11 +33,7 @@ class SalonMobileApp extends StatelessWidget {
     return MaterialApp(
       title: 'Salón & IA',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        brightness: Brightness.dark,
-        scaffoldBackgroundColor: const Color(0xFF0A0E17),
-        colorScheme: const ColorScheme.dark(primary: Color(0xFFD4AF37), secondary: Color(0xFFF5D061), surface: Color(0xFF141A29)),
-      ),
+      theme: salonTheme(),
       home: const AuthGate(),
     );
   }

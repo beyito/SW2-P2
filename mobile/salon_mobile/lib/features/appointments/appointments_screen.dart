@@ -8,6 +8,7 @@ import '../../core/tab_refresh.dart';
 import '../booking/booking_flow.dart';
 import '../booking/booking_screen.dart';
 import 'reschedule_screen.dart';
+import '../../core/salon_theme.dart';
 
 const _status = {
   'PENDING_PAYMENT': 'Pendiente de pago',
@@ -217,7 +218,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                         child: Text(_paying == item['sagaId'] ? 'Pagando...' : 'Pagar'),
                       )
                     : _pending.containsKey(item['id'])
-                        ? Text(_pending[item['id']]!, key: Key('pending-${item['id']}'), style: const TextStyle(color: Color(0xFFF5D061)))
+                        ? Text(_pending[item['id']]!, key: Key('pending-${item['id']}'), style: const TextStyle(color: SalonColors.warning))
                         : _isOpen(item as Map<String, dynamic>)
                         ? TextButton(
                             key: Key('manage-${item['id']}'),

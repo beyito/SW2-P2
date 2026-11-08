@@ -2,10 +2,9 @@
   <div class="mfe-reservas-container">
     <header class="glass-box header-bar">
       <div class="brand-group">
-        <div class="vue-badge">Vue 3</div>
         <div>
-          <h2 class="gold-text title">Reservas y Pago</h2>
-          <span class="subtitle">Agenda tu cita y paga en línea</span>
+          <h2 class="gold-text title">Reserva tu cita</h2>
+          <span class="subtitle">Elige, agenda y paga en línea</span>
         </div>
       </div>
       <div class="wizard-steps">
@@ -127,7 +126,7 @@
             <label>Usar puntos (tienes {{ myPoints }}; cada punto vale $0.01):</label>
             <input id="points-to-redeem" v-model.number="pointsToRedeem" type="number" min="0" :max="maxRedeemablePoints" class="input-date" />
           </div>
-          <div class="sum-row total"><span>Total a pagar:</span> <strong id="total-to-pay" style="color: #42B883;">${{ totalToPay.toFixed(2) }} USD</strong></div>
+          <div class="sum-row total"><span>Total a pagar:</span> <strong id="total-to-pay" class="total-amount">${{ totalToPay.toFixed(2) }} USD</strong></div>
         </div>
 
         <div class="action-buttons">
@@ -471,8 +470,9 @@ async function mountPaymentForm() {
   cardElement = elements.create('card', {
     hidePostalCode: true,
     style: {
-      base: { color: '#F3F4F6', fontSize: '16px', '::placeholder': { color: '#9CA3AF' } },
-      invalid: { color: '#FF4B4B' },
+      // Colores del tema del salón
+      base: { color: '#3D2F2D', fontSize: '16px', fontFamily: 'Lato, sans-serif', '::placeholder': { color: '#8E7A75' } },
+      invalid: { color: '#A8464C' },
     },
   });
   cardElement.on('ready', () => {

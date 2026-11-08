@@ -9,7 +9,7 @@ describe('contrato con el Shell', () => {
     const antes = document.head.querySelectorAll('style').length;
 
     const unmount = mount(element, { getToken: async () => 't', onSessionLost: () => {}, onBook: () => {}, params: {}, offline: null });
-    await vi.waitFor(() => expect(element.textContent).toContain('Estudio IA'));
+    await vi.waitFor(() => expect(element.textContent).toContain('Diagnóstico y estilos'));
     expect(element.classList.contains('mfe-estudio')).toBe(true);
     expect(document.head.querySelectorAll('style').length).toBe(antes + 1);
     expect(document.head.lastElementChild.textContent).toContain('.mfe-estudio');

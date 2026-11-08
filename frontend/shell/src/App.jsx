@@ -6,7 +6,7 @@ import OfflineBanner from './components/OfflineBanner';
 import Onboarding from './components/Onboarding';
 import { createOfflineStore } from './offline/queue';
 import { needsOnboarding } from './auth/profile';
-import { Layers } from 'lucide-react';
+import { Heart } from 'lucide-react';
 import { currentUser, freshToken, initAuth, isSessionActive, keycloak, logout, restartLogin } from './auth/auth';
 
 const SESSION_CHECK_MS = Number(import.meta.env.VITE_SESSION_CHECK_MS) || 15000;
@@ -157,9 +157,9 @@ export default function App() {
         </div>
       </main>
 
-      <footer className="glass-panel" style={{ margin: '24px', padding: '16px 28px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-        <Layers size={14} color="var(--gold-primary)" />
-        <span><strong>Shell Contenedor</strong>: React 18 • Dark Luxury Theme</span>
+      <footer style={{ margin: '24px', padding: '16px 28px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+        <Heart size={13} color="var(--rose)" />
+        <span>Salón & IA Studio · Tu belleza, a tu manera</span>
       </footer>
     </div>
   );

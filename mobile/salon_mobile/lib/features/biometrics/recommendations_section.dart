@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/api/api_client.dart';
 import '../../core/config.dart';
 import '../image_generation/image_preview_screen.dart';
+import '../../core/salon_theme.dart';
 
 const _recognizedGenders = {'FEMALE', 'MALE'};
 
@@ -97,8 +98,8 @@ class _RecommendationsSectionState extends State<RecommendationsSection> {
       return const Padding(padding: EdgeInsets.symmetric(vertical: 12), child: Text('Las recomendaciones requieren conexión.', key: Key('recommendations-offline')));
     }
     return Column(crossAxisAlignment: CrossAxisAlignment.start, key: const Key('recommendations'), children: [
-      if (_styles.isNotEmpty) const Padding(padding: EdgeInsets.only(top: 16, bottom: 8), child: Text('Recomendaciones de estilo', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFFF5D061)))),
-      if (_error != null) Text(_error!, key: const Key('recommendations-error'), style: const TextStyle(color: Colors.redAccent)),
+      if (_styles.isNotEmpty) const Padding(padding: EdgeInsets.only(top: 16, bottom: 8), child: Text('Recomendaciones de estilo', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, fontFamily: 'serif', color: SalonColors.text))),
+      if (_error != null) Text(_error!, key: const Key('recommendations-error'), style: const TextStyle(color: SalonColors.danger)),
       for (final style in _styles.cast<Map<String, dynamic>>())
         Card(
           key: Key('style-${style['style_id']}'),

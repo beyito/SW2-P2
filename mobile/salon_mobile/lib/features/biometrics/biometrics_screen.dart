@@ -8,6 +8,7 @@ import '../../core/config.dart';
 import '../../core/connectivity_status.dart';
 import 'on_device_analyzer.dart';
 import 'recommendations_section.dart';
+import '../../core/salon_theme.dart';
 
 const _shapes = {'OVAL': 'Ovalado', 'ROUND': 'Redondo', 'SQUARE': 'Cuadrado', 'HEART': 'Corazón', 'OBLONG': 'Alargado'};
 const _undertones = {'WARM': 'Cálido', 'COOL': 'Frío', 'NEUTRAL': 'Neutro'};
@@ -139,7 +140,7 @@ class _BiometricsScreenState extends State<BiometricsScreen> {
       padding: const EdgeInsets.all(16),
       children: [
         if (_busy != null) const LinearProgressIndicator(),
-        if (_error != null) Padding(padding: const EdgeInsets.symmetric(vertical: 8), child: Text(_error!, key: const Key('scan-error'), style: const TextStyle(color: Colors.redAccent))),
+        if (_error != null) Padding(padding: const EdgeInsets.symmetric(vertical: 8), child: Text(_error!, key: const Key('scan-error'), style: const TextStyle(color: SalonColors.danger))),
         if (consent != null && consent['granted'] != true) ..._consentView(consent),
         if (consent != null && consent['granted'] == true) ..._scanView(),
         if (_diagnosis != null) _result(_diagnosis!),

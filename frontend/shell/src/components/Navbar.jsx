@@ -1,49 +1,44 @@
 import React from 'react';
-import { Sparkles, LogOut, UserCheck } from 'lucide-react';
+import { Scissors, LogOut } from 'lucide-react';
 import { visibleTabsFor } from '../tabs';
+
+// Nombre del rol tal como lo ve la persona
+export const ROLE_LABELS = {
+  ADMIN: 'Administración',
+  RECEPTIONIST: 'Recepción',
+  STYLIST: 'Estilista',
+  CLIENT: 'Cliente',
+};
 
 export default function Navbar({ activeTab, setActiveTab, currentUser, canManage, onLogout }) {
   // Cada rol ve sus pestañas; el backend también exige el rol en cada petición
   const visibleTabs = visibleTabsFor(currentUser.role, canManage);
 
   return (
-    <header className="glass-panel" style={{ margin: '16px 24px', padding: '14px 28px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: '16px', zIndex: 100 }}>
+    <header className="glass-panel" style={{ margin: '16px 24px', padding: '12px 24px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '12px', position: 'sticky', top: '16px', zIndex: 100 }}>
       {/* Marca */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-        <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: 'linear-gradient(135deg, #F5D061, #D4AF37)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 20px rgba(212, 175, 55, 0.4)' }}>
-          <Sparkles size={22} color="#0A0E17" />
+        <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'var(--rose-soft)', border: '1px solid var(--rose)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Scissors size={20} color="var(--rose-deep)" />
         </div>
         <div>
-          <h1 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0 }} className="gold-gradient-text">
-            SALÓN & IA STUDIO
+          <h1 style={{ fontSize: '1.35rem', fontWeight: 600, margin: 0, lineHeight: 1.1 }} className="gold-gradient-text">
+            Salón & IA Studio
           </h1>
-          <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-            Plataforma Omnicanal B2B2C
+          <span style={{ fontSize: '0.72rem', color: 'var(--gold-primary)', letterSpacing: '0.14em', textTransform: 'uppercase' }}>
+            Belleza e imagen personal
           </span>
         </div>
       </div>
 
-      {/* Navegación entre microfrontends */}
-      <nav style={{ display: 'flex', gap: '8px', background: 'rgba(0, 0, 0, 0.3)', padding: '4px', borderRadius: '12px', border: '1px solid var(--border-glass)' }}>
+      {/* Secciones de la plataforma */}
+      <nav style={{ display: 'flex', gap: '4px', background: 'var(--bg-secondary)', padding: '4px', borderRadius: '999px' }}>
         {visibleTabs.map(({ id, label, icon: Icon }) => (
           <button
             key={id}
             id={`tab-mfe-${id}`}
             onClick={() => setActiveTab(id)}
-            style={{
-              padding: '8px 18px',
-              borderRadius: '8px',
-              border: 'none',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              fontSize: '0.88rem',
-              fontWeight: 600,
-              transition: 'all 0.2s',
-              background: activeTab === id ? 'linear-gradient(135deg, #F5D061, #D4AF37)' : 'transparent',
-              color: activeTab === id ? '#0A0E17' : 'var(--text-secondary)',
-            }}
+            className={`shell-tab${activeTab === id ? ' active' : ''}`}
           >
             <Icon size={16} />
             {label}
@@ -52,16 +47,19 @@ export default function Navbar({ activeTab, setActiveTab, currentUser, canManage
       </nav>
 
       {/* Usuario autenticado */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-        <span id="current-user" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem' }}>
-          <UserCheck size={14} color="var(--gold-primary)" />
-          {currentUser.name} ({currentUser.role})
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <span style={{ width: '34px', height: '34px', borderRadius: '50%', background: 'var(--gold-soft)', color: 'var(--gold-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '0.8rem' }}>
+          {currentUser.avatar}
+        </span>
+        <span id="current-user" style={{ display: 'flex', flexDirection: 'column', fontSize: '0.85rem', lineHeight: 1.2 }}>
+          <strong>{currentUser.name}</strong>
+          <span style={{ color: 'var(--text-secondary)', fontSize: '0.75rem' }}>{ROLE_LABELS[currentUser.role] ?? currentUser.role}</span>
         </span>
         <button
           id="btn-logout"
           onClick={onLogout}
           className="btn-outline"
-          style={{ padding: '6px 14px', fontSize: '0.8rem', borderRadius: '20px', display: 'flex', alignItems: 'center', gap: '6px' }}
+          style={{ padding: '6px 14px', fontSize: '0.8rem' }}
           title="Cerrar sesión"
         >
           <LogOut size={14} />

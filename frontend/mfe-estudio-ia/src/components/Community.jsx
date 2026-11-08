@@ -216,7 +216,7 @@ export default function Community() {
   return (
     <div className="community-column">
       <div className="glass-panel studio-panel">
-        <h3 className="gold-gradient-text studio-title">Publica tu look (CU-20)</h3>
+        <h3 className="gold-gradient-text studio-title">Comparte tu look</h3>
         <form className="studio-form" onSubmit={publish}>
           <label>Título
             <input id="post-title" required maxLength={120} value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} />
@@ -234,7 +234,7 @@ export default function Community() {
       {error && <p id="community-error" className="studio-error" role="alert">{error}</p>}
 
       <div className="glass-panel studio-panel">
-        <h3 className="gold-gradient-text studio-title">Muro de la comunidad (CU-21)</h3>
+        <h3 className="gold-gradient-text studio-title">Looks de la comunidad</h3>
         {loading && <p>Cargando...</p>}
         {!loading && posts.length === 0 && <p className="studio-muted">Todavía no hay publicaciones.</p>}
         {posts.map((post) => <PostCard key={post.id} post={post} user={user} onChanged={reload} onError={setError} />)}

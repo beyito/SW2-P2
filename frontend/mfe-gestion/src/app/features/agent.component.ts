@@ -84,7 +84,7 @@ function describe(tool: string, data: any): { text: string; note?: string } {
   imports: [FormsModule],
   template: `
     <section class="card">
-      <h2>Agente MCP</h2>
+      <h2>Asistentes del salón</h2>
       @if (loadError()) { <p class="error" role="alert">{{ loadError() }}</p> }
 
       <div class="chat" id="agent-chat">

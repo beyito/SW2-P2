@@ -5,6 +5,7 @@ import '../../core/config.dart';
 import '../../core/tab_refresh.dart';
 import '../brand/brand_screen.dart';
 import 'receipt_printer.dart';
+import '../../core/salon_theme.dart';
 
 const _profile = '{ getMyProfile { id fullName loyaltyPoints } }';
 const _sync = 'mutation { syncMyProfile { id fullName loyaltyPoints } }';
@@ -124,7 +125,7 @@ class _AccountScreenState extends State<AccountScreen> {
       child: ListView(padding: const EdgeInsets.all(12), children: [
         Card(
           child: ListTile(
-            leading: const Icon(Icons.stars, color: Color(0xFFD4AF37)),
+            leading: const Icon(Icons.stars, color: SalonColors.gold),
             title: Text('${client['loyaltyPoints']} puntos', key: const Key('points'), style: const TextStyle(fontSize: 20)),
             subtitle: Text('Equivalen a ${_money((client['loyaltyPoints'] as int) / 100)} de descuento en tu próxima reserva web.'),
           ),

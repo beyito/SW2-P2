@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../core/api/api_client.dart';
 import '../../core/config.dart';
 import 'booking_flow.dart';
+import '../../core/salon_theme.dart';
 
 const _catalog = '{ getServices { id name durationMinutes price } getStylists { id name } }';
 const _pointsQuery = '{ getMyProfile { loyaltyPoints } }';
@@ -182,7 +183,7 @@ class _BookingScreenState extends State<BookingScreen> {
           Card(
             key: const Key('booking-done'),
             child: ListTile(
-              leading: const Icon(Icons.check_circle, color: Color(0xFF4ADE80)),
+              leading: const Icon(Icons.check_circle, color: SalonColors.success),
               title: const Text('Reserva confirmada y pagada'),
               subtitle: Text('${_done!.serviceName ?? _serviceName()} · ${(_slot ?? '').replaceFirst('T', ' ')}\nLa factura y tus puntos aparecen en "Cuenta".'),
             ),
@@ -270,7 +271,7 @@ class _BookingScreenState extends State<BookingScreen> {
           FilledButton(key: const Key('booking-reserve'), onPressed: _busy || _slot == null ? null : _reserve, child: const Text('Apartar turno')),
         ],
         if (_busy) const Padding(padding: EdgeInsets.all(16), child: Center(child: CircularProgressIndicator())),
-        if (_error != null) Padding(padding: const EdgeInsets.only(top: 12), child: Text(_error!, key: const Key('booking-error'), style: const TextStyle(color: Color(0xFFFCA5A5)))),
+        if (_error != null) Padding(padding: const EdgeInsets.only(top: 12), child: Text(_error!, key: const Key('booking-error'), style: const TextStyle(color: SalonColors.danger))),
         if (_notice != null) Padding(padding: const EdgeInsets.only(top: 12), child: Text(_notice!, key: const Key('booking-notice'))),
       ]),
     );

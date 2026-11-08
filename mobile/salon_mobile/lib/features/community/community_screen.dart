@@ -5,6 +5,7 @@ import '../../core/api/api_client.dart';
 import '../../core/config.dart';
 import '../../core/tab_refresh.dart';
 import '../image_generation/image_preview_screen.dart';
+import '../../core/salon_theme.dart';
 
 /// Muro de la comunidad (CU-20, CU-21, RF-09): publicar un look, reaccionar y comentar en cascada.
 /// Sin conexión se ve lo último que se cargó, y las reacciones y los comentarios quedan en la cola.
@@ -154,7 +155,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
             IconButton(
               key: Key('like-${post['id']}'),
               onPressed: () => _toggleLike(post),
-              icon: Icon(post['likedByMe'] == true ? Icons.favorite : Icons.favorite_border, color: const Color(0xFFD4AF37)),
+              icon: Icon(post['likedByMe'] == true ? Icons.favorite : Icons.favorite_border, color: SalonColors.roseDeep),
             ),
             Text('${post['totalLikes']}'),
             const Spacer(),

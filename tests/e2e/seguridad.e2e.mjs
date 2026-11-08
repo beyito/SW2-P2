@@ -40,7 +40,7 @@ cliente.on('response', (r) => {
 await cliente.goto(SHELL);
 check('sin sesión redirige a Keycloak', /localhost:8080\/realms\/salon/.test((await cliente.waitForURL(/localhost:8080/), cliente.url())));
 await login(cliente, CLIENT);
-check('cliente ve su nombre real', (await cliente.textContent('#current-user')).includes('Camila Fernandez (CLIENT)'));
+check('cliente ve su nombre real y su rol', /Camila Fernandez\s*Cliente/.test(await cliente.textContent('#current-user')));
 check('cliente no ve la pestaña ERP', (await cliente.locator('#tab-mfe-gestion').count()) === 0);
 check('no existe el botón de alternar rol', (await cliente.locator('[title="Alternar rol de sesión"]').count()) === 0);
 

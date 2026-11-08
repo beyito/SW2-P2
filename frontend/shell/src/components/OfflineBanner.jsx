@@ -26,7 +26,7 @@ export default function OfflineBanner({ store, onPay }) {
 
   return (
     <div id="offline-banner" role="status" className="glass-panel" style={{ margin: '0 24px', padding: '12px 20px', fontSize: '0.86rem' }}>
-      {!online && <strong id="offline-state" style={{ color: '#FCD34D' }}>Sin conexión. </strong>}
+      {!online && <strong id="offline-state" className="text-warning">Sin conexión. </strong>}
       {pending.length > 0 && (
         <span id="offline-pending" data-count={pending.length}>
           {pending.length === 1 ? '1 operación guardada' : `${pending.length} operaciones guardadas`} en este dispositivo: {online ? 'enviando...' : 'se enviarán al volver la conexión.'}
@@ -35,8 +35,8 @@ export default function OfflineBanner({ store, onPay }) {
       {!online && pending.length === 0 && <span>Puedes seguir consultando lo último que viste.</span>}
       {others.map((item) => (
         <div key={item.id} className="offline-item" data-status={item.status} style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center', marginTop: '8px' }}>
-          {item.status === CONFLICT && <span style={{ color: '#FCA5A5' }}>No se pudo completar "{item.label}": {item.error}</span>}
-          {item.status === DONE && <span style={{ color: '#6EE7B7' }}>"{item.label}" se envió. Revisa si el turno sigue libre y paga en los próximos 15 minutos para confirmarlo.</span>}
+          {item.status === CONFLICT && <span className="text-danger">No se pudo completar "{item.label}": {item.error}</span>}
+          {item.status === DONE && <span className="text-success">"{item.label}" se envió. Revisa si el turno sigue libre y paga en los próximos 15 minutos para confirmarlo.</span>}
           {item.status === DONE && (
             <button
               type="button"

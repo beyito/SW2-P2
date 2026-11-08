@@ -5,30 +5,21 @@ import { Sparkles, Calendar, LayoutDashboard, RefreshCw } from 'lucide-react';
 // Contratos de integración de los tres microfrontends, cargados con Module Federation
 const MFE_CONFIGS = {
   'estudio-ia': {
-    title: 'Estudio IA & Comunidad',
-    framework: 'React 18',
-    badgeColor: '#61DAFB',
-    textColor: '#0A0E17',
+    title: 'Estudio de belleza',
     load: () => import('mfe_estudio/mount'),
-    domain: 'Diagnóstico capilar y facial, clóset virtual y comunidad.',
+    domain: 'Diagnóstico de rostro y cabello, tu clóset y la comunidad del salón.',
     icon: Sparkles,
   },
   reservas: {
     title: 'Reservas',
-    framework: 'Vue.js 3',
-    badgeColor: '#42B883',
-    textColor: '#0A0E17',
     load: () => import('mfe_reservas/mount'),
-    domain: 'Agendamiento de citas y pago.',
+    domain: 'Elige tu servicio, tu estilista y tu horario.',
     icon: Calendar,
   },
   gestion: {
-    title: 'Gestión Operativa & ERP',
-    framework: 'Angular 21',
-    badgeColor: '#DD0031',
-    textColor: '#FFFFFF',
+    title: 'Gestión del salón',
     load: () => import('mfe_gestion/mount'),
-    domain: 'Inventario, agenda, estilistas, clientes, moderación y agente MCP.',
+    domain: 'Agenda, inventario, estilistas, clientes y asistentes.',
     icon: LayoutDashboard,
   },
 };
@@ -93,44 +84,35 @@ export default function MicrofrontendHost({ activeTab, currentUser, getToken, on
 
   return (
     <div style={{ maxWidth: '1240px', margin: '0 auto', padding: '0 24px' }}>
-      <div className="glass-panel" style={{ padding: '16px 24px', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div style={{ padding: '8px 4px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-          <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'rgba(212, 175, 55, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--border-glass)' }}>
-            <IconComponent size={20} color="var(--gold-primary)" />
+          <div style={{ width: '46px', height: '46px', borderRadius: '50%', background: 'var(--rose-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <IconComponent size={20} color="var(--rose-deep)" />
           </div>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800 }} className="gold-gradient-text">{config.title}</h2>
-              <span style={{ background: config.badgeColor, color: config.textColor, fontSize: '0.72rem', fontWeight: 800, padding: '3px 8px', borderRadius: '6px' }}>
-                {config.framework}
-              </span>
-            </div>
-            <p style={{ margin: '4px 0 0', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{config.domain}</p>
+            <h2 style={{ margin: 0, fontSize: '1.6rem' }} className="gold-gradient-text">{config.title}</h2>
+            <p style={{ margin: '2px 0 0', fontSize: '0.88rem', color: 'var(--text-secondary)' }}>{config.domain}</p>
           </div>
         </div>
 
         <button
           onClick={() => setReloadKey((key) => key + 1)}
           className="btn-outline"
-          style={{ padding: '8px 12px', fontSize: '0.75rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}
-          title="Recargar microfrontend"
+          style={{ padding: '7px 14px', fontSize: '0.78rem' }}
+          title="Volver a cargar esta sección"
         >
           <RefreshCw size={13} />
           Recargar
         </button>
       </div>
 
-      <div className="glass-panel" style={{ padding: '12px', borderRadius: '16px', overflow: 'hidden', minHeight: '700px', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ background: 'rgba(0, 0, 0, 0.4)', borderRadius: '10px', padding: '8px 16px', marginBottom: '10px', fontSize: '0.75rem', color: 'var(--text-muted)', textAlign: 'right' }}>
-          Sesión de <strong style={{ color: 'var(--gold-primary)' }}>{currentUser.name} ({currentUser.role})</strong>
-        </div>
-
+      <div className="glass-panel" style={{ padding: 0, overflow: 'hidden', minHeight: '700px', display: 'flex', flexDirection: 'column' }}>
         {loadError && (
           <div id="mfe-error" role="alert" style={{ padding: '32px', textAlign: 'center', color: 'var(--text-secondary)' }}>
-            No se pudo cargar este módulo. Verifica que su servidor esté en ejecución y pulsa "Recargar".
+            No se pudo cargar esta sección. Revisa tu conexión y pulsa "Recargar".
           </div>
         )}
-        <div ref={container} style={{ flex: 1, minHeight: '660px', borderRadius: '10px', backgroundColor: '#0A0E17' }} />
+        <div ref={container} style={{ flex: 1, minHeight: '660px' }} />
       </div>
     </div>
   );

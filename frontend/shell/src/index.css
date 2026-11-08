@@ -1,30 +1,38 @@
+/* Tema del salón: crema, rosa empolvado y dorado. Los microfrontends usan los mismos valores. */
 :root {
-  --bg-primary: #0A0E17;
-  --bg-secondary: #111827;
-  --bg-card: rgba(17, 24, 39, 0.7);
-  --bg-card-hover: rgba(26, 36, 56, 0.8);
-  --border-glass: rgba(255, 255, 255, 0.08);
-  --border-gold: rgba(212, 175, 55, 0.3);
-  
-  --gold-primary: #D4AF37;
-  --gold-light: #F7D070;
-  --gold-dark: #AA820A;
-  --rose-accent: #E11D48;
-  --rose-glow: rgba(225, 29, 72, 0.25);
-  --emerald-accent: #10B981;
-  --cyan-accent: #06B6D4;
-  
-  --text-primary: #F9FAFB;
-  --text-secondary: #9CA3AF;
-  --text-muted: #6B7280;
+  --bg-primary: #FBF6F2;
+  --bg-secondary: #F6EDE8;
+  --bg-card: #FFFFFF;
+  --bg-card-hover: #FFFDFB;
+  --border-glass: #EBDDD5;
+  --border-gold: #E2D0BA;
 
-  --font-heading: 'Outfit', sans-serif;
-  --font-body: 'Plus Jakarta Sans', sans-serif;
+  --rose: #C98B8B;
+  --rose-soft: #F7E7E4;
+  --rose-deep: #9E6066;
+  --rose-deep-hover: #8A4F55;
+  --gold-primary: #8C6A3F;
+  --gold-light: #C9A97E;
+  --gold-soft: #F3EADF;
 
-  --shadow-gold: 0 8px 32px -4px rgba(212, 175, 55, 0.2);
-  --shadow-card: 0 10px 30px -5px rgba(0, 0, 0, 0.5);
-  --radius-lg: 16px;
-  --radius-md: 10px;
+  --success: #4F7D5B;
+  --success-soft: #E8F1EA;
+  --danger: #A8464C;
+  --danger-soft: #F8E4E4;
+  --warning: #8A6424;
+  --warning-soft: #F7EEDC;
+
+  --text-primary: #3D2F2D;
+  --text-secondary: #7D6A65;
+  --text-muted: #8E7A75;
+
+  --font-heading: 'Playfair Display', Georgia, serif;
+  --font-body: 'Lato', 'Segoe UI', sans-serif;
+
+  --shadow-card: 0 6px 24px rgba(125, 90, 80, 0.08);
+  --shadow-hover: 0 10px 30px rgba(125, 90, 80, 0.14);
+  --radius-lg: 18px;
+  --radius-md: 12px;
 }
 
 * {
@@ -37,123 +45,109 @@ body {
   background-color: var(--bg-primary);
   color: var(--text-primary);
   font-family: var(--font-body);
+  line-height: 1.5;
   min-height: 100vh;
   overflow-x: hidden;
-  background-image: 
-    radial-gradient(circle at 15% 20%, rgba(212, 175, 55, 0.06) 0%, transparent 40%),
-    radial-gradient(circle at 85% 80%, rgba(225, 29, 72, 0.05) 0%, transparent 40%),
-    linear-gradient(to bottom, #070A10, #0A0E17);
+  /* Toques suaves de rosa y dorado en las esquinas */
+  background-image:
+    radial-gradient(circle at 0% 0%, rgba(201, 139, 139, 0.12) 0%, transparent 35%),
+    radial-gradient(circle at 100% 100%, rgba(201, 169, 126, 0.14) 0%, transparent 35%);
   background-attachment: fixed;
 }
 
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
-  letter-spacing: -0.02em;
+  font-weight: 600;
+  color: var(--text-primary);
 }
 
-/* Glassmorphism Cards */
+/* Tarjetas */
 .glass-panel {
   background: var(--bg-card);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--border-glass);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-card);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
 }
 
-.glass-panel:hover {
-  border-color: rgba(212, 175, 55, 0.25);
-  box-shadow: 0 12px 36px -4px rgba(0, 0, 0, 0.6), 0 0 20px -2px rgba(212, 175, 55, 0.1);
-}
-
-/* Gold Gradient Text */
+/* Títulos de marca: serif sobre fondo claro (el nombre de la clase se conserva) */
 .gold-gradient-text {
-  background: linear-gradient(135deg, #FFF6D6 0%, #F5D061 50%, #D4AF37 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  font-family: var(--font-heading);
+  color: var(--text-primary);
 }
 
-/* Buttons */
+/* Botones */
 .btn-gold {
-  background: linear-gradient(135deg, #F5D061 0%, #D4AF37 100%);
-  color: #0A0E17;
+  background: var(--rose-deep);
+  color: #FFFFFF;
   font-weight: 700;
-  font-family: var(--font-heading);
+  font-family: var(--font-body);
   padding: 10px 22px;
-  border-radius: var(--radius-md);
+  border-radius: 999px;
   border: none;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  box-shadow: 0 4px 16px rgba(212, 175, 55, 0.3);
-  transition: all 0.25s ease;
+  box-shadow: 0 4px 14px rgba(158, 96, 102, 0.25);
+  transition: background 0.2s ease, transform 0.2s ease;
 }
 
 .btn-gold:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(212, 175, 55, 0.5);
-  background: linear-gradient(135deg, #FFF 0%, #F5D061 100%);
+  background: var(--rose-deep-hover);
+  transform: translateY(-1px);
 }
 
 .btn-outline {
-  background: transparent;
-  color: var(--text-primary);
-  border: 1px solid var(--border-glass);
+  background: var(--bg-card);
+  color: var(--rose-deep);
+  border: 1px solid var(--rose);
   padding: 10px 20px;
-  border-radius: var(--radius-md);
-  font-weight: 600;
+  border-radius: 999px;
+  font-weight: 700;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  transition: all 0.2s ease;
+  transition: background 0.2s ease;
 }
 
 .btn-outline:hover {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: var(--gold-primary);
-  color: var(--gold-light);
+  background: var(--rose-soft);
 }
 
-/* Badges */
-.badge-gold {
-  background: rgba(212, 175, 55, 0.15);
-  color: var(--gold-light);
-  border: 1px solid rgba(212, 175, 55, 0.3);
+/* Etiquetas */
+.badge-gold, .badge-emerald, .badge-rose {
   font-size: 0.75rem;
   padding: 3px 10px;
   border-radius: 999px;
-  font-weight: 600;
+  font-weight: 700;
+}
+
+.badge-gold {
+  background: var(--gold-soft);
+  color: var(--gold-primary);
+  border: 1px solid var(--border-gold);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
 .badge-emerald {
-  background: rgba(16, 185, 129, 0.15);
-  color: #34D399;
-  border: 1px solid rgba(16, 185, 129, 0.3);
-  font-size: 0.75rem;
-  padding: 3px 10px;
-  border-radius: 999px;
-  font-weight: 600;
+  background: var(--success-soft);
+  color: var(--success);
+  border: 1px solid #C9DECF;
 }
 
 .badge-rose {
-  background: rgba(225, 29, 72, 0.15);
-  color: #FB7185;
-  border: 1px solid rgba(225, 29, 72, 0.3);
-  font-size: 0.75rem;
-  padding: 3px 10px;
-  border-radius: 999px;
-  font-weight: 600;
+  background: var(--danger-soft);
+  color: var(--danger);
+  border: 1px solid #EBC5C7;
 }
 
-/* Form inputs */
+/* Campos de formulario (el nombre de la clase se conserva) */
 .input-dark {
   width: 100%;
-  background: rgba(10, 14, 23, 0.8);
+  background: #FFFFFF;
   border: 1px solid var(--border-glass);
   color: var(--text-primary);
   padding: 12px 16px;
@@ -164,32 +158,66 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .input-dark:focus {
-  border-color: var(--gold-primary);
-  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
+  border-color: var(--rose);
+  box-shadow: 0 0 0 3px var(--rose-soft);
 }
 
-/* Custom Scrollbar */
+/* Barra de desplazamiento */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--bg-primary);
+  background: var(--bg-secondary);
 }
 ::-webkit-scrollbar-thumb {
-  background: #1F2937;
+  background: #DCC8BF;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #374151;
+  background: var(--rose);
 }
 
-/* Micro-animations */
+/* Pestañas de la barra superior */
+.shell-tab {
+  padding: 8px 18px;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 700;
+  background: transparent;
+  color: var(--text-secondary);
+  transition: background 0.2s, color 0.2s;
+}
+.shell-tab:hover { color: var(--rose-deep); }
+.shell-tab.active {
+  background: var(--rose-deep);
+  color: #FFFFFF;
+}
+
+/* Mensajes de estado */
+.text-warning { color: var(--warning); }
+.text-danger { color: var(--danger); }
+.text-success { color: var(--success); }
+
+/* Animación suave */
 @keyframes pulseGlow {
-  0%, 100% { opacity: 0.6; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.05); }
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
 }
 
 .pulse-glow {
   animation: pulseGlow 3s infinite ease-in-out;
+}
+
+/* Números alineados en los títulos y precios; botón de archivo con el estilo del salón */
+h1, h2, h3, h4, .gold-gradient-text, .gold-text, .srv-price, .total-amount, .kpi strong, .avatar { font-variant-numeric: lining-nums; }
+input[type="file"]::file-selector-button {
+  margin-right: 10px; padding: 6px 14px; border-radius: 999px; border: 1px solid #C98B8B;
+  background: #F7E7E4; color: #9E6066; font: inherit; font-weight: 700; cursor: pointer;
 }

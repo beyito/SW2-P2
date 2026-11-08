@@ -115,7 +115,7 @@ export default function Closet() {
   return (
     <div className="studio-columns">
       <div className="glass-panel studio-panel">
-        <h3 className="gold-gradient-text studio-title">Armario Virtual (CU-15)</h3>
+        <h3 className="gold-gradient-text studio-title">Tu clóset virtual</h3>
         {error && <p id="closet-error" className="studio-error" role="alert">{error}</p>}
         {loading && <p>Cargando...</p>}
         {!loading && items.length === 0 && <p id="closet-empty" className="studio-muted">Aún no tienes prendas. Agrega la primera.</p>}

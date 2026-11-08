@@ -51,7 +51,7 @@ export default function Onboarding({ onDone }) {
                 id={`onboarding-${field}`}
                 value={answers[field] ?? ''}
                 onChange={(event) => setAnswers((current) => ({ ...current, [field]: event.target.value || undefined }))}
-                style={{ background: 'rgba(0, 0, 0, 0.35)', color: '#fff', border: '1px solid var(--border-glass)', borderRadius: '8px', padding: '10px', font: 'inherit' }}
+                style={{ background: '#FFFFFF', color: 'var(--text-primary)', border: '1px solid var(--border-glass)', borderRadius: '10px', padding: '10px', font: 'inherit' }}
               >
                 <option value="">Sin responder</option>
                 {Object.entries(options).map(([value, text]) => <option key={value} value={value}>{text}</option>)}
@@ -59,7 +59,7 @@ export default function Onboarding({ onDone }) {
             </label>
           ))}
         </div>
-        {error && <p role="alert" style={{ color: '#FCA5A5', fontSize: '0.85rem' }}>{error}</p>}
+        {error && <p role="alert" className="text-danger" style={{ fontSize: '0.85rem' }}>{error}</p>}
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
           <button id="onboarding-save" type="submit" className="btn-gold" disabled={saving}>Guardar y continuar</button>
           <button id="onboarding-skip" type="button" className="btn-outline" disabled={saving} onClick={() => finish({})}>Omitir por ahora</button>

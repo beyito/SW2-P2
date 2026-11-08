@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../core/api/api_client.dart';
 import '../../core/config.dart';
+import '../../core/salon_theme.dart';
 
 /// Obtiene la foto del cliente; en las pruebas se sustituye por una foto fija.
 typedef PhotoSource = Future<Uint8List?> Function(ImageSource source);
@@ -163,7 +164,7 @@ class _ImagePreviewScreenState extends State<ImagePreviewScreen> {
           const SizedBox(height: 8),
           if (consent != null && granted) const Text('Generando la imagen, puede tardar hasta un minuto...', key: Key('preview-busy')),
         ],
-        if (_error != null) Padding(padding: const EdgeInsets.symmetric(vertical: 8), child: Text(_error!, key: const Key('preview-error'), style: const TextStyle(color: Colors.redAccent))),
+        if (_error != null) Padding(padding: const EdgeInsets.symmetric(vertical: 8), child: Text(_error!, key: const Key('preview-error'), style: const TextStyle(color: SalonColors.danger))),
         if (consent != null && !granted && _minor) const Text('La simulación con foto es solo para mayores de 18 años.', key: Key('preview-minor')),
         if (consent != null && !granted && !_minor) ...[
           Text(consent['policyText'] as String, key: const Key('preview-consent-text')),
@@ -192,7 +193,7 @@ class _ImagePreviewScreenState extends State<ImagePreviewScreen> {
         if (result != null) ...[
           const SizedBox(height: 16),
           // Va antes de la imagen: una foto alta no debe dejar el aviso fuera de la pantalla
-          Text(result['label'] as String, key: const Key('preview-label'), style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFD4AF37))),
+          Text(result['label'] as String, key: const Key('preview-label'), style: const TextStyle(fontWeight: FontWeight.bold, color: SalonColors.gold)),
           const SizedBox(height: 8),
           ClipRRect(borderRadius: BorderRadius.circular(10), child: Image.memory(base64Decode(result['image_base64'] as String), key: const Key('preview-image'), fit: BoxFit.contain)),
           const SizedBox(height: 8),

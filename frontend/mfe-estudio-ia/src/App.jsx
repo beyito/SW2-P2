@@ -15,32 +15,20 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('biometrics');
 
   return (
-    <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '24px' }}>
-      <header className="glass-panel" style={{ padding: '18px 24px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '12px', marginBottom: '24px' }}>
-        <h2 className="gold-gradient-text" style={{ margin: 0, fontSize: '1.4rem', fontWeight: 800 }}>
-          Estudio IA y Comunidad
-        </h2>
-        <nav style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-          {TABS.map((tab) => (
-            <button
-              key={tab.id}
-              id={`tab-${tab.id}`}
-              onClick={() => setActiveTab(tab.id)}
-              style={{
-                padding: '8px 16px',
-                borderRadius: '8px',
-                border: 'none',
-                cursor: 'pointer',
-                fontWeight: 600,
-                background: activeTab === tab.id ? 'linear-gradient(135deg, #F5D061, #D4AF37)' : 'transparent',
-                color: activeTab === tab.id ? '#0A0E17' : 'var(--text-secondary)',
-              }}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </nav>
-      </header>
+    <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '20px 24px 24px' }}>
+      {/* El título de la sección ya lo muestra el Shell: aquí solo van las pestañas */}
+      <nav className="inner-tabs">
+        {TABS.map((tab) => (
+          <button
+            key={tab.id}
+            id={`tab-${tab.id}`}
+            onClick={() => setActiveTab(tab.id)}
+            className={activeTab === tab.id ? 'active' : ''}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </nav>
 
       {activeTab === 'biometrics' && <Scanner />}
       {activeTab === 'brand' && <Brand />}

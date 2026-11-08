@@ -200,7 +200,7 @@ try {
   const admin = await iniciarSesion(contextoAdmin, SHELL, ADMIN);
   await admin.click('#tab-mfe-gestion');
   const erp = admin.locator('#mfe-root');
-  await erp.getByRole('button', { name: /Agente/ }).click(ESPERA);
+  await erp.getByRole('button', { name: /Asistentes/ }).click(ESPERA);
   await erp.locator('#agent-mic').waitFor(ESPERA);
   await erp.locator('#agent-mic').click();
   await erp.locator('#agent-mic', { hasText: 'Detener' }).waitFor(ESPERA);

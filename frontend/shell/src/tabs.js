@@ -6,9 +6,9 @@ import { Calendar, LayoutDashboard, Sparkles } from 'lucide-react';
  * - La recepción trabaja solo en el ERP: el estudio y las reservas son del cliente.
  */
 export const TABS = [
-  { id: 'estudio-ia', label: 'Estudio IA & Comunidad', icon: Sparkles, hiddenFor: ['RECEPTIONIST'] },
+  { id: 'estudio-ia', label: 'Estudio de belleza', icon: Sparkles, hiddenFor: ['RECEPTIONIST'] },
   { id: 'reservas', label: 'Reservas', icon: Calendar, hiddenFor: ['RECEPTIONIST'] },
-  { id: 'gestion', label: 'ERP & Inventario', icon: LayoutDashboard, staffOnly: true },
+  { id: 'gestion', label: 'Gestión del salón', icon: LayoutDashboard, staffOnly: true },
 ];
 
 /** Pestañas que ve un rol, en el orden de la barra. */

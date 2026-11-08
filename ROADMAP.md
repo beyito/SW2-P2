@@ -28,6 +28,7 @@ Registro oficial del desarrollo de la **Plataforma Inteligente para Salón de Be
 | **N** | Móvil a la par de la web: cierre de sesión en el servidor y canje de puntos | Dom 8 | **COMPLETADA** |
 | **O** | Móvil completo: comprobante imprimible, cancelación con reembolso y reprogramación | Dom 8 | **COMPLETADA** |
 | **P** | Despliegue en AWS, Azure y Google Cloud | Lun 9 | **EN CURSO**: código listo; falta desplegar con las cuentas |
+| **Q** | Diseño de salón de belleza en web y móvil | Dom 8 | **COMPLETADA** |
 
 ---
 
@@ -465,6 +466,36 @@ Aprobada el 8 de noviembre de 2026: el docente exige AWS, Azure y Google Cloud. 
 - **Guiones sin probar en la nube:** el primer despliegue puede pedir ajustes.
 - **Cuentas de demostración:** el realm las importa para la presentación; hay que cambiar sus contraseñas al desplegar.
 - **Atlas abierto:** Atlas queda abierto a cualquier IP (con TLS y contraseña), salvo que se agregue Cloud NAT con IP fija.
+
+## Fase Q: Diseño de salón de belleza (web y móvil) (Completada)
+Pedida por el usuario el 8 de noviembre de 2026: la interfaz parecía un panel de IA. Eligió el estilo "rosa empolvado" para la web y el móvil.
+
+- [x] **Paleta común** en los cuatro frontends y en Flutter (`lib/core/salon_theme.dart`):
+  - Colores: fondo crema #FBF6F2, tarjetas blancas, botón principal rosa vino #9E6066, rosa empolvado #C98B8B en los detalles y dorado #8C6A3F en los precios.
+  - Contraste de los textos de al menos 4,5:1; el texto tenue llega a 3,8:1.
+  - Letras: Playfair Display en los títulos (con números alineados) y Lato en el texto. El móvil usa la serif del sistema para no agregar dependencias.
+- [x] **Sin aspecto de demostración técnica:**
+  - Se quitaron las etiquetas de React, Vue y Angular, el lema "B2B2C" y el pie "Dark Luxury Theme".
+  - Los títulos ya no muestran códigos de casos de uso. "Agente MCP" pasó a llamarse "Asistentes".
+  - El rol se muestra en español.
+- [x] **Componentes:**
+  - Pestañas subrayadas en rosa y turnos en forma de pastilla.
+  - El avance de la reserva se ve como una línea de tiempo.
+  - Botón de archivo y campos de formulario con el tema.
+  - Formulario de tarjeta de Stripe con los colores del salón.
+- [x] **Se conservaron todos los identificadores y clases:** las pruebas siguen funcionando. Se actualizaron tres textos esperados: el rol en español, las pestañas de Estudio y "Asistentes".
+
+**Verificación:**
+- [x] **Unitarias:** Shell 18, Estudio 38, Reservas 11, ERP 37 y móvil 83. `flutter analyze` limpio.
+- [x] **Navegador:** seguridad, reservas, fecha de reserva, recepción, Fase F (51 comprobaciones), Fase G, perfil, imágenes y modo sin conexión: todas correctas. Fase F falló una vez por una espera de 20 s y pasó en las dos corridas siguientes. Las pruebas no dejaron datos.
+- [x] **Capturas** de Estudio, Comunidad, Reservas y ERP, y del móvil en el emulador. Con ellas se corrigieron:
+  - los números de estilo antiguo de Playfair;
+  - el marco doble alrededor de cada sección;
+  - el ícono activo de la barra móvil, que salía blanco sobre rosa claro.
+
+**Limitaciones conocidas:**
+- **Inicio de sesión:** la página de Keycloak conserva su diseño predeterminado.
+- **Pantallas no revisadas:** las que requieren datos o pasos especiales (pago con Stripe, cámara, simulación de imágenes) se revisaron solo con las pruebas, sin captura.
 
 ## WhatsApp con la cuenta de Meta (CU-19, RF-12) (En curso)
 El 8 de noviembre de 2026 se conectó la app de Meta de un compañero del usuario.

@@ -21,7 +21,7 @@ const TABS: { id: Tab; label: string; roles: Role[] }[] = [
   { id: 'stylists', label: 'Estilistas', roles: ['ADMIN', 'STYLIST', 'RECEPTIONIST'] },
   { id: 'clients', label: 'Clientes', roles: ['ADMIN', 'STYLIST', 'RECEPTIONIST'] },
   { id: 'moderation', label: 'Moderación', roles: ['ADMIN', 'STYLIST'] },
-  { id: 'agent', label: 'Agente MCP', roles: ['ADMIN', 'STYLIST'] },
+  { id: 'agent', label: 'Asistentes', roles: ['ADMIN', 'STYLIST'] },
 ];
 
 @Component({

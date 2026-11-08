@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/api/api_client.dart';
 import '../../core/config.dart';
+import '../../core/salon_theme.dart';
 
 const _platforms = {'LINKEDIN': 'LinkedIn', 'INSTAGRAM': 'Instagram', 'TIKTOK': 'TikTok', 'FACEBOOK': 'Facebook'};
 const _styleProfile = '{ getMyProfile { styleProfile { gender ageRange } } }';
@@ -73,7 +74,7 @@ class _BrandScreenState extends State<BrandScreen> {
         if (_error != null) Padding(padding: const EdgeInsets.only(top: 12), child: Text(_error!, key: const Key('brand-error'))),
         if (strategy != null) ...[
           const SizedBox(height: 16),
-          Text(_platforms[strategy['platform']] ?? '', key: const Key('brand-result'), style: const TextStyle(fontSize: 20, color: Color(0xFFF5D061))),
+          Text(_platforms[strategy['platform']] ?? '', key: const Key('brand-result'), style: const TextStyle(fontSize: 20, fontFamily: 'serif', color: SalonColors.text)),
           if (strategy['personalized'] != true)
             const Text('Haz un diagnóstico para recibir una asesoría a tu medida.', style: TextStyle(fontSize: 12)),
           _row('Tono', strategy['tone']),
