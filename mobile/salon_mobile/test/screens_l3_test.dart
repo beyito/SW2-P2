@@ -12,9 +12,18 @@ import 'package:salon_mobile/core/database/local_database.dart';
 import 'package:salon_mobile/core/sync/offline_queue.dart';
 import 'package:salon_mobile/core/tab_refresh.dart';
 import 'package:salon_mobile/features/account/account_screen.dart';
+import 'package:salon_mobile/features/account/receipt_printer.dart';
 import 'package:salon_mobile/features/brand/brand_screen.dart';
 import 'package:salon_mobile/features/community/community_screen.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+
+/// Impresora falsa: el diálogo de impresión es nativo.
+class FakePrinter implements ReceiptPrinter {
+  final printed = <String, Uint8List>{};
+
+  @override
+  Future<void> print(Uint8List pdf, {required String name}) async => printed[name] = pdf;
+}
 
 class FakeTokens implements TokenProvider {
   @override
@@ -188,6 +197,27 @@ void main() {
       selected.value = 4;
       await settle(tester);
       expect(find.text('1400 puntos'), findsOneWidget);
+    });
+
+    test('el comprobante en PDF incluye los datos de la factura', () async {
+      final pdf = await buildReceiptPdf({
+        'invoiceNumber': 17, 'clientName': 'Camila', 'serviceName': 'Corte', 'subtotalAmount': 45, 'discountAmount': 0,
+        'totalAmount': 45, 'taxAmount': 5.85, 'paymentMethod': 'CASH', 'status': 'PAID', 'issuedAt': '2026-11-07T10:00:00',
+      });
+      expect(String.fromCharCodes(pdf.take(4)), '%PDF');
+      expect(pdf.length, greaterThan(500));
+    });
+
+    testWidgets('desde el detalle se imprime el comprobante', (tester) async {
+      final printer = FakePrinter();
+      await abrir(tester, AccountScreen(api: api, printer: printer));
+      await tester.tap(find.byKey(const Key('invoice-inv-1')));
+      await settle(tester);
+      await tester.tap(find.byKey(const Key('invoice-print')));
+      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 500)));
+      await settle(tester);
+      expect(printer.printed.keys, ['Comprobante 17']);
+      expect(String.fromCharCodes(printer.printed.values.single.take(4)), '%PDF');
     });
 
     testWidgets('una cuenta sin ficha en el CRM la crea', (tester) async {

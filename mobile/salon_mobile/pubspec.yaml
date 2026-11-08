@@ -20,6 +20,8 @@ dependencies:
   tflite_flutter: ^0.12.1
   uuid: ^4.4.0
   flutter_stripe: ^14.2.0
+  printing: ^5.15.1
+  pdf: ^3.13.1
 
 dev_dependencies:
   archive: ^4.0.0

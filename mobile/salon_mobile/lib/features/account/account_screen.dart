@@ -4,14 +4,15 @@ import '../../core/api/api_client.dart';
 import '../../core/config.dart';
 import '../../core/tab_refresh.dart';
 import '../brand/brand_screen.dart';
+import 'receipt_printer.dart';
 
 const _profile = '{ getMyProfile { id fullName loyaltyPoints } }';
 const _sync = 'mutation { syncMyProfile { id fullName loyaltyPoints } }';
 // Un solo texto: la prueba de contratos lo valida contra el esquema real del CRM
 const _history =
-    r'query ($c: String!) { getLoyaltyHistory(clientId: $c) { id points type description createdAt } getInvoicesByClient(clientId: $c) { id invoiceNumber serviceName subtotalAmount discountAmount totalAmount taxAmount paymentMethod status issuedAt } }';
+    r'query ($c: String!) { getLoyaltyHistory(clientId: $c) { id points type description createdAt } getInvoicesByClient(clientId: $c) { id invoiceNumber clientName serviceName subtotalAmount discountAmount totalAmount taxAmount paymentMethod status issuedAt } }';
 
-const _methods = {'CARD': 'Tarjeta en línea', 'CASH': 'Efectivo en el mostrador', 'CARD_TERMINAL': 'Tarjeta en el mostrador'};
+const _methods = paymentMethodLabels;
 const _invoiceStatus = {'ISSUED': 'Emitida', 'PAID': 'Pagada', 'REFUNDED': 'Reembolsada', 'CANCELLED': 'Anulada'};
 
 String _money(Object? value) => '${((value as num?) ?? 0).toStringAsFixed(2)} USD';
@@ -20,8 +21,10 @@ String _money(Object? value) => '${((value as num?) ?? 0).toStringAsFixed(2)} US
 class AccountScreen extends StatefulWidget {
   final ApiClient api;
   final TabRefresh? refresh;
+  /// Impresora sustituible en las pruebas; por defecto, el diálogo del sistema.
+  final ReceiptPrinter? printer;
 
-  const AccountScreen({super.key, required this.api, this.refresh});
+  const AccountScreen({super.key, required this.api, this.refresh, this.printer});
 
   @override
   State<AccountScreen> createState() => _AccountScreenState();
@@ -85,9 +88,30 @@ class _AccountScreenState extends State<AccountScreen> {
           const SizedBox(height: 8),
           const Text('Documento de demostración, sin validez fiscal.', style: TextStyle(fontSize: 11)),
         ]),
-        actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cerrar'))],
+        actions: [
+          TextButton.icon(
+            key: const Key('invoice-print'),
+            onPressed: () => _print(invoice),
+            icon: const Icon(Icons.print),
+            label: const Text('Imprimir o guardar PDF'),
+          ),
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cerrar')),
+        ],
       ),
     );
+  }
+
+  Future<void> _print(Map<String, dynamic> invoice) async {
+    try {
+      final pdf = await buildReceiptPdf(invoice);
+      await (widget.printer ?? const SystemReceiptPrinter()).print(pdf, name: 'Comprobante ${invoice['invoiceNumber'] ?? ''}');
+    } on Exception catch (error) {
+      _notify(error.toString());
+    }
+  }
+
+  void _notify(String message) {
+    if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override

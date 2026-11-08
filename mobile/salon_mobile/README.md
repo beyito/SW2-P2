@@ -41,4 +41,4 @@ Al terminar, borre lo que creó: la cita de 2041 en `salon_gestion` y su factura
 
 ## Pantallas
 
-Diagnóstico, Clóset, Mis citas (reservar con canje de puntos y pagar con el formulario de Stripe, o pagar una reserva pendiente), Comunidad (publicar, reaccionar y comentar) y Cuenta (puntos, facturas y asesoría para redes). Cerrar sesión revoca la sesión en los servicios y en Keycloak.
+Diagnóstico, Clóset, Mis citas (reservar con canje de puntos y pagar con el formulario de Stripe, pagar una reserva pendiente, reprogramar y cancelar con reembolso), Comunidad (publicar, reaccionar y comentar) y Cuenta (puntos, facturas con comprobante para imprimir o guardar en PDF, y asesoría para redes). Cerrar sesión revoca la sesión en los servicios y en Keycloak.

@@ -42,6 +42,7 @@ class Backend {
   final calls = <http.Request>[];
   List<String> states = ['RESERVING_APPOINTMENT', 'AWAITING_PAYMENT'];
   String? failure;
+  String? cancelReason;
   bool offline = false;
   int points = 0;
   List<Map<String, dynamic>> appointments = [];
@@ -53,6 +54,7 @@ class Backend {
     if (url.endsWith('/payments/config')) return _json({'publishableKey': 'pk_test_x'});
     if (url.endsWith('/bookings') && request.method == 'POST') return _json(_view('RESERVING_APPOINTMENT'), 202);
     if (url.endsWith('/sync')) return _json(_view('AWAITING_PAYMENT'), 202);
+    if (url.endsWith('/cancel')) return _json(_view('COMPLETED'), 202);
     if (url.contains('/bookings/')) {
       final state = states.length > 1 ? states.removeAt(0) : states.first;
       return _json(_view(state));
@@ -67,6 +69,7 @@ class Backend {
         ]}});
       }
       if (query.contains('getMyAppointments')) return _json({'data': {'getMyAppointments': appointments}});
+      if (query.contains('rescheduleAppointment') || query.contains('cancelAppointment')) return _json({'data': {'ok': {'id': 'apt-1'}}});
       return _json({'data': {
         'getServices': [{'id': 'srv-03', 'name': 'Corte', 'durationMinutes': 45, 'price': 45}],
         'getStylists': [{'id': 'sty-101', 'name': 'Valentina'}],
@@ -82,6 +85,7 @@ class Backend {
         'clientSecret': status == 'AWAITING_PAYMENT' ? 'pi_1_secret_x' : null,
         'failureReason': failure,
         'serviceName': 'Corte',
+        'cancelRejectedReason': cancelReason,
       };
 
   http.Response _json(Object body, [int status = 200]) =>
@@ -283,5 +287,92 @@ void main() {
     await settle(tester);
     expect(gateway.secrets, ['pi_1_secret_x']);
     expect(find.textContaining('quedó confirmada'), findsOneWidget);
+  });
+
+  group('cancelar y reprogramar', () {
+    Map<String, dynamic> cita(String id, String status, String date, {String? sagaId}) => {
+          'id': id, 'stylistId': 'sty-101', 'serviceId': 'srv-03', 'serviceName': 'Corte', 'stylistName': 'Valentina',
+          'appointmentDate': date, 'status': status, 'totalPrice': 45, 'sagaId': sagaId,
+        };
+
+    Future<void> abrirCitas(WidgetTester tester) async {
+      tester.view.physicalSize = const Size(800, 2000);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(MaterialApp(home: AppointmentsScreen(api: api, flow: flow, now: () => DateTime(2031, 5, 5, 8))));
+      await settle(tester);
+    }
+
+    test('cancelar una reserva pagada espera el reembolso', () async {
+      backend.states = ['COMPLETED', 'CANCELLING_APPOINTMENT', 'REFUNDING_PAYMENT', 'REFUNDED'];
+      expect(await flow.cancel('saga-1'), isNull);
+      expect(backend.paths, contains('POST /bookings/saga-1/cancel'));
+    });
+
+    test('una cancelación rechazada por el salón se explica', () async {
+      backend.states = ['COMPLETED'];
+      backend.cancelReason = 'ALREADY_CHECKED_IN';
+      expect(await flow.cancel('saga-1'), contains('Ya estás registrado en el salón'));
+    });
+
+    testWidgets('solo las citas vigentes que no empezaron ofrecen cancelar o reprogramar', (tester) async {
+      backend.appointments = [
+        cita('futura', 'CONFIRMED', '2031-05-06T10:00:00', sagaId: 'saga-1'),
+        cita('pasada', 'CONFIRMED', '2031-05-01T10:00:00', sagaId: 'saga-2'),
+        cita('cancelada', 'CANCELLED', '2031-05-07T10:00:00', sagaId: 'saga-3'),
+      ];
+      await abrirCitas(tester);
+      expect(find.byKey(const Key('manage-futura')), findsOneWidget);
+      expect(find.byKey(const Key('manage-pasada')), findsNothing);
+      expect(find.byKey(const Key('manage-cancelada')), findsNothing);
+    });
+
+    testWidgets('cancelar una cita pagada pasa por la SAGA y avisa el reembolso', (tester) async {
+      backend.appointments = [cita('futura', 'CONFIRMED', '2031-05-06T10:00:00', sagaId: 'saga-1')];
+      backend.states = ['COMPLETED', 'REFUNDED'];
+      await abrirCitas(tester);
+      await tester.tap(find.byKey(const Key('manage-futura')));
+      await settle(tester);
+      await tester.tap(find.byKey(const Key('action-cancel')));
+      await settle(tester);
+      expect(find.textContaining('Se reembolsará tu pago'), findsOneWidget);
+      await tester.tap(find.byKey(const Key('cancel-yes')));
+      await settle(tester);
+      expect(backend.paths, contains('POST /bookings/saga-1/cancel'));
+      expect(find.text('Cita cancelada y pago reembolsado.'), findsOneWidget);
+    });
+
+    testWidgets('una cita sin pago en línea se cancela en ms-gestion, sin reembolso', (tester) async {
+      backend.appointments = [cita('agendada', 'SCHEDULED', '2031-05-06T10:00:00')];
+      await abrirCitas(tester);
+      await tester.tap(find.byKey(const Key('manage-agendada')));
+      await settle(tester);
+      await tester.tap(find.byKey(const Key('action-cancel')));
+      await settle(tester);
+      await tester.tap(find.byKey(const Key('cancel-yes')));
+      await settle(tester);
+      final mutation = backend.calls.where((call) => call.body.contains('cancelAppointment')).single;
+      expect(jsonDecode(mutation.body)['variables'], {'id': 'agendada'});
+      expect(backend.paths.where((path) => path.endsWith('/cancel')), isEmpty);
+    });
+
+    testWidgets('reprogramar envía el turno elegido del mismo estilista y servicio', (tester) async {
+      backend.appointments = [cita('futura', 'CONFIRMED', '2031-05-06T10:00:00', sagaId: 'saga-1')];
+      await abrirCitas(tester);
+      await tester.tap(find.byKey(const Key('manage-futura')));
+      await settle(tester);
+      await tester.tap(find.byKey(const Key('action-reschedule')));
+      await settle(tester);
+      final consulta = backend.calls.lastWhere((call) => call.body.contains('getAvailableSlots'));
+      expect(jsonDecode(consulta.body)['variables'], {'s': 'sty-101', 'v': 'srv-03', 'd': '2031-05-06'}, reason: 'empieza en el día de la cita');
+      expect(find.byKey(const Key('reslot-09:00')), findsNothing, reason: 'un turno pasado no se ofrece');
+      await tester.tap(find.byKey(const Key('reslot-10:00')));
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('reschedule-confirm')));
+      await settle(tester);
+      final mutation = backend.calls.where((call) => call.body.contains('rescheduleAppointment')).single;
+      expect(jsonDecode(mutation.body)['variables'], {'id': 'futura', 'd': '2031-05-05T10:00:00'});
+      expect(find.text('Cita reprogramada.'), findsOneWidget);
+    });
   });
 }

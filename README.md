@@ -63,7 +63,7 @@ Cada servicio tiene pruebas unitarias y de integración con Testcontainers. Adem
 ## Limitaciones conocidas
 
 - **WhatsApp:** los flujos están hechos, pero el envío real depende de una cuenta de Meta.
-- **Móvil:** iOS no se compiló, porque requiere macOS. La app se probó en un emulador Android, no en un teléfono físico. El comprobante imprimible y la cancelación con reembolso siguen solo en la web.
+- **Móvil:** iOS no se compiló, porque requiere macOS. La app se probó en un emulador Android, no en un teléfono físico.
 - **Sin conexión en el móvil:** solo se analizan fotos, no video.
 - **Facturas:** son comprobantes de demostración, sin validez fiscal.
 

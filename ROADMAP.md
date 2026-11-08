@@ -26,6 +26,7 @@ Registro oficial del desarrollo de la **Plataforma Inteligente para Salón de Be
 | **L** | Cierre de entrega: regresión, README, frontends en Docker y pantallas móviles que faltan | Sáb 7 | **COMPLETADA** |
 | **M** | Actor Recepcionista: agenda global, llegada y ausencia, cobro en mostrador y horarios | Sáb 7 | **COMPLETADA** |
 | **N** | Móvil a la par de la web: cierre de sesión en el servidor y canje de puntos | Dom 8 | **COMPLETADA** |
+| **O** | Móvil completo: comprobante imprimible, cancelación con reembolso y reprogramación | Dom 8 | **COMPLETADA** |
 
 ---
 
@@ -350,9 +351,9 @@ Aprobada completa por el equipo el 7 de noviembre de 2026. Se hizo en una sola s
 
 **Limitaciones conocidas:**
 - **Canje en el móvil:** no había canje de puntos al reservar. Cerrada en la Fase N.
-- **Comprobante en el móvil:** se ve el detalle de la factura, pero no el comprobante imprimible de la web.
+- **Comprobante en el móvil:** solo había detalle de la factura. Cerrada en la Fase O.
 - **Hora de las facturas:** se muestra en UTC, como la entrega el CRM.
-- **Cancelar desde el móvil:** no hay cancelación con reembolso; sigue en la web.
+- **Cancelar desde el móvil:** no había cancelación con reembolso. Cerrada en la Fase O.
 - **Teléfono físico e iOS:** sin probar, como el resto de la app.
 - **Frontends compilados:** las direcciones de la API se fijan al compilar y apuntan a `localhost`, suficiente para Docker Compose local.
 - **Sin integración continua.**
@@ -404,6 +405,22 @@ Aprobada por el usuario el 8 de noviembre de 2026, mientras consigue las credenc
 - **Canje sin conexión:** la reserva guardada en la cola lleva los puntos elegidos, y la SAGA los valida al enviarse. Si el saldo cambió mientras tanto, se rechaza con su mensaje.
 - **Sin conexión al cerrar sesión:** no se puede revocar la sesión; el token vence solo en 5 minutos.
 
+## Fase O: Móvil completo (CU-07, CU-11) (Completada)
+Pedida por el usuario el 8 de noviembre de 2026 para que el móvil no dependa de la web en nada.
+
+- [x] **Comprobante imprimible (CU-11):** en el detalle de la factura, **Imprimir o guardar PDF** arma el comprobante con los mismos datos que el de la web y abre el diálogo de impresión de Android, desde el que también se guarda el PDF. Una factura reembolsada aparece como anulada. Se usa el paquete `pdf`, porque la conversión de HTML de `printing` está obsoleta.
+- [x] **Cancelar con reembolso (CU-07):** una cita pagada, vigente y futura se cancela por la misma SAGA de la web (`POST /bookings/{sagaId}/cancel`), y la app espera el reembolso. Si el salón la rechaza (ya comenzó, el cliente ya llegó o no se puede cancelar), se explica el motivo. Una cita sin pago en línea se cancela en `ms-gestion`.
+- [x] **Reprogramar (CU-07):** también faltaba en el móvil. Muestra los turnos futuros del mismo estilista y servicio, empezando por el día de la cita, sin cambiar el cobro.
+
+**Verificación:**
+- [x] Móvil 77/77 (8 nuevas) y `flutter analyze` limpio. Contratos 11/11 con las consultas nuevas.
+- [x] En el emulador, como `camila.fernandez`, con los servicios y Stripe reales: reserva de Keratina pagada con el formulario de Stripe y reprogramada de las 10:00 a las 14:00, con estado `RESCHEDULED`. El comprobante 214 se abrió en el diálogo de impresión con todos sus datos. Al cancelar, la SAGA pasó de `COMPLETED` a `REFUNDED` con el reembolso de Stripe. La cita quedó cancelada y la keratina volvió a 3. La factura quedó reembolsada, con la nota de crédito 70 por 95 USD, y se revirtieron los 950 puntos. Al terminar se borraron los registros de la prueba.
+- [x] La prueba mostró que reprogramar empezaba en el día de hoy y no en el de la cita. Ya está corregido.
+
+**Limitaciones conocidas:**
+- **Sin conexión:** cancelar, reprogramar e imprimir requieren conexión; la app lo avisa.
+- **Comprobante del móvil:** se arma en el teléfono con los datos del CRM, sin la referencia del pago de Stripe, que GraphQL no expone.
+
 ---
 
 ## Matriz de Avance por Caso de Uso
@@ -418,11 +435,11 @@ Estado actualizado al cierre de cada fase. ✅ completo y verificado en vivo. �
 | CU-04 | Registrar o modificar estilista | ✅ (sin crear cuenta de acceso) | C |
 | CU-05 | Horarios y disponibilidad | ✅ (también la recepción) | C, M |
 | CU-06 | Agendar cita | ✅ (web, móvil y mostrador) | D, L, M |
-| CU-07 | Reprogramar o cancelar cita | ✅ (con llegada y ausencia) | D, E, F, M |
+| CU-07 | Reprogramar o cancelar cita | ✅ (web y móvil, con reembolso; llegada y ausencia en recepción) | D, E, F, M, O |
 | CU-08 | Registrar inventario | ✅ | C |
 | CU-09 | Actualizar stock mínimo | ✅ | C |
 | CU-10 | Reserva y pago (SAGA e idempotencia) | ✅ (Stripe en web y móvil, o cobro en el mostrador) | D, L, M |
-| CU-11 | Emitir factura | ✅ (sin validez fiscal; con la forma de pago; también en el móvil) | E, F, L, M |
+| CU-11 | Emitir factura | ✅ (sin validez fiscal; con la forma de pago; comprobante imprimible en web y móvil) | E, F, L, M, O |
 | CU-12 | Puntos de fidelidad | ✅ (web y móvil, con canje) | E, F, L, N |
 | CU-13 | Escaneo capilar y facial | ✅ (web y Android; offline con fotos) | G, H |
 | CU-14 | Recomendaciones | ✅ (con simulación en imagen) | G, I |

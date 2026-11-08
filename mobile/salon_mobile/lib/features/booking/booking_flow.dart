@@ -20,6 +20,15 @@ const _failures = {
   'POINTS_EXCEED_LIMIT': 'Esa cantidad de puntos supera el máximo para este servicio. El turno quedó libre.',
 };
 
+const _cancelRejections = {
+  'TOO_LATE': 'La cita ya comenzó o ya pasó: no se puede cancelar.',
+  'NOT_CANCELLABLE': 'La cita ya no se puede cancelar.',
+  'ALREADY_CHECKED_IN': 'Ya estás registrado en el salón: la cita no se puede cancelar.',
+};
+
+/// Mensaje para el usuario cuando el salón rechaza una cancelación.
+String cancelRejectionMessage(String? reason) => _cancelRejections[reason] ?? 'La cita ya no se puede cancelar.';
+
 /// Cobro mínimo de la pasarela: el canje no puede dejarlo por debajo (igual que la web y el CRM).
 const minimumChargeCents = 50;
 
@@ -40,6 +49,7 @@ class BookingView {
   final String? clientSecret;
   final String? failureReason;
   final String? serviceName;
+  final String? cancelRejectedReason;
 
   const BookingView({
     required this.sagaId,
@@ -48,6 +58,7 @@ class BookingView {
     this.clientSecret,
     this.failureReason,
     this.serviceName,
+    this.cancelRejectedReason,
   });
 
   factory BookingView.fromJson(Map<String, dynamic> json) => BookingView(
@@ -57,11 +68,13 @@ class BookingView {
         clientSecret: json['clientSecret'] as String?,
         failureReason: json['failureReason'] as String?,
         serviceName: json['serviceName'] as String?,
+        cancelRejectedReason: json['cancelRejectedReason'] as String?,
       );
 
   bool get awaitingPayment => status == 'AWAITING_PAYMENT';
   bool get completed => status == 'COMPLETED';
   bool get reverted => revertedStatuses.contains(status);
+  bool get refunded => status == 'REFUNDED';
 }
 
 /// Resultado de un paso del flujo, para que la pantalla sepa qué mostrar.
@@ -119,6 +132,21 @@ class BookingFlow {
     // Pagado en Stripe: se concilia por si el aviso de la pasarela tarda, y se espera la confirmación
     await api.send('POST', '${Config.saga}/bookings/$sagaId/sync');
     return _settle(await waitFor(sagaId, (view) => view.completed));
+  }
+
+  /// Cancela una reserva pagada y espera el reembolso (CU-07): cita, dinero y nota de crédito, en ese orden.
+  /// Devuelve null si se reembolsó, o el motivo para mostrar si no se pudo.
+  Future<String?> cancel(String sagaId) async {
+    await api.send('POST', '${Config.saga}/bookings/$sagaId/cancel');
+    // El reembolso pasa por Stripe y el CRM: puede tardar varios segundos
+    var current = await view(sagaId);
+    for (var attempt = 0; attempt < maxPolls * 2 && !current.refunded && current.cancelRejectedReason == null; attempt++) {
+      await Future<void>.delayed(pollEvery);
+      current = await view(sagaId);
+    }
+    if (current.refunded) return null;
+    if (current.cancelRejectedReason != null) return cancelRejectionMessage(current.cancelRejectedReason);
+    return 'El reembolso sigue en proceso; revisa tus facturas en unos minutos.';
   }
 
   Future<BookingView> view(String sagaId) async =>
