@@ -1,3 +1,4 @@
-# Solo entra el realm al contexto de compilación
+# Solo entran el realm y el tema de inicio de sesión al contexto de compilación
 *
 !docker/keycloak/salon-realm.json
+!docker/keycloak/themes

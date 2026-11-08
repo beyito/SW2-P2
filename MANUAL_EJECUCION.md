@@ -120,6 +120,18 @@ Los clientes nuevos pueden registrarse desde la pantalla de login. La consola de
 >
 > El script se puede repetir: lo que ya existe no se duplica.
 
+> **Instalación anterior al diseño del salón (Fase Q):** su realm no tiene el tema de inicio de sesión, el español ni la sesión del móvil que dura hasta cerrarla. Aplíquelos sin borrar el realm, con:
+>
+> ```powershell
+> docker compose up -d keycloak
+> docker cp docker/keycloak/actualizar-realm.sh salon-keycloak:/tmp/actualizar-realm.sh
+> docker exec salon-keycloak sh /tmp/actualizar-realm.sh
+> ```
+>
+> El primer comando monta el tema. El script también da el rol `offline_access` a las cuentas de prueba: sin él, el móvil no puede iniciar sesión. Se puede repetir.
+
+> **Sesión del móvil:** la app pide un token offline, así que no vence con la sesión de 8 horas de la web: dura hasta que la persona cierre sesión en el teléfono. El salón puede cerrarla antes desde la consola de Keycloak (usuario > Sesiones, o "Cerrar sesión" del usuario); entonces la app vuelve a su pantalla de inicio.
+
 ---
 
 ## 7. Pruebas

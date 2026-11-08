@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Colores del salón para el ícono y la pantalla de inicio (los mismos que la app y la web) -->
+<resources>
+    <color name="salon_crema">#FBF6F2</color>
+    <color name="salon_rosa_suave">#F7E7E4</color>
+    <color name="salon_rosa_vino">#9E6066</color>
+</resources>

@@ -13,6 +13,12 @@
   "accessTokenLifespan": 300,
   "ssoSessionIdleTimeout": 3600,
   "ssoSessionMaxLifespan": 28800,
+  "offlineSessionIdleTimeout": 315360000,
+  "offlineSessionMaxLifespanEnabled": false,
+  "loginTheme": "salon",
+  "internationalizationEnabled": true,
+  "supportedLocales": ["es"],
+  "defaultLocale": "es",
   "defaultRole": {
     "name": "default-roles-salon",
     "composite": true
@@ -182,7 +188,7 @@
       },
       "realmRoles": [
         "ADMIN"
-      ],
+      , "offline_access"],
       "credentials": [
         {
           "type": "password",
@@ -205,7 +211,7 @@
       },
       "realmRoles": [
         "RECEPTIONIST"
-      ],
+      , "offline_access"],
       "credentials": [
         {
           "type": "password",
@@ -228,7 +234,7 @@
       },
       "realmRoles": [
         "STYLIST"
-      ],
+      , "offline_access"],
       "credentials": [
         {
           "type": "password",
@@ -251,7 +257,7 @@
       },
       "realmRoles": [
         "CLIENT"
-      ],
+      , "offline_access"],
       "credentials": [
         {
           "type": "password",
@@ -274,7 +280,7 @@
       },
       "realmRoles": [
         "CLIENT"
-      ],
+      , "offline_access"],
       "credentials": [
         {
           "type": "password",

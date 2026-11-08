@@ -56,6 +56,8 @@ class _AuthGateState extends State<AuthGate> {
   @override
   void initState() {
     super.initState();
+    // Si Keycloak rechaza la renovación, se vuelve a la pantalla de inicio en lugar de mostrar errores 401
+    _auth.onSessionEnded = _sessionLost;
     _auth.restore().then((session) {
       if (mounted) {
         setState(() {
@@ -80,7 +82,7 @@ class _AuthGateState extends State<AuthGate> {
     final closed = await _auth.logout();
     setState(() {
       _session = null;
-      _error = closed ? null : 'Se cerró la sesión en este teléfono. Sin conexión no se pudo cerrar en el servidor: vencerá sola en unos minutos.';
+      _error = closed ? null : 'Se cerró la sesión en este teléfono. Sin conexión no se pudo cerrar en el servidor: ciérrala desde la web o pide al salón que la cierre.';
     });
   }
 
@@ -104,8 +106,17 @@ class _AuthGateState extends State<AuthGate> {
           child: Padding(
             padding: const EdgeInsets.all(24),
             child: Column(mainAxisSize: MainAxisSize.min, children: [
-              const Text('Salón & IA', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Color(0xFFF5D061))),
-              const SizedBox(height: 24),
+              Container(
+                width: 72,
+                height: 72,
+                decoration: BoxDecoration(color: SalonColors.roseSoft, shape: BoxShape.circle, border: Border.all(color: SalonColors.rose)),
+                child: const Icon(Icons.content_cut, color: SalonColors.roseDeep, size: 32),
+              ),
+              const SizedBox(height: 20),
+              const Text('Salón & IA Studio', style: TextStyle(fontFamily: 'serif', fontSize: 28, fontWeight: FontWeight.w600, color: SalonColors.text)),
+              const SizedBox(height: 6),
+              const Text('BELLEZA E IMAGEN PERSONAL', style: TextStyle(fontSize: 12, letterSpacing: 2, color: SalonColors.gold)),
+              const SizedBox(height: 32),
               FilledButton(key: const Key('login'), onPressed: _login, child: const Text('Iniciar sesión')),
               if (_error != null) Padding(padding: const EdgeInsets.only(top: 12), child: Text(_error!, textAlign: TextAlign.center)),
             ]),
@@ -204,11 +215,11 @@ class _HomeScreenState extends State<HomeScreen> {
           Container(
             key: const Key('offline-banner'),
             width: double.infinity,
-            color: const Color(0xFF3B2F0B),
+            color: SalonColors.goldSoft,
             padding: const EdgeInsets.all(10),
             child: Text(
               '${connectivity.isOnline ? '' : 'Sin conexión. '}${pending > 0 ? (pending == 1 ? '1 operación guardada en este dispositivo.' : '$pending operaciones guardadas en este dispositivo.') : 'Se muestra lo último que viste.'}',
-              style: const TextStyle(fontSize: 13),
+              style: const TextStyle(fontSize: 13, color: SalonColors.warning),
             ),
           ),
         for (final item in conflicts)

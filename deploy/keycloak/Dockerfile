@@ -9,6 +9,7 @@ RUN /opt/keycloak/bin/kc.sh build
 FROM quay.io/keycloak/keycloak:26.0.7
 COPY --from=build /opt/keycloak/ /opt/keycloak/
 COPY docker/keycloak/salon-realm.json /opt/keycloak/data/import/salon-realm.json
+COPY docker/keycloak/themes/salon /opt/keycloak/themes/salon
 # TLS termina en el balanceador: Keycloak escucha HTTP y confía en sus cabeceras X-Forwarded
 ENV KC_HTTP_ENABLED=true KC_PROXY_HEADERS=xforwarded KC_CACHE=local
 # El realm solo se importa si todavía no existe en la base

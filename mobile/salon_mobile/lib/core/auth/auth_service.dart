@@ -6,8 +6,14 @@ import '../config.dart';
 import 'session.dart';
 import 'session_revoker.dart';
 
+/// Keycloak rechazó la renovación: la sesión terminó en el servidor (cierre manual o revocada).
+/// Un fallo de red no cuenta: sin conexión la sesión sigue en el teléfono.
+bool isSessionEndedError(Object error) => error.toString().contains('invalid_grant');
+
 /// Inicio de sesión con Keycloak por authorization code + PKCE (CU-01).
 /// Los tokens se guardan cifrados por el sistema: la app puede abrir sin conexión.
+/// Se pide un token offline: la sesión del teléfono no vence con la de la web (8 horas)
+/// y dura hasta que la persona cierre sesión.
 class AuthService implements TokenProvider {
   static const _access = 'access_token';
   static const _refresh = 'refresh_token';
@@ -16,6 +22,9 @@ class AuthService implements TokenProvider {
 
   final FlutterAppAuth _appAuth = const FlutterAppAuth();
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
+
+  /// Se llama cuando la sesión terminó en el servidor, para volver a la pantalla de inicio.
+  void Function()? onSessionEnded;
 
   Future<Session?> restore() async {
     final token = await _storage.read(key: _access);
@@ -28,7 +37,8 @@ class AuthService implements TokenProvider {
         Config.clientId,
         Config.redirectUrl,
         issuer: Config.keycloakIssuer,
-        scopes: const ['openid', 'profile'],
+        // offline_access: el refresh token no depende de la sesión de 8 horas de la web
+        scopes: const ['openid', 'profile', 'offline_access'],
         // Keycloak local no usa HTTPS: solo aplica en desarrollo
         allowInsecureConnections: Config.keycloakIssuer.startsWith('http://'),
       ),
@@ -82,7 +92,13 @@ class AuthService implements TokenProvider {
       );
       await _save(result.accessToken!, result.refreshToken ?? refresh, result.idToken);
       return result.accessToken;
-    } catch (_) {
+    } catch (error) {
+      if (isSessionEndedError(error)) {
+        await _storage.deleteAll();
+        onSessionEnded?.call();
+        return null;
+      }
+      // Sin red u otro fallo pasajero: se entrega el token que hay y la operación pasa a la cola
       return access;
     }
   }

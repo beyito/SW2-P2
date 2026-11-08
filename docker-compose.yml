@@ -199,6 +199,8 @@ services:
       - "${KEYCLOAK_PORT:-8080}:8080"
     volumes:
       - ./docker/keycloak/salon-realm.json:/opt/keycloak/data/import/salon-realm.json:ro
+      # Tema de inicio de sesión con la paleta del salón
+      - ./docker/keycloak/themes/salon:/opt/keycloak/themes/salon:ro
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USER:-admin}
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin_secret_pass}

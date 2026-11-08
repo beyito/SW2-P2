@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 12 o superior: el sistema dibuja la pantalla de inicio con el ícono de la app sobre fondo crema -->
+<resources>
+    <style name="LaunchTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowBackground">@drawable/launch_background</item>
+        <item name="android:windowSplashScreenBackground">@color/salon_crema</item>
+        <item name="android:windowSplashScreenIconBackgroundColor">@color/salon_rosa_suave</item>
+    </style>
+    <style name="NormalTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowBackground">?android:colorBackground</item>
+    </style>
+</resources>

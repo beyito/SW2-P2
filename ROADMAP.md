@@ -493,8 +493,31 @@ Pedida por el usuario el 8 de noviembre de 2026: la interfaz parecía un panel d
   - el marco doble alrededor de cada sección;
   - el ícono activo de la barra móvil, que salía blanco sobre rosa claro.
 
+**Ampliación pedida por el usuario el 8 de noviembre de 2026:**
+- [x] **Inicio de sesión de Keycloak con el diseño del salón y en español:**
+  - Tema `salon` (`docker/keycloak/themes/salon`), que hereda `keycloak.v2` y cambia sus variables de PatternFly.
+  - Está montado en Compose y copiado en la imagen de producción.
+- [x] **Ícono de la app (tijeras rosa vino sobre rosa empolvado) y pantalla de inicio crema.** Son vectores, sin imágenes nuevas. La pantalla de inicio de sesión del móvil también usa la paleta.
+- [x] **Sesión del móvil que no vence:**
+  - La app pide un token offline (`offline_access`): no depende de la sesión de 8 horas de la web.
+  - El realm permite 10 años sin uso, sin máximo. En la práctica dura hasta cerrar sesión.
+  - Las cuentas de demostración reciben solo el rol `offline_access`. No reciben `default-roles-salon`, que incluye `CLIENT`.
+  - Si Keycloak rechaza la renovación (`invalid_grant`), la app vuelve a su pantalla de inicio en lugar de mostrar errores 401. Un fallo de red no cierra la sesión.
+- [x] **Para una instalación ya existente:** `docker/keycloak/actualizar-realm.sh` aplica tema, idioma, duración y rol sin borrar el realm.
+
+**Verificación de la ampliación:**
+- [x] **En el emulador, como `camila.fernandez`:**
+  - Keycloak registró la sesión offline del móvil.
+  - Se borraron las sesiones normales, como al vencer las 8 horas, y se esperaron 6 minutos para que venciera el token. "Mis citas" cargó sin pedir la contraseña.
+  - Al cerrar sesión, la sesión offline desapareció del servidor.
+- [x] **Primera prueba descartada:** "Cerrar sesión" del usuario en la consola de Keycloak también invalida el token del teléfono ("Stale token"). Ahí la app volvió a su pantalla de inicio con "Tu sesión terminó", que es lo esperado ante una revocación.
+- [x] **Móvil:** 85/85 (2 nuevas) y `flutter analyze` limpio.
+- [x] **Inicio de sesión:** capturas en escritorio y en el teléfono, también con contraseña incorrecta.
+- [x] **Integración en vivo:** 327/327, todas pasan por el inicio de sesión de Keycloak. **Navegador:** las 9 suites correctas (sin la de agentes, que gasta cupo de Gemini). La de seguridad se cayó una vez justo después de la integración y pasó al repetirla. Las pruebas no dejaron datos.
+
 **Limitaciones conocidas:**
-- **Inicio de sesión:** la página de Keycloak conserva su diseño predeterminado.
+- **Teléfono perdido:** como la sesión del móvil no vence, si se pierde el teléfono hay que cerrarla desde la consola de Keycloak.
+- **Versiones antiguas de Android:** antes de Android 8 se ve el ícono anterior, porque no admiten íconos adaptables.
 - **Pantallas no revisadas:** las que requieren datos o pasos especiales (pago con Stripe, cámara, simulación de imágenes) se revisaron solo con las pruebas, sin captura.
 
 ## WhatsApp con la cuenta de Meta (CU-19, RF-12) (En curso)

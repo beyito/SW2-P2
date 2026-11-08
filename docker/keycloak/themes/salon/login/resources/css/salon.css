@@ -1,0 +1,164 @@
+/* Inicio de sesión con la paleta del salón: crema, rosa empolvado y dorado (los mismos valores que la web). */
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Playfair+Display:wght@500;600;700&display=swap');
+
+:root {
+  --salon-crema: #FBF6F2;
+  --salon-suave: #F6EDE8;
+  --salon-borde: #EBDDD5;
+  --salon-rosa: #C98B8B;
+  --salon-rosa-suave: #F7E7E4;
+  --salon-rosa-vino: #9E6066;
+  --salon-rosa-vino-oscuro: #8A4F55;
+  --salon-dorado: #8C6A3F;
+  --salon-texto: #3D2F2D;
+  --salon-texto-2: #7D6A65;
+  --salon-error: #A8464C;
+
+  /* Variables de PatternFly 5, que usa el tema de Keycloak */
+  --pf-v5-global--primary-color--100: var(--salon-rosa-vino);
+  --pf-v5-global--primary-color--200: var(--salon-rosa-vino-oscuro);
+  --pf-v5-global--link--Color: var(--salon-rosa-vino);
+  --pf-v5-global--link--Color--hover: var(--salon-rosa-vino-oscuro);
+  --pf-v5-global--Color--100: var(--salon-texto);
+  --pf-v5-global--Color--200: var(--salon-texto-2);
+  --pf-v5-global--BorderColor--100: var(--salon-borde);
+  --pf-v5-global--danger-color--100: var(--salon-error);
+  --pf-v5-global--FontFamily--text: 'Lato', 'Segoe UI', sans-serif;
+  --pf-v5-global--FontFamily--heading: 'Playfair Display', Georgia, serif;
+  --pf-v5-global--FontFamily--redhat-updated--heading: 'Playfair Display', Georgia, serif;
+  --pf-v5-global--FontFamily--redhat-updated--text: 'Lato', 'Segoe UI', sans-serif;
+}
+
+/* Fondo crema con toques de rosa y dorado, en lugar de la imagen de Keycloak */
+.login-pf body,
+body#keycloak-bg {
+  background: var(--salon-crema);
+  background-image:
+    radial-gradient(circle at 0% 0%, rgba(201, 139, 139, 0.18) 0%, transparent 40%),
+    radial-gradient(circle at 100% 100%, rgba(201, 169, 126, 0.2) 0%, transparent 40%);
+  background-attachment: fixed;
+  font-family: 'Lato', 'Segoe UI', sans-serif;
+  color: var(--salon-texto);
+}
+
+.pf-v5-c-login__container { grid-template-columns: minmax(0, 30rem); }
+
+/* Nombre del salón con un ícono de tijeras dibujado en CSS */
+#kc-header-wrapper {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 2rem;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--salon-texto) !important;
+}
+#kc-header-wrapper::before {
+  content: '✂';
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  border: 1px solid var(--salon-rosa);
+  background: var(--salon-rosa-suave);
+  color: var(--salon-rosa-vino);
+  font-size: 28px;
+}
+#kc-header-wrapper::after {
+  content: 'Belleza e imagen personal';
+  display: block;
+  margin-top: 6px;
+  font-family: 'Lato', 'Segoe UI', sans-serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--salon-dorado);
+}
+
+/* Tarjeta del formulario */
+.pf-v5-c-login__main {
+  background: #FFFFFF;
+  border: 1px solid var(--salon-borde);
+  border-radius: 20px;
+  box-shadow: 0 10px 34px rgba(125, 90, 80, 0.12);
+  overflow: hidden;
+}
+.pf-v5-c-login__main-header { padding-top: 2rem; }
+#kc-page-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 600;
+  font-size: 1.6rem;
+  color: var(--salon-texto);
+}
+
+/* Campos */
+.pf-v5-c-form__label-text { color: var(--salon-texto-2); font-weight: 700; }
+.pf-v5-c-form-control {
+  --pf-v5-c-form-control--after--BorderBottomColor: transparent;
+  --pf-v5-c-form-control--hover--after--BorderBottomColor: transparent;
+  --pf-v5-c-form-control--m-error--after--BorderBottomColor: transparent;
+  border: 1px solid var(--salon-borde);
+  border-radius: 12px;
+  background: #FFFFFF;
+}
+.pf-v5-c-form-control:focus-within {
+  border-color: var(--salon-rosa);
+  box-shadow: 0 0 0 3px var(--salon-rosa-suave);
+}
+.pf-v5-c-form-control.pf-m-error { border-color: var(--salon-error); }
+.pf-v5-c-form-control > input { color: var(--salon-texto); }
+.pf-v5-c-input-group .pf-v5-c-button.pf-m-control {
+  border-radius: 12px;
+  color: var(--salon-texto-2);
+}
+
+/* Botones */
+.pf-v5-c-button.pf-m-primary {
+  background-color: var(--salon-rosa-vino);
+  border-radius: 999px;
+  font-weight: 700;
+  padding-top: 0.7rem;
+  padding-bottom: 0.7rem;
+  box-shadow: 0 4px 14px rgba(158, 96, 102, 0.25);
+}
+.pf-v5-c-button.pf-m-primary:hover,
+.pf-v5-c-button.pf-m-primary:focus { background-color: var(--salon-rosa-vino-oscuro); }
+.pf-v5-c-button.pf-m-secondary {
+  border-radius: 999px;
+  color: var(--salon-rosa-vino);
+  --pf-v5-c-button--after--BorderColor: var(--salon-rosa);
+}
+.pf-v5-c-check__input { accent-color: var(--salon-rosa-vino); }
+a, .pf-v5-c-button.pf-m-link { color: var(--salon-rosa-vino); }
+a:hover { color: var(--salon-rosa-vino-oscuro); }
+
+/* Pie con el registro de cuenta nueva */
+.pf-v5-c-login__main-footer-band {
+  background: var(--salon-suave);
+  border-top: 1px solid var(--salon-borde);
+}
+
+/* Avisos */
+.pf-v5-c-alert {
+  border-radius: 12px;
+}
+
+/* Sin los bordes ni el contorno de foco propios de PatternFly: el campo usa el borde y el halo rosa */
+.pf-v5-c-form-control::before,
+.pf-v5-c-form-control::after,
+.pf-v5-c-button.pf-m-control::after { border: none !important; }
+.pf-v5-c-form-control > input:focus,
+.pf-v5-c-form-control > input:focus-visible { outline: none; }
+.pf-v5-c-input-group .pf-v5-c-button.pf-m-control {
+  margin-left: 6px;
+  border: 1px solid var(--salon-borde);
+  background: #FFFFFF;
+}
+.pf-v5-c-input-group .pf-v5-c-button.pf-m-control:hover { color: var(--salon-rosa-vino); border-color: var(--salon-rosa); }
+.pf-v5-c-login__main-footer-band {
+  background: transparent;
+  border-top: 1px solid var(--salon-borde);
+  border-radius: 0;
+}

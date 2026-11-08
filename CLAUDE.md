@@ -114,7 +114,9 @@ Los comandos de cada suite están en el manual, sección 7. Últimos conteos: or
 - Borrar movimientos de inventario no devuelve el stock: restitúyelo antes con la suma de `inventory_logs`.
 - En `appointments`, `appointment_end` es una columna generada: no se inserta.
 - **Las migraciones se ejecutan todas en cada arranque.** La lista de estados de cita y la regla de solapamiento viven en `03_catalogo_y_saga.sql`; un estado nuevo debe agregarse ahí, o el siguiente arranque falla si ya hay citas con ese estado. `panel_appointments_view` se recrea en `06` y `09`. `PersistenceContainerTest` repite las migraciones para detectarlo.
-- **Keycloak ya instalado no recibe cambios del realm.** Para la recepción hay un script: `docker/keycloak/crear-recepcion.sh` (ver el manual).
+- **Keycloak ya instalado no recibe cambios del realm.** Para la recepción hay un script: `docker/keycloak/crear-recepcion.sh`; para el tema, el español y la sesión del móvil, `docker/keycloak/actualizar-realm.sh` (ver el manual).
+- **Sesión del móvil:** usa un token offline (`offline_access`) que dura hasta cerrar sesión. Las cuentas necesitan el rol `offline_access`; no les des `default-roles-salon`, que incluye `CLIENT` y cambiaría al personal. "Cerrar sesión" de un usuario en la consola de Keycloak revoca también el token del teléfono (motivo "Stale token").
+- **Scripts escritos desde Python en Windows:** `write_text` guarda con CRLF y `sh` falla con `set: -: invalid option`. Escribe con `newline='\n'` o corrige con `sed -i 's/\r$//'`.
 - **Fechas de hoy en pruebas:** las citas se guardan en hora de Bolivia y PostgreSQL usa UTC. Después de las 20:00 en Bolivia, `CURRENT_DATE` ya es el día siguiente: calcula la fecha en hora del salón.
 
 **Backend**
