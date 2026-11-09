@@ -1,0 +1,49 @@
+# Consumidor de los eventos de la SAGA del CRM (RabbitMQ)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ms-crm-worker
+  labels:
+    app.kubernetes.io/name: ms-crm-worker
+    app.kubernetes.io/part-of: salon
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ms-crm-worker
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: ms-crm-worker
+        app.kubernetes.io/part-of: salon
+    spec:
+      containers:
+        - name: ms-crm-worker
+          # El registro y la etiqueta los fija cada overlay (kustomize images)
+          image: salon/ms-crm
+          command: ["php", "artisan", "crm:consume-saga-messages"]
+          # Configuración y secretos propios del servicio; los crea el despliegue, nunca el repositorio
+          envFrom:
+            - configMapRef:
+                name: ms-crm-worker-config
+                optional: true
+            - secretRef:
+                name: ms-crm-worker-secretos
+                optional: true
+          resources:
+            requests: {cpu: 50m, memory: 128Mi}
+            limits: {cpu: "250m", memory: 256Mi}
+          securityContext:
+            allowPrivilegeEscalation: false
+          readinessProbe:
+            exec:
+              command: ["pgrep", "-f", "crm:consume-saga-messages"]
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            exec:
+              command: ["pgrep", "-f", "crm:consume-saga-messages"]
+            initialDelaySeconds: 30
+            periodSeconds: 20
+            failureThreshold: 6

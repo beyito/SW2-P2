@@ -1,0 +1,43 @@
+# EKS (Elastic Kubernetes Service, us-east-2) sobre Fargate: una réplica de ms-gestion que consume los
+# comandos de la SAGA desde RabbitMQ, junto a la de ECS (consumidores en competencia). No recibe tráfico
+# HTTP: el panel sigue entrando por el balanceador. Corre en la subred privada y sale por el NAT.
+# La configuración y los secretos los genera deploy/kubernetes/aws.sh en generado/ (ignorado por Git).
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: salon
+resources:
+  - ../../base/namespace
+  - ../../base/ms-gestion
+images:
+  - name: salon/ms-gestion
+    newName: REGISTRO/salon-ms-gestion
+    newTag: latest
+patches:
+  # Fargate reserva lo que pide el pod: la JVM necesita más que el mínimo de la base
+  - target:
+      kind: Deployment
+      name: ms-gestion
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/resources
+        value:
+          requests: {cpu: 500m, memory: 1Gi}
+          limits: {cpu: "1", memory: 2Gi}
+  # Sin tráfico HTTP entrante no hace falta escalar por CPU
+  - target:
+      kind: HorizontalPodAutoscaler
+      name: ms-gestion
+    patch: |-
+      $patch: delete
+      apiVersion: autoscaling/v2
+      kind: HorizontalPodAutoscaler
+      metadata:
+        name: ms-gestion
+generatorOptions:
+  disableNameSuffixHash: true
+configMapGenerator:
+  - name: ms-gestion-config
+    envs: [generado/ms-gestion.env]
+secretGenerator:
+  - name: ms-gestion-secretos
+    envs: [generado/ms-gestion-secretos.env]

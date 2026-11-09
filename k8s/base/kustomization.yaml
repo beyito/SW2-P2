@@ -1,0 +1,62 @@
+# Plataforma completa del salón en Kubernetes: un Deployment y un Service por microservicio.
+# Cada nube despliega con un overlay (k8s/overlays/<nube>) los servicios que le corresponden,
+# con las imágenes de su propio registro y la configuración generada al desplegar.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: salon
+resources:
+  - namespace
+  - keycloak
+  - ms-gestion
+  - ms-asesoria
+  - ms-crm
+  - ms-crm-worker
+  - ms-ia
+  - mcp-server
+  - saga-orchestrator
+  - n8n
+  - bi-dashboard
+  - shell
+  - mfe-estudio-ia
+  - mfe-reservas
+  - mfe-gestion
+images:
+  - name: salon/bi-dashboard
+    newName: salon/bi-dashboard
+    newTag: latest
+  - name: salon/keycloak
+    newName: salon/keycloak
+    newTag: latest
+  - name: salon/mcp-server
+    newName: salon/mcp-server
+    newTag: latest
+  - name: salon/mfe-estudio-ia
+    newName: salon/mfe-estudio-ia
+    newTag: latest
+  - name: salon/mfe-gestion
+    newName: salon/mfe-gestion
+    newTag: latest
+  - name: salon/mfe-reservas
+    newName: salon/mfe-reservas
+    newTag: latest
+  - name: salon/ms-asesoria
+    newName: salon/ms-asesoria
+    newTag: latest
+  - name: salon/ms-crm
+    newName: salon/ms-crm
+    newTag: latest
+  - name: salon/ms-gestion
+    newName: salon/ms-gestion
+    newTag: latest
+  - name: salon/ms-ia
+    newName: salon/ms-ia
+    newTag: latest
+  - name: salon/n8n
+    newName: salon/n8n
+    newTag: latest
+  - name: salon/saga-orchestrator
+    newName: salon/saga-orchestrator
+    newTag: latest
+  - name: salon/shell
+    newName: salon/shell
+    newTag: latest

@@ -6,7 +6,11 @@ use App\FrameworksDrivers\Persistence\PostgresClientRepository;
 use App\FrameworksDrivers\Persistence\PostgresCrmMetrics;
 use App\FrameworksDrivers\Persistence\PostgresInvoiceRepository;
 use App\FrameworksDrivers\Persistence\PostgresLoyaltyLedger;
+use App\Core\UseCases\RecordNoticesUseCase;
 use App\FrameworksDrivers\Persistence\PostgresNoticeRepository;
+use App\FrameworksDrivers\Persistence\PostgresPushDeviceRepository;
+use App\FrameworksDrivers\Push\FcmPushSender;
+use App\InterfaceAdapters\Gateways\PushDeviceRepositoryInterface;
 use App\FrameworksDrivers\Security\CachedJwksProvider;
 use App\FrameworksDrivers\Security\DynamoSessionRegistry;
 use App\InterfaceAdapters\Gateways\ClientRepositoryInterface;
@@ -33,6 +37,13 @@ class CrmServiceProvider extends ServiceProvider
         $this->app->singleton(LoyaltyLedgerInterface::class, fn () => new PostgresLoyaltyLedger($pdo()));
         $this->app->singleton(NoticeRepositoryInterface::class, fn () => new PostgresNoticeRepository($pdo()));
         $this->app->singleton(CrmMetricsInterface::class, fn () => new PostgresCrmMetrics($pdo()));
+        $this->app->singleton(PushDeviceRepositoryInterface::class, fn () => new PostgresPushDeviceRepository($pdo()));
+        // Sin la cuenta de servicio de FCM los avisos siguen apareciendo en la app, sin push
+        $this->app->singleton(RecordNoticesUseCase::class, fn ($app) => new RecordNoticesUseCase(
+            $app->make(NoticeRepositoryInterface::class),
+            $app->make(PushDeviceRepositoryInterface::class),
+            FcmPushSender::fromEnv()
+        ));
 
         $this->app->singleton(Authenticator::class, function () {
             $issuer = env('KEYCLOAK_ISSUER', 'http://localhost:8080/realms/salon');

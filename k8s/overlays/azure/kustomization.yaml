@@ -1,0 +1,21 @@
+# AKS (Azure Kubernetes Service, canadacentral, nodo ARM64): el worker del CRM consume los eventos de la SAGA
+# desde RabbitMQ, junto al de Container Apps (consumidores en competencia: cada mensaje lo procesa uno).
+# La configuración y los secretos los genera deploy/kubernetes/azure.sh en generado/ (ignorado por Git).
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: salon
+resources:
+  - ../../base/namespace
+  - ../../base/ms-crm-worker
+images:
+  - name: salon/ms-crm
+    newName: REGISTRO/salon-ms-crm
+    newTag: arm64
+generatorOptions:
+  disableNameSuffixHash: true
+configMapGenerator:
+  - name: ms-crm-worker-config
+    envs: [generado/ms-crm-worker.env]
+secretGenerator:
+  - name: ms-crm-worker-secretos
+    envs: [generado/ms-crm-worker-secretos.env]

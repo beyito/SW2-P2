@@ -8,6 +8,7 @@ import 'core/auth/auth_service.dart';
 import 'core/auth/session.dart';
 import 'core/connectivity_status.dart';
 import 'core/database/local_database.dart';
+import 'core/push/push_service.dart';
 import 'core/sync/offline_queue.dart';
 import 'core/tab_refresh.dart';
 import 'features/account/account_screen.dart';
@@ -146,6 +147,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final _analyzer = OnDeviceAnalyzer();
   final _payments = StripePaymentGateway();
   final _client = http.Client();
+  final _push = PushService();
   ApiClient? _api;
   ConnectivityStatus? _connectivity;
   StreamSubscription<void>? _changes;
@@ -175,11 +177,29 @@ class _HomeScreenState extends State<HomeScreen> {
     });
     await _refreshQueue(queue);
     if (mounted) {
+      final api = ApiClient(database, widget.tokens, _client, queue);
       setState(() {
-        _api = ApiClient(database, widget.tokens, _client, queue);
+        _api = api;
         _connectivity = connectivity;
       });
+      // Notificaciones push de los avisos; con la app abierta se muestran en pantalla
+      unawaited(_push.start(api, onForeground: _showPush));
     }
+  }
+
+  void _showPush(String title, String body) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      key: const Key('push-snackbar'),
+      content: Text('$title: $body'),
+      duration: const Duration(seconds: 6),
+    ));
+  }
+
+  /// El teléfono deja de recibir los avisos de esta cuenta antes de cerrar la sesión.
+  Future<void> _logout() async {
+    await _push.stop(_api);
+    await widget.onLogout();
   }
 
   Future<void> _refreshQueue(OfflineQueue queue) async {
@@ -208,7 +228,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.session.name),
-        actions: [IconButton(key: const Key('logout'), tooltip: 'Cerrar sesión', onPressed: widget.onLogout, icon: const Icon(Icons.logout))],
+        actions: [IconButton(key: const Key('logout'), tooltip: 'Cerrar sesión', onPressed: _logout, icon: const Icon(Icons.logout))],
       ),
       body: Column(children: [
         if (!connectivity.isOnline || pending > 0)

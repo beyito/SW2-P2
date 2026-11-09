@@ -4,6 +4,12 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+// google-services.json lo descarga deploy/firebase/push.sh y no está en el repositorio:
+// sin él la app compila igual, solo que sin notificaciones push.
+if (file("google-services.json").exists()) {
+    apply(plugin = "com.google.gms.google-services")
+}
+
 android {
     namespace = "com.salon.salon_mobile"
     compileSdk = flutter.compileSdkVersion

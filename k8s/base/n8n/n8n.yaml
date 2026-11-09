@@ -1,0 +1,68 @@
+# Automatización: avisos y WhatsApp (n8n)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: n8n
+  labels:
+    app.kubernetes.io/name: n8n
+    app.kubernetes.io/part-of: salon
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: n8n
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: n8n
+        app.kubernetes.io/part-of: salon
+    spec:
+      containers:
+        - name: n8n
+          # El registro y la etiqueta los fija cada overlay (kustomize images)
+          image: salon/n8n
+          ports:
+            - name: http
+              containerPort: 5678
+          # Configuración y secretos propios del servicio; los crea el despliegue, nunca el repositorio
+          envFrom:
+            - configMapRef:
+                name: n8n-config
+                optional: true
+            - secretRef:
+                name: n8n-secretos
+                optional: true
+          resources:
+            requests: {cpu: 100m, memory: 256Mi}
+            limits: {cpu: "500m", memory: 1Gi}
+          securityContext:
+            allowPrivilegeEscalation: false
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 120
+            periodSeconds: 20
+            failureThreshold: 6
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: n8n
+  labels:
+    app.kubernetes.io/name: n8n
+    app.kubernetes.io/part-of: salon
+spec:
+  selector:
+    app.kubernetes.io/name: n8n
+  ports:
+    - name: http
+      port: 5678
+      targetPort: http

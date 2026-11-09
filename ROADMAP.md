@@ -32,7 +32,8 @@ Registro oficial del desarrollo de la **Plataforma Inteligente para Salón de Be
 | **R** | Reportes dinámicos en Excel y PDF por prompt, voz o formulario | Lun 9 | **COMPLETADA** |
 | **S** | Inteligencia de negocios en Python con un dataset de miles de registros | Lun 9 | **COMPLETADA** |
 | **T** | Imágenes del clóset y la comunidad en Amazon S3 | Lun 9 | **COMPLETADA** |
-| **U** | Kubernetes en AWS, Azure y Google Cloud | Lun 9 | **EN CURSO** |
+| **U** | Kubernetes en AWS, Azure y Google Cloud | Lun 9 | **COMPLETADA** |
+| **V** | Notificaciones push en el móvil (Firebase Cloud Messaging) | Lun 9 | **COMPLETADA** |
 
 ---
 
@@ -599,6 +600,42 @@ Aprobada el 9 de noviembre de 2026, a partir de los modelos de examen: S3 para a
 **Limitaciones conocidas:**
 - Las imágenes de una instalación local siguen en GridFS.
 - La migración ocurre al pedir cada imagen, no de una vez.
+
+## Fase U: Kubernetes en AWS, Azure y Google Cloud (Completada)
+Aprobada el 9 de noviembre de 2026, a partir de los modelos de examen: microservicios con Docker y Kubernetes en al menos tres nubes.
+
+- [x] **Manifiestos de toda la plataforma** en `k8s/base`: un Deployment y un Service por cada uno de los 14 microservicios, con sondas de salud, límites de recursos, contexto de seguridad y escalado automático por CPU en `ms-gestion`, `ms-asesoria` y `ms-ia`. La configuración y los secretos se generan al desplegar, fuera del repositorio.
+- [x] **Overlays por nube** en `k8s/overlays` y guiones en `deploy/kubernetes`.
+- [x] **EKS** (AWS) sobre Fargate: réplica de `ms-gestion` en la subred privada; arrancó, se conectó a RDS y a RabbitMQ, y `gestion.saga.commands` muestra 2 consumidores (ECS y EKS).
+- [x] **GKE Autopilot** (Google): el tablero de BI corre con Ingress, IP global fija y certificado administrado para https://bi.salon-ai.beauty.
+- [x] Certificado de `bi.salon-ai.beauty` emitido en 34 minutos; `bi.e2e.mjs` pasa contra GKE por HTTPS: inicio de sesión con Keycloak, 8 KPI y rechazo de la estilista.
+- [x] **AKS** (Azure): worker del CRM en un nodo **ARM64** `Standard_B2pls_v2`, con la imagen compilada para ARM64. `crm.saga.events` muestra 2 consumidores (Container Apps y AKS).
+
+**Ajustes que aparecieron al crear los clústeres:**
+- Azure for Students en `canadacentral` solo permite ciertos tamaños, y todos los x86 permitidos tienen **cuota 0**. El primer intento quedó más de una hora en "Creating" sin error visible, hasta revisar el grupo de recursos de los nodos. La única familia con cuota es Bpsv2 (ARM64).
+- En EKS con Fargate, CoreDNS se creó antes que el perfil de Fargate y quedó sin dónde correr: el guion lo reinicia.
+- `kubectl` para GKE necesita `gke-gcloud-auth-plugin`, que gcloud no instala sin una consola interactiva si no se copia antes su Python.
+- El entorno *Express* de Container Apps reutilizaba la imagen guardada de la etiqueta `latest`: ahora cada despliegue en Azure usa una etiqueta única.
+
+**Limitaciones conocidas:**
+- Cada clúster corre una parte de la plataforma, no toda: el resto sigue en Fargate, Container Apps y Cloud Run. Los manifiestos de la base cubren los 14 servicios.
+- Cuestan entre 4 y 6 USD al día en total: hay que borrarlos después de la entrega.
+
+## Fase V: Notificaciones push en el móvil (CU-19, RF-12) (Completada)
+Aprobada el 9 de noviembre de 2026, a partir de los modelos de examen: el móvil debe tener notificaciones push.
+
+- [x] **Firebase Cloud Messaging:** la app Android está registrada en el proyecto de Firebase (`deploy/firebase/push.sh`). `google-services.json` no está en el repositorio, y sin él la app compila igual, sin push.
+- [x] **Móvil** (`lib/core/push/push_service.dart`): al iniciar sesión pide el permiso (Android 13 o superior), registra el token en el CRM y lo renueva si Firebase lo cambia. Al cerrar sesión lo da de baja. Con la app abierta, el push se muestra en pantalla.
+- [x] **CRM:** tabla `push_devices` (`12_push_crm.sql`) y mutaciones `registerPushToken` y `unregisterPushToken`. Cada aviso **nuevo** de `RecordNoticesUseCase` (pago confirmado, reembolso, stock crítico, publicación oculta, automatizaciones) se envía también por push con la API HTTP v1 de FCM: un JWT firmado con RS256, sin SDK. Un evento repetido no se notifica dos veces, un token inválido se olvida y, si FCM falla, el aviso igual queda en la app.
+- [x] Pruebas: CRM 66/66 (8 nuevas), móvil 85/85, contratos GraphQL 11/11; mutaciones probadas en vivo en local.
+- [x] Cuenta de servicio de envío `salon-fcm`, solo con el rol de enviar mensajes de FCM: la creó a mano la persona dueña del proyecto (`deploy/firebase/cuenta-envio.sh`), porque otorga un permiso y genera una clave. `azure/desplegar.sh` se la entrega al CRM como secreto.
+- [x] **En un teléfono real** (Moto g77, app de la nube): el token quedó registrado en el CRM de Azure, y los avisos llegaron con la app abierta (aviso en pantalla) y en segundo plano (barra de notificaciones).
+- [x] Canal "Avisos del salón" de importancia alta, creado por la app y usado por cada push.
+
+**Limitaciones conocidas:**
+- En el Moto g77 el push no apareció flotando arriba de la pantalla, aunque el canal es de importancia alta: depende del ajuste de notificaciones emergentes del teléfono.
+- Solo Android: iOS necesita una cuenta de Apple y macOS.
+- El token usa `getToken`, que firebase_messaging 17 marca como obsoleto a favor del identificador de instalación, con otro modo de envío.
 
 ## WhatsApp con la cuenta de Meta (CU-19, RF-12) (En curso)
 El 8 de noviembre de 2026 se conectó la app de Meta de un compañero del usuario.

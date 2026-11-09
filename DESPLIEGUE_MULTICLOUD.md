@@ -28,7 +28,9 @@ Entre estas regiones hay de 10 a 20 ms de latencia, en lugar de 30 a 80 ms entre
 | :--- | :--- | :--- |
 | `ms-gestion` (Spring Boot) | **ECS Fargate** | 1 vCPU, 2 GiB |
 | Keycloak | **ECS Fargate** | 1 vCPU, 2 GiB, modo producción con caché local (una instancia) |
-| `mcp-server` | **ECS Fargate** | 0,25 vCPU, 0,5 GiB. Junto a gestión, porque los agentes la consultan más. |
+| `mcp-server` | **ECS Fargate** | 0,5 vCPU, 1 GiB (arma los reportes en Excel y PDF). En una **subred privada que sale por un NAT con IP fija**: así lee el CRM en Azure, que solo admite esa IP. |
+| `ms-gestion` (segunda réplica) | **EKS** (Kubernetes) sobre Fargate | Consume los comandos de la SAGA junto a la de ECS. Ver la sección 10. |
+| Imágenes del clóset y la comunidad | **Amazon S3** | Bucket privado y cifrado; un usuario de IAM que solo usa `media/` |
 | Entrada HTTPS | **Application Load Balancer** + certificado de **ACM** para `*.dominio` | Reparte por subdominio: `auth.`, `gestion.` y `mcp.` |
 | PostgreSQL | **Amazon RDS** (db.t4g.micro) | Bases `salon_gestion` y `salon_keycloak` |
 | Sesiones, idempotencia, cupos y acciones de agentes | **Amazon DynamoDB** (bajo demanda, con TTL en `ttl`) | `ActiveUserSessions`, `IdempotencyKeys`, `SagaInstances`, `ImageGenerationQuota` y `AgentPendingActions` |
@@ -40,10 +42,10 @@ Entre estas regiones hay de 10 a 20 ms de latencia, en lugar de 30 a 80 ms entre
 | Componente | Servicio | Configuración |
 | :--- | :--- | :--- |
 | `ms-crm` (Laravel) | **Azure Container Apps** | Con HTTPS incluido en `*.azurecontainerapps.io` |
-| `ms-crm-worker` | **Azure Container Apps** | Sin entrada pública, siempre 1 réplica |
+| `ms-crm-worker` | **Azure Container Apps** y **AKS** (Kubernetes) | Sin entrada pública; dos consumidores en competencia. Ver la sección 10. |
 | Orquestador SAGA | **Azure Container Apps** | Recibe el webhook de Stripe y las reservas |
 | n8n | **Azure Container Apps** | Flujos incluidos en la imagen y datos en PostgreSQL. Dirección fija para el webhook de WhatsApp: **ya no hace falta el túnel**. |
-| PostgreSQL | **Azure Database for PostgreSQL Flexible** (B1ms) | Bases `salon_crm` y `n8n` |
+| PostgreSQL | **Azure Database for PostgreSQL Flexible** (B1ms) | Bases `salon_crm` y `n8n`. Admite los servicios de Azure, la IP de quien despliega y la IP fija del Servidor MCP. |
 | Imágenes | **Azure Container Registry** (Basic) | Solo las de Azure |
 | RabbitMQ | **CloudAMQP alojado en Azure `East US`** | Con TLS (`amqps`, puerto 5671), compartido por las tres nubes |
 
@@ -55,7 +57,8 @@ El entorno de Container Apps que crea Azure for Students es de tipo *Express*: n
 | :--- | :--- | :--- |
 | `ms-asesoria` (NestJS) | **Cloud Run** | 1 vCPU, 1 GiB, de 1 a 3 instancias |
 | `ms-ia` (FastAPI) | **Cloud Run** | 2 vCPU, 4 GiB, **mínimo 1 instancia** y CPU siempre asignada. Sin GPU: MediaPipe, TFLite y Whisper corren en CPU. |
-| MongoDB | **MongoDB Atlas** | Comunidad, clóset, diagnósticos y fotos (GridFS) |
+| MongoDB | **MongoDB Atlas** | Comunidad, clóset y diagnósticos; las fotos anteriores a S3, en GridFS, hasta que se migran |
+| Tablero de BI (Python, Streamlit) | **Cloud Run** y **GKE Autopilot** (Kubernetes) | https://salon-bi-qfdwhthkma-uk.a.run.app y https://bi.salon-ai.beauty. Ver la sección 10. |
 | Shell, Estudio IA, Reservas y ERP | **Firebase Hosting**, 4 sitios `*.web.app` | Con CORS y `remoteEntry.js` sin caché, como el nginx local |
 | Secretos | **Secret Manager** | |
 | Imágenes | **Artifact Registry** | Solo las de Google Cloud |
@@ -205,3 +208,39 @@ Los guiones son idempotentes: si un paso falla, se corrige y se vuelve a correr.
 - **Rendimiento de `php -S`** en el CRM con usuarios reales concurrentes (limitación ya declarada).
 
 **Costo:** `ms-ia` siempre encendido, el balanceador y Fargate cobran aunque nadie use la plataforma. Después de la entrega hay que borrar los recursos: el grupo `salon-rg` en Azure; el proyecto o los servicios de Cloud Run en Google; y en AWS, los servicios de ECS, el balanceador, RDS y las tablas.
+
+## 10. Kubernetes en las tres nubes
+
+Los manifiestos de toda la plataforma están en `k8s/`, con Kustomize:
+- **`k8s/base/<servicio>`:** un Deployment y un Service por cada uno de los 14 microservicios, con sondas de salud, límites de recursos y escalado automático por CPU (`ms-gestion`, `ms-asesoria` y `ms-ia`). La configuración y los secretos llegan desde un ConfigMap y un Secret por servicio, que crea el despliegue; nunca están en el repositorio.
+- **`k8s/overlays/<nube>`:** qué servicios corre cada clúster, con las imágenes de su propio registro.
+
+Cada nube tiene un clúster administrado con un microservicio de la plataforma, en producción y verificado en vivo:
+
+| Nube | Clúster | Qué corre | Por qué ahí |
+| :--- | :--- | :--- | :--- |
+| AWS | **EKS** sobre Fargate, sin nodos que administrar (`deploy/kubernetes/aws.sh`) | Una segunda réplica de `ms-gestion` que consume los comandos de la SAGA | Comparte RDS, DynamoDB y RabbitMQ con la de ECS. Sus pods van en la subred privada y salen por el NAT. |
+| Azure | **AKS**, un nodo **ARM64** `Standard_B2pls_v2` (`deploy/kubernetes/azure.sh`) | Un segundo worker del CRM que consume los eventos de la SAGA, con su imagen compilada para ARM64 | Comparte el PostgreSQL de Azure y RabbitMQ con el de Container Apps. |
+| Google | **GKE Autopilot** (`deploy/kubernetes/gcp.sh`) | El tablero de BI, con Ingress, IP global fija y certificado administrado por Google en https://bi.salon-ai.beauty | Imagen en Artifact Registry; mismo inicio de sesión que el de Cloud Run. |
+
+Los consumidores en competencia se reparten los mensajes de una misma cola: cada mensaje lo procesa uno solo, y si una plataforma cae, la otra sigue. RabbitMQ (CloudAMQP) muestra 2 consumidores en `gestion.saga.commands` y en `crm.saga.events`.
+
+**Pasos**, después de los de la sección 8:
+1. `bash deploy/kubernetes/aws.sh`
+2. `bash deploy/kubernetes/azure.sh`
+3. `bash deploy/kubernetes/gcp.sh`. Pide crear un registro **A** `bi` hacia la IP global que muestra; el certificado se emite en 15 a 60 minutos.
+
+Requieren `kubectl` (viene con Docker Desktop). En Google, además, el complemento `gke-gcloud-auth-plugin`. Para instalarlo sin una consola interactiva, primero se copia el Python incluido (`gcloud components copy-bundled-python`) y se apunta `CLOUDSDK_PYTHON` a esa copia. Los archivos kubeconfig quedan en `deploy/salida/`.
+
+**Ajustes que aparecieron al crearlos:**
+- Azure for Students en `canadacentral` solo permite algunos tamaños, y todos los x86 permitidos tienen **cuota 0**: el clúster queda en "Creating" sin error visible, salvo en el registro de actividad del grupo `MC_...`. La única familia con cuota es Bpsv2, ARM64: el nodo es `Standard_B2pls_v2` y el guion compila la imagen del CRM para ARM64 con `docker buildx`. `az aks create` sin `--no-ssh-key` genera claves en `~/.ssh`.
+- En EKS con Fargate, CoreDNS se crea antes que el perfil de Fargate y queda sin dónde correr: el guion lo reinicia.
+
+### Notificaciones push
+
+1. `bash deploy/firebase/push.sh`: registra la app Android en Firebase y descarga `google-services.json` (ignorado por Git).
+2. `bash deploy/firebase/cuenta-envio.sh`, **a mano**: crea la cuenta de servicio `salon-fcm`, con permiso solo para enviar mensajes, y guarda su clave en `deploy/salida/fcm-cuenta.json`. Otorga un permiso y genera una clave, así que la ejecuta la persona dueña del proyecto.
+3. `bash deploy/azure/desplegar.sh` y `bash deploy/base-de-datos.sh`: el CRM recibe la clave y se crea la tabla `push_devices`.
+4. Compilar la app (sección 9). Al iniciar sesión, el teléfono registra su token.
+
+**Costo adicional:** EKS cobra 0,10 USD por hora por el plano de control, más Fargate; AKS, el nodo; y GKE Autopilot, solo los pods, porque la gestión del primer clúster es gratuita. En total son de 4 a 6 USD al día. **Hay que borrar los tres clústeres después de la entrega.**

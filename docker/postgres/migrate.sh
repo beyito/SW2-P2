@@ -49,6 +49,7 @@ run_psql gestion salon_gestion -f /migrations/06_estilistas_resenas_panel.sql
 run_psql crm salon_crm -f /migrations/07_avisos_crm.sql
 run_psql crm salon_crm -f /migrations/08_perfil_de_estilo.sql
 run_psql gestion salon_gestion -f /migrations/09_recepcion.sql
+run_psql crm salon_crm -f /migrations/12_push_crm.sql
 
 # Usuario de solo lectura de los reportes del Servidor MCP, en ambos servidores
 if [ -n "${REPORTES_PGPASSWORD:-}" ]; then

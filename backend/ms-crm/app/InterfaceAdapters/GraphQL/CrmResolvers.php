@@ -13,6 +13,7 @@ use App\InterfaceAdapters\Gateways\CrmMetricsInterface;
 use App\InterfaceAdapters\Gateways\InvoiceRepositoryInterface;
 use App\InterfaceAdapters\Gateways\LoyaltyLedgerInterface;
 use App\InterfaceAdapters\Gateways\NoticeRepositoryInterface;
+use App\InterfaceAdapters\Gateways\PushDeviceRepositoryInterface;
 use Nuwave\Lighthouse\Support\Contracts\GraphQLContext;
 
 /**
@@ -29,8 +30,27 @@ class CrmResolvers
         private NoticeRepositoryInterface $notices,
         private CrmMetricsInterface $metrics,
         private UpdateStyleProfileUseCase $updateStyleProfile,
-        private RecordNoticesUseCase $recordNotices
+        private RecordNoticesUseCase $recordNotices,
+        private PushDeviceRepositoryInterface $pushDevices
     ) {
+    }
+
+    /** Un token de FCM tiene más de 100 caracteres y nunca espacios. */
+    private const PUSH_TOKEN = '/^[A-Za-z0-9_:\-]{100,255}$/';
+
+    public function registerPushToken($root, array $args, GraphQLContext $context): bool
+    {
+        if (!preg_match(self::PUSH_TOKEN, $args['token'])) {
+            throw new CrmForbidden('El token del teléfono no es válido.', 'INVALID_TOKEN');
+        }
+        $this->pushDevices->register($args['token'], $this->userId($context), in_array('ADMIN', $this->roles($context), true));
+        return true;
+    }
+
+    public function unregisterPushToken($root, array $args, GraphQLContext $context): bool
+    {
+        $this->pushDevices->remove($args['token']);
+        return true;
     }
 
     public function getClients($root, array $args, GraphQLContext $context): array

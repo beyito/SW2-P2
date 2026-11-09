@@ -29,7 +29,7 @@ Este archivo se escribió el 7 de noviembre de 2026, para que otro integrante de
 
 ## Estado actual
 
-Las fases A a Q están completadas. La Fase P desplegó la plataforma en AWS, Azure y Google Cloud, como exige el docente, el 9 de noviembre de 2026. La web está en **https://salon-sw2-app.web.app** y Keycloak en https://auth.salon-ai.beauty. Ver [DESPLIEGUE_MULTICLOUD.md](DESPLIEGUE_MULTICLOUD.md): regiones, direcciones y lo verificado en vivo.
+Las fases A a V están completadas. La Fase P desplegó la plataforma en AWS, Azure y Google Cloud, como exige el docente, el 9 de noviembre de 2026. Las fases R a V se hicieron después a partir de los modelos de examen de semestres anteriores. Son reportes en Excel y PDF, BI en Python, imágenes en S3, Kubernetes en las tres nubes y notificaciones push. [CUMPLIMIENTO_EXAMEN.md](CUMPLIMIENTO_EXAMEN.md) responde cada pregunta con su evidencia. La web está en **https://salon-sw2-app.web.app** y Keycloak en https://auth.salon-ai.beauty. Ver [DESPLIEGUE_MULTICLOUD.md](DESPLIEGUE_MULTICLOUD.md): regiones, direcciones y lo verificado en vivo.
 
 **Las cuentas de demostración en la nube no usan las contraseñas del manual.** Están en `deploy/salida/cuentas-demo.env`, que solo existe en la PC de quien desplegó: pídelas por un canal privado. En Docker Compose local siguen las del manual.
 
@@ -43,7 +43,9 @@ Según la matriz del ROADMAP, 21 de 22 casos de uso están completos, varios con
 | `ms-asesoria` | NestJS, Hexagonal, MongoDB, REST | `backend/ms-asesoria` |
 | `ms-crm` y su worker | Laravel, Clean Architecture, PostgreSQL, GraphQL | `backend/ms-crm` |
 | `ms-ia` | FastAPI, MediaPipe, TFLite, Whisper | `backend/ms-ia` |
-| Servidor MCP y agentes | Node.js, Skills en `skills/<agente>/SKILL.md` | `backend/mcp-server` |
+| Servidor MCP y agentes | Node.js, cuatro Skills en `skills/<agente>/SKILL.md`, reportes en Excel y PDF | `backend/mcp-server` |
+| Inteligencia de negocios | Python, Streamlit, pandas; dataset de 62 745 registros | `backend/bi-dashboard` |
+| Kubernetes | Kustomize: base de 14 servicios y un overlay por nube | `k8s/` |
 | Orquestador SAGA | Node.js, RabbitMQ, Stripe en modo prueba | `backend/saga-orchestrator` |
 | Web | Shell (React), Angular (ERP), React (Estudio IA), Vue (Reservas) | `frontend/` |
 | Móvil | Flutter, SQLite, TFLite | `mobile/salon_mobile` |
@@ -53,7 +55,7 @@ Según la matriz del ROADMAP, 21 de 22 casos de uso están completos, varios con
 
 **Nube:** está desplegada y las cuentas son de un integrante del equipo. Para volver a desplegar tras un cambio, corre de nuevo el guion de la nube que aloja ese servicio (sección 8 de `DESPLIEGUE_MULTICLOUD.md`). Los guiones son idempotentes. Antes de editarlos, corre `bash deploy/simulacion/correr.sh </dev/null`. `deploy/configuracion.env` y `deploy/salida/` tienen claves y están en `.gitignore`: nunca los subas. **Después de la entrega hay que borrar los recursos**, porque cobran aunque nadie use la plataforma.
 
-En la nube falta probar los agentes con Gemini, n8n con WhatsApp y la generación de imágenes. Las suites automáticas apuntan a localhost.
+En la nube falta probar los agentes de consulta con Gemini (el de reportes sí se probó), n8n con WhatsApp y la generación de imágenes. Las suites automáticas apuntan a localhost. **Los tres clústeres de Kubernetes y el NAT cuestan de 5 a 7 USD al día**: bórralos primero después de la entrega.
 
 Cualquier fase nueva requiere aprobación del equipo antes de empezar.
 
@@ -92,7 +94,7 @@ Tu base de datos parte de las semillas del proyecto, no de los datos de otro int
 
 ## Pruebas
 
-Los comandos de cada suite están en el manual, sección 7. Últimos conteos: orquestador 51, `ms-gestion` 81, CRM 58, `ms-asesoria` 91, `ms-ia` 184, `mcp-server` 68, `mfe-gestion` 37, `mfe-estudio-ia` 38, Shell 18, `mfe-reservas` 11, móvil 83, integración en vivo 325 y navegador 193 comprobaciones.
+Los comandos de cada suite están en el manual, sección 7. Últimos conteos: orquestador 51, `ms-gestion` 81, CRM 66, `ms-asesoria` 99, `ms-ia` 184, `mcp-server` 80, `bi-dashboard` 5, `mfe-gestion` 43, `mfe-estudio-ia` 38, Shell 18, `mfe-reservas` 11, móvil 85, integración en vivo 336 (327 más 9 de reportes) y navegador 193 comprobaciones más `reportes.e2e.mjs` y `bi.e2e.mjs`.
 
 **Gastan dinero o cupo:**
 - **Replicate:** `IMAGENES_REALES=1` en `tests/e2e/generacion_imagenes.e2e.mjs` y `integration_test/image_generation_real_test.dart`. Nunca los ejecutes sin permiso. Las pruebas de `TestConjunto` usan una imagen dañada a propósito para detenerse antes del proveedor: mantén ese diseño.
@@ -159,6 +161,11 @@ Los comandos de cada suite están en el manual, sección 7. Últimos conteos: or
 - El entorno de Container Apps es *Express*: no admite `revision restart`.
 - `MONGO_URI` en `configuracion.env` va entre comillas simples, por el `&`.
 - Porkbun crea un CNAME comodín `*` hacia su página de estacionamiento, que tapa los subdominios.
+- El entorno *Express* de Container Apps reutiliza la imagen guardada de una etiqueta repetida: `azure/desplegar.sh` etiqueta cada despliegue con una marca de tiempo. Sin eso, el CRM seguía sirviendo el esquema GraphQL viejo.
+- Azure for Students en `canadacentral`: todos los tamaños x86 permitidos tienen cuota 0, y AKS queda en "Creating" sin error visible. El nodo es ARM64 (`Standard_B2pls_v2`). El error real está en el registro de actividad del grupo `MC_salon-rg_salon-aks_canadacentral`.
+- El Servidor MCP corre en una subred privada con NAT (IP fija), porque Azure PostgreSQL solo admite esa IP para los reportes. No abras esa base a todo internet: el clasificador de seguridad lo bloquea, y con razón.
+- Crear cuentas de servicio, roles o claves en la nube (por ejemplo, `deploy/firebase/cuenta-envio.sh`) lo hace a mano la persona dueña de la cuenta.
+- Un heredoc dentro de un comando de Bash puede convertir una barra invertida doble en una sola, y romper el código que se edita así. Para editar archivos con barras invertidas (PHP, Bash), usa la herramienta de edición o un script en un archivo aparte.
 
 **Android**
 - `sdkmanager` y `avdmanager` parten los `;` de los paquetes: usa `--package_file`.

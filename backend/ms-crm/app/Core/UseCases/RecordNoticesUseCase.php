@@ -4,15 +4,23 @@ namespace App\Core\UseCases;
 
 use App\Core\Entities\Notice;
 use App\InterfaceAdapters\Gateways\NoticeRepositoryInterface;
+use App\InterfaceAdapters\Gateways\PushDeviceRepositoryInterface;
+use App\InterfaceAdapters\Gateways\PushSenderInterface;
+use Throwable;
 
 /**
- * Caso de Uso: convierte los eventos del negocio en avisos dentro de la aplicación.
- * Los eventos pueden llegar repetidos: cada aviso lleva una referencia única.
+ * Caso de Uso: convierte los eventos del negocio en avisos dentro de la aplicación y, si el
+ * destinatario tiene la app móvil, también en una notificación push.
+ * Los eventos pueden llegar repetidos: cada aviso lleva una referencia única y solo un aviso
+ * nuevo se notifica, así que nadie recibe el mismo push dos veces.
  */
 class RecordNoticesUseCase
 {
-    public function __construct(private NoticeRepositoryInterface $notices)
-    {
+    public function __construct(
+        private NoticeRepositoryInterface $notices,
+        private ?PushDeviceRepositoryInterface $devices = null,
+        private ?PushSenderInterface $push = null
+    ) {
     }
 
     public function paymentConfirmed(string $sagaId, string $clientId, ?string $serviceName): void
@@ -46,13 +54,36 @@ class RecordNoticesUseCase
 
     private function add(string $recipient, string $type, string $title, string $message, string $sourceRef): bool
     {
-        return $this->notices->addOnce(new Notice(
+        $notice = new Notice(
             id: 'ntc_' . bin2hex(random_bytes(8)),
             recipient: $recipient,
             type: $type,
             title: $title,
             message: mb_substr($message, 0, 500),
             sourceRef: $sourceRef
-        ));
+        );
+        $isNew = $this->notices->addOnce($notice);
+        if ($isNew) {
+            $this->notify($notice);
+        }
+        return $isNew;
+    }
+
+    /** El aviso ya quedó guardado: si el push falla, la persona igual lo ve dentro de la app. */
+    private function notify(Notice $notice): void
+    {
+        if ($this->devices === null || $this->push === null) {
+            return;
+        }
+        try {
+            foreach ($this->devices->tokensFor($notice->recipient) as $token) {
+                $result = $this->push->send($token, $notice->title, $notice->message, ['type' => $notice->type, 'noticeId' => $notice->id]);
+                if ($result === PushSenderInterface::INVALID_TOKEN) {
+                    $this->devices->remove($token);
+                }
+            }
+        } catch (Throwable $error) {
+            error_log('[CRM] No se pudo enviar el push del aviso ' . $notice->id . ': ' . $error->getMessage());
+        }
     }
 }

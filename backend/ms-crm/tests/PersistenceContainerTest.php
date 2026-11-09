@@ -20,7 +20,7 @@ use Testcontainers\Modules\PostgresContainer;
 class PersistenceContainerTest extends TestCase
 {
     private const MIGRATIONS_DIR = '/migrations';
-    private const CRM_MIGRATIONS = ['02_crm_schema.sql', '04_crm_facturacion.sql', '07_avisos_crm.sql', '08_perfil_de_estilo.sql'];
+    private const CRM_MIGRATIONS = ['02_crm_schema.sql', '04_crm_facturacion.sql', '07_avisos_crm.sql', '08_perfil_de_estilo.sql', '12_push_crm.sql'];
 
     private static ?StartedGenericContainer $container = null;
     private static PDO $pdo;

@@ -127,6 +127,10 @@ type Mutation {
     setMyWhatsappOptIn(enabled: Boolean!): Client! @field(resolver: "App\\InterfaceAdapters\\GraphQL\\CrmResolvers@setMyWhatsappOptIn")
     "Aviso creado por una automatización; devuelve falso si esa referencia ya se había enviado."
     recordAutomationNotice(recipient: String!, title: String!, message: String!, sourceRef: String!): Boolean! @field(resolver: "App\\InterfaceAdapters\\GraphQL\\CrmResolvers@recordAutomationNotice")
+    "Registra el teléfono del usuario autenticado para recibir notificaciones push (Firebase Cloud Messaging)."
+    registerPushToken(token: String!): Boolean! @field(resolver: "App\\InterfaceAdapters\\GraphQL\\CrmResolvers@registerPushToken")
+    "Deja de enviar notificaciones push a ese teléfono (al cerrar sesión)."
+    unregisterPushToken(token: String!): Boolean! @field(resolver: "App\\InterfaceAdapters\\GraphQL\\CrmResolvers@unregisterPushToken")
     "Ajuste manual de puntos; solo para administradores."
     accumulatePoints(clientId: String!, points: Int!, description: String!): Int! @field(resolver: "App\\InterfaceAdapters\\GraphQL\\CrmResolvers@accumulatePoints")
 }

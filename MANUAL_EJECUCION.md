@@ -236,6 +236,14 @@ El Servidor MCP consulta PostgreSQL con el usuario `salon_reportes`, que solo pu
 
 El botón **Abrir el tablero** lleva al tablero de inteligencia de negocios en Python (http://localhost:8501): KPI, ventas, agenda, estilistas, clientes, servicios e insumos sobre el dataset histórico de `backend/bi-dashboard/datos` (más de 60 000 registros, de noviembre de 2024 a octubre de 2026). El dataset se regenera igual con `python backend/bi-dashboard/generar_dataset.py`. Prueba en el navegador: `tests/e2e/bi.e2e.mjs`.
 
+## Notificaciones push
+
+La app Android recibe por Firebase Cloud Messaging cada aviso que crea el CRM: pago confirmado, reembolso, stock crítico (a la administración), publicación oculta y recordatorios de n8n. Al iniciar sesión pide el permiso y registra el teléfono; al cerrar sesión lo da de baja.
+
+- Hace falta `mobile/salon_mobile/android/app/google-services.json`, que descarga `deploy/firebase/push.sh` y no está en el repositorio. Sin él, la app compila y funciona igual, sin push.
+- El CRM envía solo si tiene la cuenta de servicio en `FCM_CREDENTIALS_JSON`, en base64. En local se puede poner en el `.env`; en la nube la entrega `deploy/azure/desplegar.sh`.
+- Para que el aviso flote arriba de la pantalla, el teléfono debe permitir las notificaciones emergentes del canal "Avisos del salón".
+
 ## Agentes del ERP
 
 En **ERP > Asistentes** elija **Operación**, **Inventario** o **Agenda**, y escriba o dicte su pregunta. El cuarto agente, **Reportes**, está en la pestaña Reportes.

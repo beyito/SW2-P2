@@ -1,0 +1,88 @@
+# Gestión del salón: agenda, catálogo e inventario (Spring Boot, GraphQL, DDD)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ms-gestion
+  labels:
+    app.kubernetes.io/name: ms-gestion
+    app.kubernetes.io/part-of: salon
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ms-gestion
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: ms-gestion
+        app.kubernetes.io/part-of: salon
+    spec:
+      containers:
+        - name: ms-gestion
+          # El registro y la etiqueta los fija cada overlay (kustomize images)
+          image: salon/ms-gestion
+          ports:
+            - name: http
+              containerPort: 8081
+          # Configuración y secretos propios del servicio; los crea el despliegue, nunca el repositorio
+          envFrom:
+            - configMapRef:
+                name: ms-gestion-config
+                optional: true
+            - secretRef:
+                name: ms-gestion-secretos
+                optional: true
+          resources:
+            requests: {cpu: 250m, memory: 512Mi}
+            limits: {cpu: "1", memory: 1Gi}
+          securityContext:
+            allowPrivilegeEscalation: false
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: http
+            initialDelaySeconds: 120
+            periodSeconds: 20
+            failureThreshold: 6
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ms-gestion
+  labels:
+    app.kubernetes.io/name: ms-gestion
+    app.kubernetes.io/part-of: salon
+spec:
+  selector:
+    app.kubernetes.io/name: ms-gestion
+  ports:
+    - name: http
+      port: 8081
+      targetPort: http
+---
+# Escala con la carga de CPU
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: ms-gestion
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: ms-gestion
+  minReplicas: 1
+  maxReplicas: 3
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70

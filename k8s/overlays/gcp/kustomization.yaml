@@ -1,0 +1,32 @@
+# GKE Autopilot (Google Kubernetes Engine, us-east4): el tablero de inteligencia de negocios en Python,
+# publicado con HTTPS en bi.<dominio> por un Ingress con certificado administrado por Google.
+# La configuración y los secretos los genera deploy/kubernetes/gcp.sh en generado/ (ignorado por Git).
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: salon
+resources:
+  - ../../base/namespace
+  - ../../base/bi-dashboard
+  - publicacion.yaml
+images:
+  - name: salon/bi-dashboard
+    newName: REGISTRO/bi-dashboard
+    newTag: latest
+patches:
+  # El balanceador de Google usa el BackendConfig: WebSockets de Streamlit y afinidad de sesión
+  - target:
+      kind: Service
+      name: bi-dashboard
+    patch: |-
+      - op: add
+        path: /metadata/annotations
+        value:
+          cloud.google.com/backend-config: '{"default": "bi-dashboard"}'
+generatorOptions:
+  disableNameSuffixHash: true
+configMapGenerator:
+  - name: bi-dashboard-config
+    envs: [generado/bi-dashboard.env]
+secretGenerator:
+  - name: bi-dashboard-secretos
+    envs: [generado/bi-dashboard-secretos.env]

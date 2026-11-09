@@ -49,10 +49,17 @@ az acr show -n "$REGISTRO_NOMBRE" --output none 2>/dev/null \
   || az acr create -g "$AZURE_GRUPO" -n "$REGISTRO_NOMBRE" --sku Basic --admin-enabled true --output none
 REGISTRO="$REGISTRO_NOMBRE.azurecr.io"
 az acr login -n "$REGISTRO_NOMBRE"
+# Etiqueta única por despliegue: el entorno Express reutiliza la imagen guardada de una etiqueta
+# repetida como "latest", así que una versión nueva con la misma etiqueta no llegaría a correr.
+ETIQUETA="$(date -u +%Y%m%d%H%M%S)"
 docker build --platform linux/amd64 --target runtime -t "$REGISTRO/salon-ms-crm:latest" "$RAIZ/backend/ms-crm"
 docker build --platform linux/amd64 -t "$REGISTRO/salon-saga:latest" "$RAIZ/backend/saga-orchestrator"
 docker build --platform linux/amd64 -f "$RAIZ/deploy/n8n/Dockerfile" -t "$REGISTRO/salon-n8n:latest" "$RAIZ"
-for imagen in salon-ms-crm salon-saga salon-n8n; do docker push "$REGISTRO/$imagen:latest"; done
+for imagen in salon-ms-crm salon-saga salon-n8n; do
+  docker tag "$REGISTRO/$imagen:latest" "$REGISTRO/$imagen:$ETIQUETA"
+  docker push "$REGISTRO/$imagen:latest"
+  docker push "$REGISTRO/$imagen:$ETIQUETA"
+done
 ACR_USUARIO=$(az acr credential show -n "$REGISTRO_NOMBRE" --query username -o tsv)
 ACR_CLAVE=$(az acr credential show -n "$REGISTRO_NOMBRE" --query 'passwords[0].value' -o tsv)
 
@@ -107,16 +114,22 @@ CRM=(APP_ENV=production APP_DEBUG=false APP_KEY=secretref:app-key LOG_CHANNEL=st
 # La clave de Laravel se genera una vez y se conserva
 grep -q '^CRM_APP_KEY=' "$SALIDA/azure.env" 2>/dev/null || guardar azure CRM_APP_KEY "base64:$(openssl rand -base64 32)"
 SECRETOS_CRM=(app-key="$CRM_APP_KEY" pg-clave="$AZURE_PG_CLAVE" rabbit-clave="$RABBITMQ_CLAVE" dynamo-secreto="$DYNAMO_CRM_SECRETO")
+# Notificaciones push: la cuenta de servicio de FCM (deploy/firebase/cuenta-envio.sh), en base64.
+# Sin ella, los avisos siguen apareciendo dentro de la app.
+if [ -f "$SALIDA/fcm-cuenta.json" ]; then
+  SECRETOS_CRM+=(fcm-cuenta="$(base64 -w0 "$SALIDA/fcm-cuenta.json")")
+  CRM+=(FCM_CREDENTIALS_JSON=secretref:fcm-cuenta)
+fi
 
 paso "ms-crm"
-aplicacion salon-crm "$REGISTRO/salon-ms-crm:latest" 8000 "${SECRETOS_CRM[@]}" -- "${CRM[@]}" "${AUTENTICACION[@]}"
+aplicacion salon-crm "$REGISTRO/salon-ms-crm:$ETIQUETA" 8000 "${SECRETOS_CRM[@]}" -- "${CRM[@]}" "${AUTENTICACION[@]}"
 
 paso "Worker del CRM (sin entrada pública)"
 COMANDO="php artisan crm:consume-saga-messages" \
-  aplicacion salon-crm-worker "$REGISTRO/salon-ms-crm:latest" "" "${SECRETOS_CRM[@]}" -- "${CRM[@]}" "${AUTENTICACION[@]}"
+  aplicacion salon-crm-worker "$REGISTRO/salon-ms-crm:$ETIQUETA" "" "${SECRETOS_CRM[@]}" -- "${CRM[@]}" "${AUTENTICACION[@]}"
 
 paso "Orquestador SAGA"
-aplicacion salon-saga "$REGISTRO/salon-saga:latest" 4100 \
+aplicacion salon-saga "$REGISTRO/salon-saga:$ETIQUETA" 4100 \
   rabbit-url="$RABBITMQ_AMQPS_URL" stripe-secreta="$STRIPE_SECRET_KEY" stripe-webhook="${STRIPE_WEBHOOK_SECRET:-pendiente}" \
   dynamo-secreto="$DYNAMO_SAGA_SECRETO" -- \
   RABBITMQ_URL=secretref:rabbit-url STRIPE_SECRET_KEY=secretref:stripe-secreta STRIPE_PUBLISHABLE_KEY="$STRIPE_PUBLISHABLE_KEY" \
@@ -124,7 +137,7 @@ aplicacion salon-saga "$REGISTRO/salon-saga:latest" 4100 \
   "${AUTENTICACION[@]}"
 
 paso "n8n con su base en PostgreSQL"
-aplicacion salon-n8n "$REGISTRO/salon-n8n:latest" 5678 \
+aplicacion salon-n8n "$REGISTRO/salon-n8n:$ETIQUETA" 5678 \
   pg-clave="$AZURE_PG_CLAVE" rabbit-clave="$RABBITMQ_CLAVE" cifrado="$N8N_ENCRYPTION_KEY" agente="$SALON_AGENT_SECRET" \
   automatizacion="$N8N_AUTOMATION_KEY" whatsapp-token="${WHATSAPP_TOKEN:-ninguno}" whatsapp-app="${WHATSAPP_APP_SECRET:-ninguno}" -- \
   DB_TYPE=postgresdb DB_POSTGRESDB_HOST="$AZURE_PG_HOST" DB_POSTGRESDB_PORT=5432 DB_POSTGRESDB_DATABASE=n8n \

@@ -29,6 +29,8 @@ x-crm-env: &crm-env
   DB_DATABASE: salon_crm
   DB_USERNAME: ${POSTGRES_USER:-salon_admin}
   DB_PASSWORD: ${POSTGRES_PASSWORD:-salon_secret_pass}
+  # Opcional: clave de la cuenta de servicio de FCM en base64, para enviar notificaciones push
+  FCM_CREDENTIALS_JSON: ${FCM_CREDENTIALS_JSON:-}
   RABBITMQ_HOST: rabbitmq
   RABBITMQ_PORT: "5672"
   RABBITMQ_USER: ${RABBITMQ_DEFAULT_USER:-rabbit_admin}

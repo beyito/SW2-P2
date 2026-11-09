@@ -1,0 +1,68 @@
+# Inteligencia de negocios en Python (Streamlit)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bi-dashboard
+  labels:
+    app.kubernetes.io/name: bi-dashboard
+    app.kubernetes.io/part-of: salon
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: bi-dashboard
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: bi-dashboard
+        app.kubernetes.io/part-of: salon
+    spec:
+      containers:
+        - name: bi-dashboard
+          # El registro y la etiqueta los fija cada overlay (kustomize images)
+          image: salon/bi-dashboard
+          ports:
+            - name: http
+              containerPort: 8501
+          # Configuración y secretos propios del servicio; los crea el despliegue, nunca el repositorio
+          envFrom:
+            - configMapRef:
+                name: bi-dashboard-config
+                optional: true
+            - secretRef:
+                name: bi-dashboard-secretos
+                optional: true
+          resources:
+            requests: {cpu: 100m, memory: 256Mi}
+            limits: {cpu: "1", memory: 1Gi}
+          securityContext:
+            allowPrivilegeEscalation: false
+          readinessProbe:
+            httpGet:
+              path: /_stcore/health
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /_stcore/health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 20
+            failureThreshold: 6
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bi-dashboard
+  labels:
+    app.kubernetes.io/name: bi-dashboard
+    app.kubernetes.io/part-of: salon
+spec:
+  selector:
+    app.kubernetes.io/name: bi-dashboard
+  ports:
+    - name: http
+      port: 8501
+      targetPort: http

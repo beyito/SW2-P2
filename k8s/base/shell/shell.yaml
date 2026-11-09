@@ -1,0 +1,68 @@
+# Web: contenedor de microfrontends (React)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shell
+  labels:
+    app.kubernetes.io/name: shell
+    app.kubernetes.io/part-of: salon
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: shell
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: shell
+        app.kubernetes.io/part-of: salon
+    spec:
+      containers:
+        - name: shell
+          # El registro y la etiqueta los fija cada overlay (kustomize images)
+          image: salon/shell
+          ports:
+            - name: http
+              containerPort: 3000
+          # Configuración y secretos propios del servicio; los crea el despliegue, nunca el repositorio
+          envFrom:
+            - configMapRef:
+                name: shell-config
+                optional: true
+            - secretRef:
+                name: shell-secretos
+                optional: true
+          resources:
+            requests: {cpu: 25m, memory: 32Mi}
+            limits: {cpu: "200m", memory: 128Mi}
+          securityContext:
+            allowPrivilegeEscalation: false
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 20
+            failureThreshold: 6
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: shell
+  labels:
+    app.kubernetes.io/name: shell
+    app.kubernetes.io/part-of: salon
+spec:
+  selector:
+    app.kubernetes.io/name: shell
+  ports:
+    - name: http
+      port: 3000
+      targetPort: http

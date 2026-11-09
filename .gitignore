@@ -65,6 +65,8 @@ deploy/configuracion.env
 deploy/salida/
 # Configuración y secretos de Kubernetes que generan los guiones de deploy/kubernetes
 k8s/overlays/*/generado/
+# Configuración de Firebase de la app Android: la descarga deploy/firebase/push.sh
+mobile/salon_mobile/android/app/google-services.json
 frontend/firebase.json
 frontend/.firebaserc
 frontend/.firebase/
