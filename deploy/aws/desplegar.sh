@@ -80,7 +80,7 @@ datos() {
     variable="DYNAMO_${servicio^^}"
     if ! grep -q "^${variable}_ID=" "$SALIDA/aws.env" 2>/dev/null; then
       read -r id secreto < <(aws iam create-access-key --user-name "$usuario" \
-        --query 'AccessKey.[AccessKeyId,SecretAccessKey]' --output text)
+        --query 'AccessKey.[AccessKeyId,SecretAccessKey]' --output text | tr -d '\r')
       guardar aws "${variable}_ID" "$id"
       guardar aws "${variable}_SECRETO" "$secreto"
     fi

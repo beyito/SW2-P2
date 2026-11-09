@@ -20,8 +20,10 @@ ENTORNO=salon-entorno
 
 paso "Grupo de recursos y extensión de Container Apps"
 az extension add --name containerapp --upgrade --only-show-errors
-az provider register --namespace Microsoft.App --wait
-az provider register --namespace Microsoft.OperationalInsights --wait
+# Una suscripción nueva no tiene registrado ningún servicio: se registran todos los que se usan
+for proveedor in Microsoft.App Microsoft.OperationalInsights Microsoft.DBforPostgreSQL Microsoft.ContainerRegistry; do
+  az provider register --namespace "$proveedor" --wait
+done
 az group create --name "$AZURE_GRUPO" --location "$AZURE_UBICACION" --output none
 
 paso "PostgreSQL Flexible (unos 10 minutos la primera vez)"
@@ -32,7 +34,7 @@ if ! az postgres flexible-server show -g "$AZURE_GRUPO" -n "$PG_SERVIDOR" --outp
     --admin-user "$AZURE_PG_USUARIO" --admin-password "$AZURE_PG_CLAVE" --public-access 0.0.0.0 --yes --output none
 fi
 IP=$(ip_publica)
-az postgres flexible-server firewall-rule create -g "$AZURE_GRUPO" -n "$PG_SERVIDOR" --rule-name despliegue \
+az postgres flexible-server firewall-rule create -g "$AZURE_GRUPO" --server-name "$PG_SERVIDOR" --name despliegue \
   --start-ip-address "$IP" --end-ip-address "$IP" --output none
 guardar azure AZURE_PG_HOST "$PG_SERVIDOR.postgres.database.azure.com"
 
@@ -66,6 +68,10 @@ aplicacion() {
     if [ "$arg" = -- ]; then destino=variables; continue; fi
     if [ $destino = secretos ]; then secretos+=("$arg"); else variables+=("$arg"); fi
   done
+  # Un secreto nuevo no llega a los contenedores en marcha, y los entornos Express no permiten
+  # reiniciar revisiones. Esta huella (un resumen que no revela los valores) cambia con los
+  # secretos y obliga a crear una revisión nueva.
+  variables+=("SECRETOS_HUELLA=$(printf '%s\n' "${secretos[@]}" | sha256sum | cut -c1-16)")
   comando=()
   if [ -n "${COMANDO:-}" ]; then
     read -r -a partes <<< "$COMANDO"
