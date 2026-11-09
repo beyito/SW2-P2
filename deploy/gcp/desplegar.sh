@@ -122,6 +122,6 @@ JSON
 echo
 echo "Plataforma web: $PORTAL_URL"
 echo "App móvil (Android), compilada contra la nube:"
-echo "  cd mobile/salon_mobile && flutter build apk --dart-define=KEYCLOAK_ISSUER=$KEYCLOAK_ISSUER \\"
+echo "  cd mobile/salon_mobile && flutter build apk --debug --dart-define=KEYCLOAK_ISSUER=$KEYCLOAK_ISSUER \\"
 echo "    --dart-define=GESTION_URL=$GESTION_URL/graphql --dart-define=CRM_URL=$CRM_URL/graphql \\"
 echo "    --dart-define=ASESORIA_URL=$ASESORIA_URL --dart-define=IA_URL=$IA_URL/api/v1 --dart-define=SAGA_URL=$SAGA_URL"

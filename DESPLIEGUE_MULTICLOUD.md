@@ -2,19 +2,23 @@
 
 Diseño de producción pedido por el docente. Cada nube aloja un dominio del negocio con su base de datos, y las tres se comunican por HTTPS y por RabbitMQ con TLS. Ninguna base de datos se usa desde otra nube, salvo DynamoDB, que es transversal por diseño (RF-07, RNF-04).
 
-**Estado (8 de noviembre de 2026):** los cambios de código están hechos y probados en local; los guiones de despliegue están escritos y probados con las CLI simuladas. **Todavía no se desplegó en ninguna nube**, porque faltan las cuentas. Ver la sección 9.
+**Estado (9 de noviembre de 2026): desplegado y funcionando en las tres nubes.** La plataforma está en **https://salon-sw2-app.web.app**. Lo verificado en vivo y lo que falta está en la sección 9.
 
-## 1. Región: las tres en Virginia (EE. UU.)
+## 1. Regiones: noreste de EE. UU. y Canadá
+
+Se planeó todo en Virginia, pero las cuentas lo impidieron:
+- **La cuenta de AWS del plan gratuito solo permite `us-east-2`.** Rechaza cualquier operación en `us-east-1`, y tampoco puede registrar dominios en Route 53.
+- **Azure for Students no permite `eastus`.** Su política solo acepta `spaincentral`, `southafricanorth`, `canadacentral`, `westus` y `brazilsouth`.
 
 | Nube | Región |
 | :--- | :--- |
-| AWS | `us-east-1` (Virginia del Norte) |
-| Azure | `East US` (Virginia) |
+| AWS | `us-east-2` (Ohio) |
+| Azure | `canadacentral` (Toronto) |
 | Google Cloud | `us-east4` (Virginia del Norte) |
-| MongoDB Atlas | GCP `us-east4`; si el plan gratuito no la ofrece, la región de GCP más cercana en EE. UU. |
-| CloudAMQP | Azure `East US` |
+| MongoDB Atlas | AWS `us-east-1` (Virginia): el plan gratuito M0 no existe en GCP `us-east4` |
+| CloudAMQP | Azure `East US` (Virginia): es otra cuenta, sin la restricción de Azure for Students |
 
-Las tres regiones están en la misma zona geográfica. Entre nubes hay entre 1 y 3 ms de latencia, en lugar de 30 a 80 ms entre continentes, así que validar la sesión en DynamoDB desde Google o Azure no pone en riesgo RNF-01 (panel en menos de 200 ms).
+Entre estas regiones hay de 10 a 20 ms de latencia, en lugar de 30 a 80 ms entre continentes. Validar la sesión en DynamoDB desde Google o Azure no pone en riesgo RNF-01 (panel en menos de 200 ms).
 
 ## 2. Distribución
 
@@ -43,6 +47,8 @@ Las tres regiones están en la misma zona geográfica. Entre nubes hay entre 1 y
 | Imágenes | **Azure Container Registry** (Basic) | Solo las de Azure |
 | RabbitMQ | **CloudAMQP alojado en Azure `East US`** | Con TLS (`amqps`, puerto 5671), compartido por las tres nubes |
 
+El entorno de Container Apps que crea Azure for Students es de tipo *Express*: no permite reiniciar revisiones. Por eso cada aplicación lleva `SECRETOS_HUELLA`, un resumen SHA-256 de sus secretos que cambia con ellos y obliga a crear una revisión nueva.
+
 ### Google Cloud: asesoría, IA y frontends
 
 | Componente | Servicio | Configuración |
@@ -61,7 +67,7 @@ Las tres regiones están en la misma zona geográfica. Entre nubes hay entre 1 y
 3. **RabbitMQ gestionado en lugar de un contenedor.** Container Apps no ofrece TCP público ni disco persistente sin configuración avanzada de red. CloudAMQP corre en la infraestructura de Azure, en la misma región, con TLS.
 4. **Sin S3.** Las fotos ya se guardan en MongoDB (GridFS) dentro de `ms-asesoria`. Mandarlas a S3 haría que un servicio de Google escriba en AWS, y obligaría a cambiar código sin beneficio para la entrega.
 5. **Sin GPU para `ms-ia`.** Encarece mucho y no acelera estos modelos. Lo que importa es tener una instancia siempre encendida: la imagen pesa 3,9 GB y el primer análisis tardaría en arrancar.
-6. **Las tres regiones en Virginia,** para que la latencia entre nubes no afecte RNF-01.
+6. **Regiones cercanas entre sí** (Ohio, Toronto y Virginia), para que la latencia entre nubes no afecte RNF-01.
 7. **DynamoDB real exige firmar las llamadas con SigV4** en los seis servicios que la usan. DynamoDB Local acepta cualquier firma; AWS no.
 8. **Un registro de imágenes por nube.** Azure y Google no pueden leer ECR de forma estable: su clave de acceso vence a las 12 horas.
 
@@ -80,13 +86,17 @@ Las tres regiones están en la misma zona geográfica. Entre nubes hay entre 1 y
 
   Sus claves van al gestor de secretos de cada nube (Parameter Store, Container Apps y Secret Manager), nunca al repositorio.
 - **Bases de datos:** RDS solo acepta a Fargate y la IP de quien despliega; Azure PostgreSQL, a los servicios de Azure y esa IP. Atlas debe permitir las salidas de Cloud Run: sin Cloud NAT con IP fija, queda abierto (`0.0.0.0/0`) con TLS y contraseña fuerte.
-- **Keycloak:** el realm toma de variables la dirección del portal, el secreto del agente y `sslRequired=external`. Importa las **cuentas de demostración** del manual para poder presentar: **cambie sus contraseñas** en la consola de Keycloak apenas termine el despliegue.
+- **Keycloak:** el realm toma de variables la dirección del portal, el secreto del agente y `sslRequired=external`. Importa las **cuentas de demostración** del manual para poder presentar. Sus contraseñas del manual son públicas, así que `bash deploy/keycloak/cambiar-claves-demo.sh` las reemplaza en la nube y guarda las nuevas en `deploy/salida/cuentas-demo.env`, que Git ignora. Se comparten con el equipo por un canal privado.
 - **Stripe:** el webhook se registra en el panel de Stripe apuntando al orquestador en Azure. `stripe-cli` es solo para desarrollo.
 - **WhatsApp:** n8n con dirección fija y firma de Meta comprobada (ya implementada).
 
 ## 5. Dominio
 
-Se necesita **un dominio propio** (unos 10 USD al año) **solo para AWS**:
+Se usa **`salon-ai.beauty`**, comprado en Porkbun (1,54 USD el primer año, sin renovación automática). Route 53 no sirvió: la cuenta del plan gratuito no puede registrar dominios, y los créditos de AWS no pagan registros.
+
+Porkbun crea por defecto un registro comodín (`*`) hacia su página de estacionamiento: hay que borrarlo para que los subdominios lleguen a AWS.
+
+Se necesita **un dominio propio solo para AWS**:
 - El balanceador solo tiene HTTPS con un certificado de ACM, y ACM solo emite certificados para dominios propios.
 - El emisor de los tokens de Keycloak debe ser una dirección fija; si cambia, todos los servicios rechazan los tokens.
 
@@ -124,30 +134,74 @@ Para la entrega basta con unos días encendido: entre 5 y 10 USD diarios en tota
 **Requisitos en la PC:** Bash (Git Bash en Windows), Docker, Node.js 22, AWS CLI v2, Azure CLI, Google Cloud CLI y Firebase CLI (`npm i -g firebase-tools`).
 
 **Cuentas a crear:**
-1. **AWS** (con tarjeta). Iniciar sesión con `aws configure` usando un usuario administrador, no la cuenta raíz.
+1. **AWS** (con tarjeta). Crear un usuario de IAM `salon-despliegue` con `AdministratorAccess`, sin acceso a la consola, y una clave de acceso para la CLI. Luego `aws configure`, con la región `us-east-2`. AWS CLI ofrece instalar "skills" y un servidor MCP para asistentes de IA: no hace falta.
 2. **Azure for Students** (sin tarjeta). `az login`.
-3. **Google Cloud** con la prueba gratuita; crear un proyecto. `gcloud auth login` y `firebase login`.
-4. **MongoDB Atlas** (plan gratuito M0): crear el clúster y el usuario, y permitir `0.0.0.0/0` en "Network Access".
-5. **CloudAMQP** (plan gratuito) en Azure `East US`.
-6. **Un dominio**, en cualquier proveedor.
+3. **Google Cloud** con la prueba gratuita: un proyecto con la facturación vinculada. Si el límite de proyectos no deja crear uno, sirve reutilizar uno vacío; el que vale es su **ID**, no el nombre. Luego `gcloud auth login`, `gcloud config set project <ID>` y `firebase login`. Gemini en Firebase no hace falta.
+4. **MongoDB Atlas** (plan gratuito M0, en AWS `us-east-1`): crear el clúster y el usuario, y permitir `0.0.0.0/0` en "Network Access". En `configuracion.env`, `MONGO_URI` va **entre comillas simples**, porque sin ellas Bash corta el valor en el `&`.
+5. **CloudAMQP** (plan gratuito) en Azure `East US`. Al tratamiento de datos de la UE (GDPR) se responde que no.
+6. **Un dominio**, en un proveedor que permita crear registros CNAME.
 
 **Pasos:**
 1. `Copy-Item deploy\configuracion.example.env deploy\configuracion.env` y completar los valores. El archivo está en `.gitignore`.
 2. `bash deploy/aws/desplegar.sh datos`: DynamoDB, usuarios de IAM, RDS y ECR. Las claves generadas quedan en `deploy/salida/`, también ignorada.
 3. `bash deploy/azure/desplegar.sh`: PostgreSQL, ACR, CRM, worker, orquestador y n8n.
 4. `bash deploy/base-de-datos.sh`: migraciones en RDS y Azure, y colecciones en Atlas.
-5. `bash deploy/aws/desplegar.sh servicios`: Keycloak, `ms-gestion` y MCP. Pide crear un CNAME para validar el certificado y, al final, los CNAME de `auth.`, `gestion.` y `mcp.`.
+5. `bash deploy/aws/desplegar.sh servicios`: Keycloak, `ms-gestion` y MCP. Pide crear un CNAME para validar el certificado y, al final, los CNAME de `auth.`, `gestion.` y `mcp.`. En Porkbun, el campo "Host" lleva solo el subdominio y "Target" el valor sin el punto final.
 6. `bash deploy/gcp/desplegar.sh`: asesoría, IA y los cuatro frontends. Al final muestra la dirección de la plataforma y el comando para compilar la app móvil contra la nube.
-7. A mano: registrar el webhook de Stripe y volver a correr el paso 3 con `STRIPE_WEBHOOK_SECRET`; cambiar la URL del webhook de WhatsApp en Meta; cambiar las contraseñas de las cuentas de demostración en Keycloak.
-8. Pruebas en vivo contra las direcciones reales, y la app móvil apuntando a ellas.
+7. **Webhook de Stripe** (modo prueba): en Desarrolladores → Webhooks, agregar un destino de tipo "Punto de conexión de webhook" hacia `<SAGA_URL>/webhooks/stripe`, con los eventos `payment_intent.succeeded` y `payment_intent.payment_failed`. Copiar su secreto de firma en `STRIPE_WEBHOOK_SECRET` y volver a correr el paso 3.
+8. `bash deploy/keycloak/cambiar-claves-demo.sh`: contraseñas nuevas para las cuentas de demostración.
+9. Cambiar la URL del webhook de WhatsApp en Meta a `<N8N_URL>/webhook/whatsapp/entrante`.
 
 Los guiones son idempotentes: si un paso falla, se corrige y se vuelve a correr.
 
-**Antes de editarlos:** `bash deploy/simulacion/correr.sh` ejecuta los cinco pasos con CLI simuladas. Detecta errores de Bash, variables faltantes y tareas de Fargate con JSON inválido, sin cuentas ni costo. No prueba que la nube acepte los comandos.
+**Antes de editarlos:** `bash deploy/simulacion/correr.sh </dev/null` ejecuta los cinco pasos con CLI simuladas. Detecta errores de Bash, variables faltantes y tareas de Fargate con JSON inválido, sin cuentas ni costo. No prueba que la nube acepte los comandos. Sin `</dev/null`, dentro de otro comando que tenga su propia entrada, el `aws` simulado se queda esperando.
 
-## 9. Qué no se verificó
+### Ajustes que solo aparecieron contra las nubes reales
 
-- **Ningún guion corrió contra una nube real.** Solo se probaron con CLI simuladas. Es probable que el primer despliegue pida ajustes: nombres ya ocupados, cupos de la cuenta nueva o una opción que cambió en alguna CLI.
-- **Planes gratuitos:** hay que confirmar que Atlas M0 y CloudAMQP gratuito existan en las regiones elegidas, y que CloudAMQP gratuito admita las conexiones de los seis servicios.
+| Problema | Corrección |
+| :--- | :--- |
+| Una suscripción nueva de Azure no tiene registrados `Microsoft.DBforPostgreSQL` ni `Microsoft.ContainerRegistry` | El guion registra los cuatro proveedores que usa |
+| Azure CLI cambió los parámetros de `firewall-rule create`: `-n` es ahora el nombre de la regla | `--server-name` para el servidor y `--name` para la regla |
+| Git Bash convierte en ruta de Windows todo argumento que empieza con `/` (`/migrate.sh`, `/ecs/salon`) | `comun.sh` exporta `MSYS_NO_PATHCONV=1` y escribe las rutas propias como `C:/...`, que entienden Bash, Docker Desktop y `aws.exe` |
+| Sin esa conversión, el `gcloud` de Git Bash le pasa a Python una ruta `/c/...` que no existe | `comun.sh` llama a `gcloud` con el Python que trae el SDK |
+| `aws.exe` y `az.cmd` terminan sus líneas con `\r\n`: el `\r` se quedó pegado a las seis claves de DynamoDB y AWS rechazaba la firma | `guardar()` borra los `\r` y la lectura de las claves los quita |
+| Los entornos *Express* de Container Apps no permiten reiniciar una revisión para aplicar un secreto nuevo | Variable `SECRETOS_HUELLA` (ver la sección 2) |
+
+## 9. Verificación en vivo (9 de noviembre de 2026)
+
+**Direcciones:**
+
+| Qué | Dirección |
+| :--- | :--- |
+| Plataforma web | https://salon-sw2-app.web.app |
+| Keycloak | https://auth.salon-ai.beauty |
+| `ms-gestion` | https://gestion.salon-ai.beauty/graphql |
+| MCP | https://mcp.salon-ai.beauty/mcp |
+| CRM | https://salon-crm.thankfulsmoke-2167cdc2.canadacentral.azurecontainerapps.io/graphql |
+| Orquestador SAGA | https://salon-saga.thankfulsmoke-2167cdc2.canadacentral.azurecontainerapps.io |
+| n8n | https://salon-n8n.thankfulsmoke-2167cdc2.canadacentral.azurecontainerapps.io |
+| Asesoría | https://salon-asesoria-qfdwhthkma-uk.a.run.app |
+| IA | https://salon-ia-qfdwhthkma-uk.a.run.app |
+
+**Comprobado:**
+- Todos los servicios con entrada pública y los cuatro frontends responden con HTTPS válido: su ruta de salud da 200, y el CRM pide token.
+- **Inicio de sesión** con el administrador (sesión única en los seis servicios) y con una clienta. Los tres microfrontends cargan con datos reales y sin ningún error de red ni de consola; la clienta ve solo sus dos pestañas. La sesión única consulta DynamoDB desde Azure y Google con firma SigV4: **la firma funciona contra AWS real**.
+- **Reserva con pago de Stripe** en modo prueba, hecha por una persona en el navegador. La SAGA recorrió todos sus pasos hasta `COMPLETED`, en las tres nubes. El CRM emitió la factura de 120 USD y acreditó 1200 puntos. El aviso de pago repetido se ignoró.
+- **App móvil** compilada contra la nube (APK debug), en el emulador:
+  - el inicio de sesión abre el Keycloak de la nube;
+  - "Mis citas" muestra las reservas confirmadas, desde AWS;
+  - "Cuenta" muestra los puntos y las facturas, desde Azure.
+- **RNF-01:** la consulta del resumen del panel, repetida 30 veces desde Bolivia, dio un p95 de 170 ms, red incluida.
+- **Webhook de Stripe:** el orquestador rechaza una firma falsa (`INVALID_SIGNATURE`).
+- **Contraseñas de demostración:** la del manual ya no entra y la nueva sí.
+- **Atlas M0 y CloudAMQP gratuito** funcionan en sus regiones con las conexiones de todos los servicios.
+
+**No verificado en la nube:**
+- **Agentes (MCP con Gemini):** el servicio responde, pero no se probó una conversación, por el cupo diario de Gemini.
+- **n8n y WhatsApp:** n8n arranca con sus flujos; el webhook de Meta sigue apuntando al túnel local, y el envío real (CU-19) sigue pendiente de Meta.
+- **Generación de imágenes con Replicate:** no se probó, para no gastar crédito.
+- **Suites automáticas contra la nube:** las suites de integración y E2E están escritas para localhost.
+- **APK release:** `flutter build apk --release` falló en Gradle tras 8 minutos y no se investigó. Por eso `gcp/desplegar.sh` imprime el comando con `--debug`.
 - **Rendimiento de `php -S`** en el CRM con usuarios reales concurrentes (limitación ya declarada).
-- **Firma SigV4 contra AWS real:** coincide con el SDK oficial, pero solo se probó contra DynamoDB Local.
+
+**Costo:** `ms-ia` siempre encendido, el balanceador y Fargate cobran aunque nadie use la plataforma. Después de la entrega hay que borrar los recursos: el grupo `salon-rg` en Azure; el proyecto o los servicios de Cloud Run en Google; y en AWS, los servicios de ECS, el balanceador, RDS y las tablas.

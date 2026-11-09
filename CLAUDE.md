@@ -29,7 +29,9 @@ Este archivo se escribió el 7 de noviembre de 2026, para que otro integrante de
 
 ## Estado actual
 
-Las fases A a O están completadas. La Fase P (despliegue en AWS, Azure y Google Cloud, exigido por el docente) está en curso: el código y los guiones están hechos y probados en local, pero falta desplegar con las cuentas reales. Ver [DESPLIEGUE_MULTICLOUD.md](DESPLIEGUE_MULTICLOUD.md).
+Las fases A a Q están completadas. La Fase P desplegó la plataforma en AWS, Azure y Google Cloud, como exige el docente, el 9 de noviembre de 2026. La web está en **https://salon-sw2-app.web.app** y Keycloak en https://auth.salon-ai.beauty. Ver [DESPLIEGUE_MULTICLOUD.md](DESPLIEGUE_MULTICLOUD.md): regiones, direcciones y lo verificado en vivo.
+
+**Las cuentas de demostración en la nube no usan las contraseñas del manual.** Están en `deploy/salida/cuentas-demo.env`, que solo existe en la PC de quien desplegó: pídelas por un canal privado. En Docker Compose local siguen las del manual.
 
 Roles de Keycloak: `ADMIN`, `RECEPTIONIST`, `STYLIST` y `CLIENT`. Las cuentas administrativas (`ADMIN` y `RECEPTIONIST`) tienen sesión única en los seis servicios.
 
@@ -49,7 +51,9 @@ Según la matriz del ROADMAP, 21 de 22 casos de uso están completos, varios con
 
 ## Qué falta
 
-**Fase P:** crear las cuentas (AWS, Azure for Students, Google Cloud, MongoDB Atlas y CloudAMQP) y un dominio, y seguir la sección 8 de `DESPLIEGUE_MULTICLOUD.md`. Los guiones nunca corrieron contra una nube real: espera ajustes. Antes de editarlos, corre `bash deploy/simulacion/correr.sh`. `deploy/configuracion.env` y `deploy/salida/` tienen claves y están en `.gitignore`: nunca los subas.
+**Nube:** está desplegada y las cuentas son de un integrante del equipo. Para volver a desplegar tras un cambio, corre de nuevo el guion de la nube que aloja ese servicio (sección 8 de `DESPLIEGUE_MULTICLOUD.md`). Los guiones son idempotentes. Antes de editarlos, corre `bash deploy/simulacion/correr.sh </dev/null`. `deploy/configuracion.env` y `deploy/salida/` tienen claves y están en `.gitignore`: nunca los subas. **Después de la entrega hay que borrar los recursos**, porque cobran aunque nadie use la plataforma.
+
+En la nube falta probar los agentes con Gemini, n8n con WhatsApp y la generación de imágenes. Las suites automáticas apuntan a localhost.
 
 Cualquier fase nueva requiere aprobación del equipo antes de empezar.
 
@@ -147,6 +151,14 @@ Los comandos de cada suite están en el manual, sección 7. Últimos conteos: or
 - Dos procesos pueden escuchar en el mismo puerto: un `ng serve` puede arrancar "bien" y no saberse cuál responde.
 - En scripts de Bash, un heredoc muy largo puede fallar: escribe los archivos con la herramienta de escritura.
 - Una expresión regular con barras no sobrevive a `docker exec` desde Node: un borrado devolvió 0 sin error.
+
+**Nube**
+- `aws.exe` y `az.cmd` terminan sus líneas con `\r\n`. Un `\r` pegado a una clave hace que AWS rechace la firma sin pista clara: quítalo con `tr -d '\r'`.
+- Git Bash convierte en ruta de Windows los argumentos que empiezan con `/`. Los guiones lo desactivan en `comun.sh`. Si llamas a `docker run ... /script.sh` a mano, usa `MSYS_NO_PATHCONV=1`.
+- La cuenta de AWS del plan gratuito solo opera en `us-east-2` y no registra dominios. Azure for Students no permite `eastus`.
+- El entorno de Container Apps es *Express*: no admite `revision restart`.
+- `MONGO_URI` en `configuracion.env` va entre comillas simples, por el `&`.
+- Porkbun crea un CNAME comodín `*` hacia su página de estacionamiento, que tapa los subdominios.
 
 **Android**
 - `sdkmanager` y `avdmanager` parten los `;` de los paquetes: usa `--package_file`.

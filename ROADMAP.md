@@ -27,7 +27,7 @@ Registro oficial del desarrollo de la **Plataforma Inteligente para Salón de Be
 | **M** | Actor Recepcionista: agenda global, llegada y ausencia, cobro en mostrador y horarios | Sáb 7 | **COMPLETADA** |
 | **N** | Móvil a la par de la web: cierre de sesión en el servidor y canje de puntos | Dom 8 | **COMPLETADA** |
 | **O** | Móvil completo: comprobante imprimible, cancelación con reembolso y reprogramación | Dom 8 | **COMPLETADA** |
-| **P** | Despliegue en AWS, Azure y Google Cloud | Lun 9 | **EN CURSO**: código listo; falta desplegar con las cuentas |
+| **P** | Despliegue en AWS, Azure y Google Cloud | Lun 9 | **COMPLETADA** |
 | **Q** | Diseño de salón de belleza en web y móvil | Dom 8 | **COMPLETADA** |
 
 ---
@@ -434,7 +434,7 @@ Pedida por el usuario el 8 de noviembre de 2026 para que el móvil no dependa de
 - **Hora elegida a mano:** sin copia de los turnos, no se puede saber si está libre hasta enviarla.
 - **Comprobante del móvil:** se arma en el teléfono con los datos del CRM, sin la referencia del pago de Stripe, que GraphQL no expone.
 
-## Fase P: Despliegue en tres nubes (RNF-01, RNF-02, RNF-04) (En curso)
+## Fase P: Despliegue en tres nubes (RNF-01, RNF-02, RNF-04) (Completada)
 Aprobada el 8 de noviembre de 2026: el docente exige AWS, Azure y Google Cloud. El diseño, los pasos y lo que falta verificar están en [DESPLIEGUE_MULTICLOUD.md](DESPLIEGUE_MULTICLOUD.md).
 
 **Distribución:** AWS aloja Keycloak, `ms-gestion`, MCP, RDS y DynamoDB. Azure aloja el CRM, su worker, el orquestador, n8n y su PostgreSQL. Google Cloud aloja `ms-asesoria`, `ms-ia` y los cuatro frontends. MongoDB va en Atlas y RabbitMQ en CloudAMQP.
@@ -458,14 +458,36 @@ Aprobada el 8 de noviembre de 2026: el docente exige AWS, Azure y Google Cloud. 
 - [x] **Migraciones:** el guion nuevo corrió en local, también con la base de n8n, que luego se borró.
 - [x] **Guiones:** los cinco pasos corren completos con CLI simuladas, con 222 llamadas. La simulación encontró un error: la lista de subredes de Fargate iba separada por tabuladores. Ya está corregido.
 
-**Pendiente:**
-- [ ] Crear las cuentas (AWS, Azure for Students, Google Cloud, Atlas y CloudAMQP) y el dominio.
-- [ ] Desplegar y probar en vivo contra las direcciones reales, también con la app móvil.
+**Despliegue real (9 de noviembre de 2026):**
+- [x] **Cuentas:** AWS, Azure for Students, Google Cloud, Atlas, CloudAMQP y el dominio `salon-ai.beauty` (Porkbun). Las cuentas impusieron las regiones: AWS en Ohio (`us-east-2`) y Azure en Toronto (`canadacentral`). Ver la sección 1 de [DESPLIEGUE_MULTICLOUD.md](DESPLIEGUE_MULTICLOUD.md).
+- [x] **Los cinco pasos corrieron contra las nubes reales.** Aparecieron seis fallos que la simulación no podía ver, y se corrigieron en los guiones:
+  - Azure: proveedores sin registrar, un parámetro nuevo de su CLI y la imposibilidad de reiniciar revisiones.
+  - Git Bash: la conversión de rutas y el arranque de `gcloud`.
+  - El `\r` de `aws.exe`, que arruinaba las claves de DynamoDB.
+
+  La simulación sigue pasando los cinco pasos.
+- [x] **Webhook de Stripe** registrado hacia el orquestador en Azure; rechaza una firma falsa.
+- [x] **Contraseñas de demostración** cambiadas con `deploy/keycloak/cambiar-claves-demo.sh`: la del manual ya no entra y la nueva sí.
+
+**Verificación en vivo contra la nube:**
+- [x] **Web** (https://salon-sw2-app.web.app): inicio de sesión del administrador, con sesión única en los seis servicios, y de una clienta. Los tres microfrontends cargan con datos reales y sin errores de red ni de consola; la clienta ve solo sus dos pestañas. La sesión única consulta DynamoDB desde Azure y Google: **la firma SigV4 funciona contra AWS real**.
+- [x] **Reserva con pago** (Stripe en modo prueba), hecha por una persona en el navegador. La SAGA llegó a `COMPLETED` pasando por las tres nubes. El aviso de pago repetido se ignoró. El CRM emitió la factura (120 USD) y acreditó 1200 puntos, comprobados en la base de Azure.
+- [x] **Móvil** compilado contra la nube (APK debug) en el emulador:
+  - el inicio de sesión abre el Keycloak de la nube con el tema del salón;
+  - el diagnóstico carga desde Google;
+  - "Mis citas" muestra las dos reservas confirmadas, desde AWS;
+  - "Cuenta" muestra 1800 puntos y las dos facturas, desde Azure.
+- [x] **RNF-01:** la consulta real del resumen del panel, repetida 30 veces desde Bolivia contra `ms-gestion` en Ohio, dio una mediana de 162 ms y un **p95 de 170 ms**, red incluida. Hubo un valor aislado de 457 ms.
 
 **Limitaciones conocidas:**
-- **Guiones sin probar en la nube:** el primer despliegue puede pedir ajustes.
-- **Cuentas de demostración:** el realm las importa para la presentación; hay que cambiar sus contraseñas al desplegar.
-- **Atlas abierto:** Atlas queda abierto a cualquier IP (con TLS y contraseña), salvo que se agregue Cloud NAT con IP fija.
+- **No probado en la nube:**
+  - los agentes con Gemini, por el cupo diario;
+  - n8n con WhatsApp: el webhook de Meta sigue en el túnel local, y el envío real (CU-19) depende de Meta;
+  - la generación de imágenes, para no gastar crédito de Replicate.
+- **Suites automáticas:** apuntan a localhost; en la nube se probó con un navegador automatizado y a mano.
+- **APK release:** `flutter build apk --release` falló en Gradle tras 8 minutos y no se investigó; el APK debug sí funciona. iOS sigue sin compilar.
+- **Atlas abierto:** acepta cualquier IP (con TLS y contraseña), salvo que se agregue Cloud NAT con IP fija.
+- **Costo:** `ms-ia` siempre encendido, el balanceador y Fargate cobran aunque nadie use la plataforma. Hay que borrar los recursos después de la entrega.
 
 ## Fase Q: Diseño de salón de belleza (web y móvil) (Completada)
 Pedida por el usuario el 8 de noviembre de 2026: la interfaz parecía un panel de IA. Eligió el estilo "rosa empolvado" para la web y el móvil.

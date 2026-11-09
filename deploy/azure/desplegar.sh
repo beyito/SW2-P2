@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ====================================================================
-# Despliegue en Azure (East US). Requiere Azure CLI con sesión iniciada (az login) y Docker.
+# Despliegue en Azure (región de AZURE_UBICACION; canadacentral en el despliegue real). Requiere Azure CLI con sesión iniciada (az login) y Docker.
 #
 #   bash deploy/azure/desplegar.sh
 #

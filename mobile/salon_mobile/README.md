@@ -23,6 +23,23 @@ foreach ($p in 8080,8081,3100,8002,8083,4100) { adb reverse tcp:$p tcp:$p }
 flutter run
 ```
 
+## Contra la nube
+
+Sin `adb reverse`: se compila con las direcciones públicas. `bash deploy/gcp/desplegar.sh` imprime el comando completo al terminar. Con el despliegue actual:
+
+```powershell
+flutter build apk --debug `
+  --dart-define=KEYCLOAK_ISSUER=https://auth.salon-ai.beauty/realms/salon `
+  --dart-define=GESTION_URL=https://gestion.salon-ai.beauty/graphql `
+  --dart-define=CRM_URL=https://salon-crm.thankfulsmoke-2167cdc2.canadacentral.azurecontainerapps.io/graphql `
+  --dart-define=ASESORIA_URL=https://salon-asesoria-qfdwhthkma-uk.a.run.app `
+  --dart-define=IA_URL=https://salon-ia-qfdwhthkma-uk.a.run.app/api/v1 `
+  --dart-define=SAGA_URL=https://salon-saga.thankfulsmoke-2167cdc2.canadacentral.azurecontainerapps.io
+adb install -r build\app\outputs\flutter-apk\app-debug.apk
+```
+
+El APK release falla en Gradle; el debug funciona. En la nube, las cuentas de demostración tienen otras contraseñas: ver `MANUAL_EJECUCION.md`, sección 6.
+
 ## Pruebas
 
 ```powershell

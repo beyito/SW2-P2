@@ -107,7 +107,9 @@ Abra http://localhost:3000 e inicie sesión. Estas cuentas son solo para el ento
 | `camila.fernandez` | `Cliente#2026` | CLIENT |
 | `alejandro.morales` | `Cliente#2026` | CLIENT |
 
-Los clientes nuevos pueden registrarse desde la pantalla de login. La consola de Keycloak está en http://localhost:8080, con las credenciales `KEYCLOAK_ADMIN_USER` y `KEYCLOAK_ADMIN_PASSWORD` del `.env`.
+Los clientes nuevos pueden registrarse desde la pantalla de login. La consola de Keycloak está en http://localhost:8080, con las credenciales `KEYCLOAK_ADMIN_USER` y `KEYCLOAK_ADMIN_PASSWORD` del `.env`; si no están en el `.env`, valen los valores por defecto de `docker-compose.yml`.
+
+**En la nube** (https://salon-sw2-app.web.app) son las mismas cuentas, pero con otras contraseñas: `deploy/keycloak/cambiar-claves-demo.sh` las cambió, porque estas son públicas. Están en `deploy/salida/cuentas-demo.env` de quien desplegó; pídalas por un canal privado. La consola de Keycloak de la nube está en https://auth.salon-ai.beauty/admin, con el usuario `admin` y la clave `KEYCLOAK_ADMIN_CLAVE` de `deploy/configuracion.env`.
 
 > **Cambios en el realm:** `docker/keycloak/salon-realm.json` solo se importa si el realm `salon` aún no existe. Para aplicar cambios, elimine el realm desde la consola y ejecute `docker compose restart keycloak`.
 

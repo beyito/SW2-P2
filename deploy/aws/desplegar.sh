@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ====================================================================
-# Despliegue en AWS (us-east-1). Requiere AWS CLI v2 con sesión iniciada (aws configure) y Docker.
+# Despliegue en AWS (región de AWS_REGION; us-east-2 en el despliegue real). Requiere AWS CLI v2 con sesión iniciada (aws configure) y Docker.
 #
 #   bash deploy/aws/desplegar.sh datos       DynamoDB, credenciales por servicio, RDS y registros ECR
 #   bash deploy/aws/desplegar.sh servicios   Keycloak, ms-gestion y MCP en Fargate detrás de un ALB con HTTPS
