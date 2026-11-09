@@ -71,12 +71,14 @@ function preparar({ modelo = guion(), roles = ['ADMIN'], ownerId = 'admin-1', ac
   return { run, acciones, backends, modelo };
 }
 
-test('hay tres agentes, cada uno con sus propias instrucciones', () => {
-  assert.deepEqual(Object.keys(SKILLS).sort(), ['agenda', 'inventario', 'operacion']);
+test('hay cuatro agentes, cada uno con sus propias instrucciones', () => {
+  assert.deepEqual(Object.keys(SKILLS).sort(), ['agenda', 'inventario', 'operacion', 'reportes']);
   for (const skill of Object.values(SKILLS)) {
     assert.ok(skill.instructions.length > 50);
-    assert.ok(skill.tools.length >= 3);
+    assert.ok(skill.tools.length >= 2);
   }
+  // El de reportes es solo de la administración: los reportes traen datos de clientes
+  assert.deepEqual(SKILLS.reportes.roles, ['ADMIN']);
   assert.notEqual(SKILLS.inventario.instructions, SKILLS.agenda.instructions);
 });
 

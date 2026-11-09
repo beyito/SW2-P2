@@ -22,6 +22,7 @@ Guía para poner en marcha el entorno local. El avance real de cada funcionalida
 | Backend | `ms-ia` | FastAPI | `8002` | http://localhost:8002/docs |
 | Backend | `mcp-server` | Node.js, SDK oficial de MCP (`POST /mcp`) | `4000` | http://localhost:4000/health |
 | Backend | `saga-orchestrator` | Node.js, RabbitMQ, Stripe | `4100` | http://localhost:4100/health |
+| Backend | `bi-dashboard` | Python, Streamlit, pandas | `8501` | http://localhost:8501 (solo administración) |
 | Frontend | `shell` | React + Vite | `3000` | http://localhost:3000 |
 | Frontend | `mfe-estudio-ia` | React | `3001` | http://localhost:3001 |
 | Frontend | `mfe-reservas` | Vue | `3002` | http://localhost:3002 |
@@ -132,6 +133,8 @@ Los clientes nuevos pueden registrarse desde la pantalla de login. La consola de
 >
 > El primer comando monta el tema. El script también da el rol `offline_access` a las cuentas de prueba: sin él, el móvil no puede iniciar sesión. Se puede repetir.
 
+> **Instalación anterior al tablero de BI (Fase S):** su realm no tiene el cliente `salon-bi`. Créelo, sin borrar el realm, con `python docker/keycloak/cliente_bi.py`. Se puede repetir.
+
 > **Sesión del móvil:** la app pide un token offline, así que no vence con la sesión de 8 horas de la web: dura hasta que la persona cierre sesión en el teléfono. El salón puede cerrarla antes desde la consola de Keycloak (usuario > Sesiones, o "Cerrar sesión" del usuario); entonces la app vuelve a su pantalla de inicio.
 
 ---
@@ -154,6 +157,9 @@ docker compose run --rm --no-deps -v "${PWD}/backend/ms-ia/tests:/app/tests" -v 
 
 # Servidor MCP y orquestador SAGA (node:test)
 cd backend\mcp-server; npm test
+
+# Tablero de BI (PyTest): corre dentro de su imagen, con el dataset real
+docker compose run --rm --no-deps bi-dashboard python -m pytest -q test_kpis.py
 cd backend\saga-orchestrator; npm test
 
 # Frontends (Vitest): shell, mfe-estudio-ia, mfe-reservas y mfe-gestion
@@ -163,7 +169,7 @@ cd frontend\shell; npm test
 cd mobile\salon_mobile; flutter test
 
 # Pruebas en vivo y de contrato contra todos los servicios (requieren el entorno levantado)
-# El entorno virtual se crea una vez: python -m venv backend\ms-ia\.venv; pip install httpx pyjwt[crypto] pytest graphql-core
+# El entorno virtual se crea una vez: python -m venv backend\ms-ia\.venv; pip install httpx pyjwt[crypto] pytest graphql-core openpyxl
 cd tests\integration; ..\..\backend\ms-ia\.venv\Scripts\python.exe -m pytest .
 
 # Navegador real (requieren además los cuatro microfrontends en ejecución)
@@ -219,9 +225,20 @@ La recepcionista inicia sesión y entra directo al ERP. Ve **Agenda**, **Mostrad
 - **Estilistas:** puede configurar el horario de cualquier estilista, pero no registrarlos ni editarlos.
 - Toda reserva se paga: la recepción no puede agendar sin cobro. El administrador también puede usar el mostrador.
 
+## Reportes e inteligencia de negocios
+
+En **ERP > Reportes** (solo administración) se arma un reporte de citas, facturas, inventario, movimientos de inventario, puntos o clientes:
+
+- **Con palabras:** escriba o dicte lo que necesita, por ejemplo «facturas de noviembre agrupadas por servicio, en PDF». Lo interpreta el agente de reportes (Gemini).
+- **A mano:** elija la entidad, las columnas, el periodo, los criterios, la agrupación y el formato (Excel o PDF).
+
+El Servidor MCP consulta PostgreSQL con el usuario `salon_reportes`, que solo puede leer las tablas de los reportes (`docker/postgres/migrations/10_reportes_gestion.sql` y `11_reportes_crm.sql`). Al modelo solo le llegan los totales, nunca filas con datos de clientes. Prueba en vivo: `tests/integration/test_fase_r_reportes_live.py`; en el navegador, `tests/e2e/reportes.e2e.mjs`.
+
+El botón **Abrir el tablero** lleva al tablero de inteligencia de negocios en Python (http://localhost:8501): KPI, ventas, agenda, estilistas, clientes, servicios e insumos sobre el dataset histórico de `backend/bi-dashboard/datos` (más de 60 000 registros, de noviembre de 2024 a octubre de 2026). El dataset se regenera igual con `python backend/bi-dashboard/generar_dataset.py`. Prueba en el navegador: `tests/e2e/bi.e2e.mjs`.
+
 ## Agentes del ERP
 
-En **ERP > Agente** elija **Operación**, **Inventario** o **Agenda**, y escriba o dicte su pregunta.
+En **ERP > Asistentes** elija **Operación**, **Inventario** o **Agenda**, y escriba o dicte su pregunta. El cuarto agente, **Reportes**, está en la pestaña Reportes.
 
 - Cada agente se define en `backend/mcp-server/skills/<agente>/SKILL.md`. Si cambia un archivo, ejecute `docker compose up -d --build mcp-server`.
 - Si un agente propone reponer stock o mover una cita, no se hace ningún cambio hasta pulsar **Confirmar**. La propuesta vence en 30 minutos.

@@ -17,7 +17,9 @@
   "offlineSessionMaxLifespanEnabled": false,
   "loginTheme": "salon",
   "internationalizationEnabled": true,
-  "supportedLocales": ["es"],
+  "supportedLocales": [
+    "es"
+  ],
   "defaultLocale": "es",
   "defaultRole": {
     "name": "default-roles-salon",
@@ -171,6 +173,39 @@
           }
         }
       ]
+    },
+    {
+      "clientId": "salon-bi",
+      "name": "Tablero de inteligencia de negocios (Python)",
+      "enabled": true,
+      "publicClient": false,
+      "secret": "${SALON_BI_SECRET:salon-bi-secret-local}",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "redirectUris": [
+        "${SALON_BI_URL:http://localhost:8501}/oauth2callback"
+      ],
+      "webOrigins": [
+        "${SALON_BI_URL:http://localhost:8501}"
+      ],
+      "attributes": {
+        "post.logout.redirect.uris": "${SALON_BI_URL:http://localhost:8501}/*"
+      },
+      "protocolMappers": [
+        {
+          "name": "roles-en-id-token",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "config": {
+            "claim.name": "roles",
+            "multivalued": "true",
+            "jsonType.label": "String",
+            "id.token.claim": "true",
+            "access.token.claim": "false",
+            "userinfo.token.claim": "true"
+          }
+        }
+      ]
     }
   ],
   "users": [
@@ -187,8 +222,9 @@
         ]
       },
       "realmRoles": [
-        "ADMIN"
-      , "offline_access"],
+        "ADMIN",
+        "offline_access"
+      ],
       "credentials": [
         {
           "type": "password",
@@ -210,8 +246,9 @@
         ]
       },
       "realmRoles": [
-        "RECEPTIONIST"
-      , "offline_access"],
+        "RECEPTIONIST",
+        "offline_access"
+      ],
       "credentials": [
         {
           "type": "password",
@@ -233,8 +270,9 @@
         ]
       },
       "realmRoles": [
-        "STYLIST"
-      , "offline_access"],
+        "STYLIST",
+        "offline_access"
+      ],
       "credentials": [
         {
           "type": "password",
@@ -256,8 +294,9 @@
         ]
       },
       "realmRoles": [
-        "CLIENT"
-      , "offline_access"],
+        "CLIENT",
+        "offline_access"
+      ],
       "credentials": [
         {
           "type": "password",
@@ -279,8 +318,9 @@
         ]
       },
       "realmRoles": [
-        "CLIENT"
-      , "offline_access"],
+        "CLIENT",
+        "offline_access"
+      ],
       "credentials": [
         {
           "type": "password",

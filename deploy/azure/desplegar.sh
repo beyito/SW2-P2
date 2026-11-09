@@ -36,6 +36,12 @@ fi
 IP=$(ip_publica)
 az postgres flexible-server firewall-rule create -g "$AZURE_GRUPO" --server-name "$PG_SERVIDOR" --name despliegue \
   --start-ip-address "$IP" --end-ip-address "$IP" --output none
+# Los reportes del Servidor MCP (en AWS) leen el CRM con el usuario de solo lectura salon_reportes.
+# Se admite únicamente la IP fija del NAT por el que sale el MCP (aws/desplegar.sh datos).
+if [ -n "${MCP_IP_SALIDA:-}" ]; then
+  az postgres flexible-server firewall-rule create -g "$AZURE_GRUPO" --server-name "$PG_SERVIDOR" --name reportes-mcp \
+    --start-ip-address "$MCP_IP_SALIDA" --end-ip-address "$MCP_IP_SALIDA" --output none
+fi
 guardar azure AZURE_PG_HOST "$PG_SERVIDOR.postgres.database.azure.com"
 
 paso "Registro de imágenes (ACR) e imágenes"

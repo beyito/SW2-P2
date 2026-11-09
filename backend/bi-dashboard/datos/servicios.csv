@@ -1,0 +1,13 @@
+servicio_id,servicio,categoria,duracion_min,precio
+srv-01,Balayage Deluxe & Matizado,Coloración,150,120.0
+srv-02,Tratamiento Keratina Brasileña,Tratamientos,120,95.0
+srv-03,Corte Visagista & Styling,Corte,60,45.0
+srv-04,Retoque de raíz,Coloración,90,55.0
+srv-05,Mechas iluminadas,Coloración,120,85.0
+srv-06,Hidratación profunda,Tratamientos,60,40.0
+srv-07,Corte caballero,Corte,30,18.0
+srv-08,Peinado de evento,Peinado,60,50.0
+srv-09,Maquillaje social,Maquillaje,60,45.0
+srv-10,Manicure spa,Uñas,45,22.0
+srv-11,Pedicure spa,Uñas,60,28.0
+srv-12,Alisado orgánico,Tratamientos,150,110.0

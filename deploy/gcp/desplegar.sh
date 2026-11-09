@@ -5,13 +5,14 @@
 #
 #   bash deploy/gcp/desplegar.sh
 #
-# Cloud Run aloja ms-asesoria y ms-ia con HTTPS y su propia dirección (*.run.app).
+# Cloud Run aloja ms-asesoria, ms-ia y el tablero de BI con HTTPS y su propia dirección (*.run.app).
 # Firebase Hosting sirve los cuatro frontends compilados con las direcciones de la nube.
 # Antes deben correr los guiones de AWS (datos y servicios) y de Azure.
 # ====================================================================
 source "$(dirname "$0")/../comun.sh"
 requerir GCP_PROYECTO GCP_REGION MONGO_URI GEMINI_API_KEY RABBITMQ_HOST RABBITMQ_USUARIO RABBITMQ_CLAVE RABBITMQ_VHOST \
-  DYNAMO_ASESORIA_ID DYNAMO_ASESORIA_SECRETO DYNAMO_IA_ID DYNAMO_IA_SECRETO CRM_URL SAGA_URL
+  DYNAMO_ASESORIA_ID DYNAMO_ASESORIA_SECRETO DYNAMO_IA_ID DYNAMO_IA_SECRETO CRM_URL SAGA_URL \
+  S3_BUCKET S3_ACCESS_KEY_ID S3_SECRET_ACCESS_KEY KEYCLOAK_ADMIN_CLAVE
 
 gcloud config set project "$GCP_PROYECTO" >/dev/null
 REGISTRO="$GCP_REGION-docker.pkg.dev/$GCP_PROYECTO/salon"
@@ -28,6 +29,8 @@ docker build --platform linux/amd64 -t "$REGISTRO/ms-asesoria:latest" "$RAIZ/bac
 docker build --platform linux/amd64 -t "$REGISTRO/ms-ia:latest" "$RAIZ/backend/ms-ia"
 docker push "$REGISTRO/ms-asesoria:latest"
 docker push "$REGISTRO/ms-ia:latest"
+docker build --platform linux/amd64 -t "$REGISTRO/bi-dashboard:latest" "$RAIZ/backend/bi-dashboard"
+docker push "$REGISTRO/bi-dashboard:latest"
 
 paso "Secretos (Secret Manager)"
 secreto() { # nombre valor: crea el secreto o le agrega una versión
@@ -43,6 +46,12 @@ secreto salon-dynamo-asesoria "$DYNAMO_ASESORIA_SECRETO"
 secreto salon-dynamo-ia "$DYNAMO_IA_SECRETO"
 secreto salon-gemini "$GEMINI_API_KEY"
 secreto salon-replicate "${REPLICATE_API_KEY:-ninguna}"
+secreto salon-s3-asesoria "$S3_SECRET_ACCESS_KEY"
+# Secretos del tablero de BI: se generan una vez y se conservan
+grep -q '^BI_CLIENT_SECRET=' "$SALIDA/gcp.env" 2>/dev/null || guardar gcp BI_CLIENT_SECRET "$(openssl rand -hex 24)"
+grep -q '^BI_COOKIE_SECRET=' "$SALIDA/gcp.env" 2>/dev/null || guardar gcp BI_COOKIE_SECRET "$(openssl rand -hex 32)"
+secreto salon-bi-cliente "$BI_CLIENT_SECRET"
+secreto salon-bi-cookie "$BI_COOKIE_SECRET"
 # Cloud Run usa la cuenta de servicio predeterminada de Compute Engine
 NUMERO=$(gcloud projects describe "$GCP_PROYECTO" --format 'value(projectNumber)')
 gcloud projects add-iam-policy-binding "$GCP_PROYECTO" --condition=None --quiet \
@@ -56,8 +65,8 @@ AUTENTICACION+="@DYNAMODB_ENDPOINT=$DYNAMODB_ENDPOINT@AWS_REGION=${AWS_REGION:-u
 paso "ms-asesoria en Cloud Run"
 gcloud run deploy salon-asesoria --image "$REGISTRO/ms-asesoria:latest" --region "$GCP_REGION" \
   --port 3100 --cpu 1 --memory 1Gi --min-instances 1 --max-instances 3 --allow-unauthenticated \
-  --set-env-vars "$AUTENTICACION@AWS_ACCESS_KEY_ID=$DYNAMO_ASESORIA_ID@BIOMETRIC_RETENTION_DAYS=365" \
-  --set-secrets "MONGO_URI=salon-mongo-uri:latest,RABBITMQ_URL=salon-rabbitmq-url:latest,AWS_SECRET_ACCESS_KEY=salon-dynamo-asesoria:latest"
+  --set-env-vars "$AUTENTICACION@AWS_ACCESS_KEY_ID=$DYNAMO_ASESORIA_ID@BIOMETRIC_RETENTION_DAYS=365@S3_BUCKET=$S3_BUCKET@S3_REGION=$AWS_REGION@S3_ACCESS_KEY_ID=$S3_ACCESS_KEY_ID" \
+  --set-secrets "MONGO_URI=salon-mongo-uri:latest,RABBITMQ_URL=salon-rabbitmq-url:latest,AWS_SECRET_ACCESS_KEY=salon-dynamo-asesoria:latest,S3_SECRET_ACCESS_KEY=salon-s3-asesoria:latest"
 guardar gcp ASESORIA_URL "$(gcloud run services describe salon-asesoria --region "$GCP_REGION" --format 'value(status.url)')"
 
 paso "ms-ia en Cloud Run (siempre encendido: la imagen pesa unos 4 GB)"
@@ -70,8 +79,27 @@ gcloud run deploy salon-ia --image "$REGISTRO/ms-ia:latest" --region "$GCP_REGIO
   --set-secrets "AWS_SECRET_ACCESS_KEY=salon-dynamo-ia:latest,GEMINI_API_KEY=salon-gemini:latest$REPLICATE_SECRETO"
 guardar gcp IA_URL "$(gcloud run services describe salon-ia --region "$GCP_REGION" --format 'value(status.url)')"
 
+paso "Tablero de inteligencia de negocios (Python) en Cloud Run"
+# Su dirección se conoce después del primer despliegue: luego se fija para el inicio de sesión
+desplegar_bi() {
+  gcloud run deploy salon-bi --image "$REGISTRO/bi-dashboard:latest" --region "$GCP_REGION" \
+    --port 8501 --cpu 1 --memory 1Gi --min-instances 0 --max-instances 1 --session-affinity --allow-unauthenticated \
+    --set-env-vars "^@^BI_URL=$1@BI_KEYCLOAK_METADATA_URL=$KEYCLOAK_ISSUER/.well-known/openid-configuration" \
+    --set-secrets "BI_CLIENT_SECRET=salon-bi-cliente:latest,BI_COOKIE_SECRET=salon-bi-cookie:latest"
+}
+desplegar_bi "${BI_URL:-https://pendiente}"
+URL_BI=$(gcloud run services describe salon-bi --region "$GCP_REGION" --format 'value(status.url)' | tr -d '\r')
+if [ "${BI_URL:-}" != "$URL_BI" ]; then
+  guardar gcp BI_URL "$URL_BI"
+  desplegar_bi "$URL_BI"
+fi
+BI_URL="$URL_BI"
+# El cliente salon-bi en el Keycloak de la nube (el realm ya importado no lo trae)
+KEYCLOAK_URL="$KEYCLOAK_URL" KEYCLOAK_ADMIN_USER=admin KEYCLOAK_ADMIN_PASSWORD="$KEYCLOAK_ADMIN_CLAVE" \
+  BI_URL="$BI_URL" BI_CLIENT_SECRET="$BI_CLIENT_SECRET" python "$RAIZ/docker/keycloak/cliente_bi.py"
+
 paso "Frontends compilados con las direcciones de la nube"
-export VITE_KEYCLOAK_URL="$KEYCLOAK_URL" VITE_GESTION_URL="$GESTION_URL/graphql" VITE_CRM_URL="$CRM_URL/graphql" \
+export VITE_BI_URL="$BI_URL" VITE_KEYCLOAK_URL="$KEYCLOAK_URL" VITE_GESTION_URL="$GESTION_URL/graphql" VITE_CRM_URL="$CRM_URL/graphql" \
   VITE_CRM_BASE_URL="$CRM_URL" VITE_ASESORIA_URL="$ASESORIA_URL" VITE_IA_URL="$IA_URL/api/v1" VITE_SAGA_URL="$SAGA_URL" \
   VITE_MCP_URL="$MCP_URL/mcp" VITE_MFE_ESTUDIO_URL="https://$SITIO_ESTUDIO.web.app" \
   VITE_MFE_RESERVAS_URL="https://$SITIO_RESERVAS.web.app" VITE_MFE_GESTION_URL="https://$SITIO_ERP.web.app"
@@ -121,6 +149,7 @@ JSON
 
 echo
 echo "Plataforma web: $PORTAL_URL"
+echo "Tablero de BI:  $BI_URL"
 echo "App móvil (Android), compilada contra la nube:"
 echo "  cd mobile/salon_mobile && flutter build apk --debug --dart-define=KEYCLOAK_ISSUER=$KEYCLOAK_ISSUER \\"
 echo "    --dart-define=GESTION_URL=$GESTION_URL/graphql --dart-define=CRM_URL=$CRM_URL/graphql \\"

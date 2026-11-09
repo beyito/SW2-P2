@@ -1,7 +1,7 @@
 import { createHash, createHmac } from 'crypto';
 
 /**
- * Firma de peticiones a AWS con Signature Version 4.
+ * Firma de peticiones a AWS con Signature Version 4, para DynamoDB y S3.
  * DynamoDB real la exige; DynamoDB Local acepta cualquier firma, así que el mismo código sirve en ambos.
  */
 export interface AwsCredentials {
@@ -12,7 +12,8 @@ export interface AwsCredentials {
 }
 
 const hmac = (key: string | Buffer, data: string) => createHmac('sha256', key).update(data, 'utf8').digest();
-const sha256 = (data: string) => createHash('sha256').update(data, 'utf8').digest('hex');
+// Un texto se resume en UTF-8; un Buffer (una imagen para S3), tal cual
+export const sha256 = (data: string | Buffer) => createHash('sha256').update(data).digest('hex');
 // Codificación de la especificación de AWS: RFC 3986, más estricta que encodeURIComponent
 const encode = (value: string) =>
   encodeURIComponent(value).replace(/[!'()*]/g, (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`);
@@ -31,7 +32,7 @@ export interface SignableRequest {
   method: string;
   url: string;
   headers: Record<string, string>;
-  body?: string;
+  body?: string | Buffer;
   service: string;
   credentials: AwsCredentials;
   now?: Date;

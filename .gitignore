@@ -63,6 +63,8 @@ mobile/salon_mobile/assets/models/
 # Despliegue en la nube: configuración con claves y lo que generan los guiones
 deploy/configuracion.env
 deploy/salida/
+# Configuración y secretos de Kubernetes que generan los guiones de deploy/kubernetes
+k8s/overlays/*/generado/
 frontend/firebase.json
 frontend/.firebaserc
 frontend/.firebase/

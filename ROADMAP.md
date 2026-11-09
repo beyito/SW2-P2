@@ -29,6 +29,10 @@ Registro oficial del desarrollo de la **Plataforma Inteligente para Salón de Be
 | **O** | Móvil completo: comprobante imprimible, cancelación con reembolso y reprogramación | Dom 8 | **COMPLETADA** |
 | **P** | Despliegue en AWS, Azure y Google Cloud | Lun 9 | **COMPLETADA** |
 | **Q** | Diseño de salón de belleza en web y móvil | Dom 8 | **COMPLETADA** |
+| **R** | Reportes dinámicos en Excel y PDF por prompt, voz o formulario | Lun 9 | **COMPLETADA** |
+| **S** | Inteligencia de negocios en Python con un dataset de miles de registros | Lun 9 | **COMPLETADA** |
+| **T** | Imágenes del clóset y la comunidad en Amazon S3 | Lun 9 | **COMPLETADA** |
+| **U** | Kubernetes en AWS, Azure y Google Cloud | Lun 9 | **EN CURSO** |
 
 ---
 
@@ -542,6 +546,60 @@ Pedida por el usuario el 8 de noviembre de 2026: la interfaz parecía un panel d
 - **Versiones antiguas de Android:** antes de Android 8 se ve el ícono anterior, porque no admiten íconos adaptables.
 - **Pantallas no revisadas:** las que requieren datos o pasos especiales (pago con Stripe, cámara, simulación de imágenes) se revisaron solo con las pruebas, sin captura.
 
+## Fase R: Reportes dinámicos en Excel y PDF (CU-17, CU-18, RF-11, RNF-02) (Completada)
+Aprobada el 9 de noviembre de 2026, a partir de los modelos de examen: los reportes deben pedirse por prompt, texto o audio, eligiendo columnas, criterios y formato Excel o PDF, con agentes conectados a la base de datos.
+
+- [x] **Herramientas MCP `catalogo_reportes` y `generar_reporte`** (`backend/mcp-server/src/reports.js`): seis entidades (citas, facturas, inventario, movimientos de inventario, puntos y clientes), columnas, filtros, periodo, agrupación con totales y archivo Excel (exceljs) o PDF (pdfkit). Solo la administración.
+- [x] **Conectadas a la base de datos sin romper RNF-02:** el Servidor MCP consulta PostgreSQL con `salon_reportes`, un usuario de **solo lectura** que solo ve las tablas del catálogo (`10_reportes_gestion.sql` y `11_reportes_crm.sql`), en una transacción de solo lectura con tiempo máximo. Las columnas y las tablas salen del catálogo y lo que escribe la persona viaja como parámetro. El agente nunca toca la base: pide el reporte por la herramienta.
+- [x] **Cuarto agente, "Reportes"** (`skills/reportes/SKILL.md`): convierte la petición en los parámetros. Al modelo solo le llegan los totales, nunca filas con datos de clientes ni el archivo.
+- [x] **Pestaña Reportes en el ERP:** con palabras (texto o voz con Whisper) o con un formulario; vista previa, totales y descarga.
+
+**Verificación:**
+- [x] MCP 80/80 (12 nuevas: catálogo cerrado, inyección como parámetro, filtros en español, agrupación, Excel y PDF válidos, lo que ve el modelo). ERP 43/43 (6 nuevas).
+- [x] En vivo, `test_fase_r_reportes_live.py` 9/9: cada reporte coincide con la base, un intento de inyección no cambia nada, la estilista recibe 403 y el usuario de reportes no puede escribir.
+- [x] Navegador, `reportes.e2e.mjs`: Excel y PDF descargados y comparados con la base; la estilista no ve la pestaña. Las E2E anteriores del ERP (`fase_f`, `recepcion` y `seguridad`) siguen pasando.
+- [x] Con Gemini, una sola consulta: «Quiero un PDF con las facturas de este año, solo cliente, servicio y total» dio un PDF con esas columnas y el periodo del año.
+- [x] **En la nube:** facturas (CRM en Azure) y citas (RDS en AWS) en Excel y PDF, con los totales reales.
+
+**Red en la nube:** el CRM vive en Azure PostgreSQL, que solo acepta IP conocidas, y Fargate no tiene una IP de salida fija. El Servidor MCP corre en una **subred privada que sale por un NAT con IP elástica**, y Azure admite solo esa IP. Abrir la base a todo internet se descartó.
+
+**Limitaciones conocidas:**
+- Máximo 5 000 filas por reporte (avisa si corta) y una vista previa de 50.
+- El certificado de RDS no se verifica desde Node (está firmado por la CA de Amazon): la conexión va cifrada, como el `sslmode=require` de JDBC. El de Azure sí se verifica.
+- El NAT cuesta alrededor de 1 USD al día.
+
+## Fase S: Inteligencia de negocios en Python (Completada)
+Aprobada el 9 de noviembre de 2026, a partir de los modelos de examen: un dataset de miles de registros y dashboards con KPI implementados en Python.
+
+- [x] **Dataset histórico** (`backend/bi-dashboard/generar_dataset.py`): dos años, de noviembre de 2024 a octubre de 2026, con **62 745 registros** (citas, facturas, puntos, consumo de insumos, reseñas y clientes). Parte del catálogo real y lo amplía a 12 servicios y 6 estilistas. Tiene estacionalidad, horas pico, crecimiento, cancelaciones, inasistencias y canjes. Semilla fija: siempre genera lo mismo.
+- [x] **Tablero en Streamlit, pandas y Plotly:** 8 KPI comparados con el año anterior y las pestañas Ventas, Agenda, Estilistas, Clientes (con RFM), Servicios e insumos, y Datos (descarga en CSV), con filtros por periodo, estilista, categoría y canal.
+- [x] **Solo la administración:** inicio de sesión con Keycloak (cliente `salon-bi`, roles en el ID token). `docker/keycloak/cliente_bi.py` lo crea en un Keycloak ya instalado.
+- [x] **Enlace desde el ERP** (Reportes → Abrir el tablero).
+
+**Verificación:**
+- [x] `test_kpis.py` 5/5: tamaño y coherencia del dataset y KPI contra datos conocidos.
+- [x] Navegador, `bi.e2e.mjs`: la administradora entra con Keycloak, ve los 8 KPI y recorre las pestañas sin errores; la estilista recibe el rechazo. Pasa en local y **en Cloud Run** con las contraseñas de la nube.
+
+**Limitaciones conocidas:**
+- El dataset es sintético: el salón real tiene pocos datos. El tablero no mezcla los datos en vivo.
+- Cerrar sesión en el tablero no cierra la sesión de Keycloak.
+
+## Fase T: Imágenes en Amazon S3 (CU-15, CU-20) (Completada)
+Aprobada el 9 de noviembre de 2026, a partir de los modelos de examen: S3 para almacenamiento masivo.
+
+- [x] **Adaptador S3** de `ms-asesoria` sobre el mismo puerto que GridFS (`s3-media.storage.ts`), con la API REST de S3 firmada con SigV4, sin SDK. El firmador ahora acepta contenido binario; los vectores de botocore siguen pasando.
+- [x] **Bucket privado y cifrado** (AES-256, acceso público bloqueado) en Ohio, con un usuario de IAM que solo puede leer, escribir y borrar en `media/` (`aws/desplegar.sh datos`).
+- [x] **Migración gradual:** una imagen anterior que no está en S3 se lee de GridFS, se copia a S3 y se borra de GridFS la primera vez que alguien la pide.
+- [x] En local, sin `S3_BUCKET`, sigue GridFS (MinIO ya no publica su imagen en Docker Hub).
+
+**Verificación:**
+- [x] `ms-asesoria` 99/99 (8 nuevas: dirección, firma con el resumen del binario, migración, errores y borrado).
+- [x] Contra S3 real, desde local y **desde Cloud Run**: la imagen subida quedó en el bucket, cifrada y no en GridFS, y se leyó idéntica; sin firma, S3 responde 403. Las imágenes de prueba se borraron.
+
+**Limitaciones conocidas:**
+- Las imágenes de una instalación local siguen en GridFS.
+- La migración ocurre al pedir cada imagen, no de una vez.
+
 ## WhatsApp con la cuenta de Meta (CU-19, RF-12) (En curso)
 El 8 de noviembre de 2026 se conectó la app de Meta de un compañero del usuario.
 
@@ -578,11 +636,11 @@ Estado actualizado al cierre de cada fase. ✅ completo y verificado en vivo. �
 | CU-12 | Puntos de fidelidad | ✅ (web y móvil, con canje) | E, F, L, N |
 | CU-13 | Escaneo capilar y facial | ✅ (web y Android; offline con fotos) | G, H |
 | CU-14 | Recomendaciones | ✅ (con simulación en imagen) | G, I |
-| CU-15 | Armario virtual | ✅ (con prueba de ropa en imagen) | F, I |
+| CU-15 | Armario virtual | ✅ (con prueba de ropa en imagen; fotos en S3) | F, I, T |
 | CU-16 | Asesoría para redes sociales | ✅ (web y móvil) | G, L |
-| CU-17 | Métricas por agente (MCP) | ✅ (tres agentes con Skills; cambios con confirmación de una persona) | F, H, J |
-| CU-18 | Reportes por lenguaje natural | ✅ (texto y voz) | F, G |
+| CU-17 | Métricas por agente (MCP) | ✅ (cuatro agentes con Skills; cambios con confirmación de una persona) | F, H, J, R |
+| CU-18 | Reportes por lenguaje natural | ✅ (texto, voz o formulario; columnas, criterios, agrupación y Excel o PDF) | F, G, R |
 | CU-19 | Recordatorios y reservas por WhatsApp | 🟡 (cuenta de Meta conectada: webhook verificado y mensaje de prueba recibido; envío real pendiente de la aprobación de las plantillas) | H |
-| CU-20 | Publicar look | ✅ (web y móvil) | F, L |
+| CU-20 | Publicar look | ✅ (web y móvil; fotos en S3) | F, L, T |
 | CU-21 | Reaccionar y comentar | ✅ (web y móvil) | F, L |
 | CU-22 | Sincronizar cola offline | ✅ (web y Android) | H |

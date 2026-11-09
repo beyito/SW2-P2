@@ -41,7 +41,11 @@ test('toolsFor solo muestra lo que cada rol puede usar', () => {
   assert.deepEqual(names(['CLIENT']), ['listar_estilistas', 'consultar_disponibilidad_estilista']);
   assert.ok(names(['STYLIST']).includes('consultar_stock_critico'));
   assert.ok(!names(['STYLIST']).includes('obtener_metricas_negocio'));
-  assert.equal(names(["ADMIN"]).length, 12);
+  assert.equal(names(["ADMIN"]).length, 14);
+  // Los reportes incluyen datos de clientes y facturación: solo la administración
+  assert.ok(names(['ADMIN']).includes('generar_reporte'));
+  assert.ok(!names(['STYLIST']).includes('generar_reporte'));
+  assert.ok(!names(['STYLIST']).includes('catalogo_reportes'));
 });
 
 test('la disponibilidad usa el servicio más corto si no se indica uno', async () => {

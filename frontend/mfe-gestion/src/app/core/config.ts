@@ -10,6 +10,8 @@ const LOCAL_URLS = {
   iaUrl: 'http://localhost:8002/api/v1',
   sagaUrl: 'http://localhost:4100',
   crmBaseUrl: 'http://localhost:8083',
+  // Tablero de inteligencia de negocios en Python (Streamlit)
+  biUrl: 'http://localhost:8501',
 };
 
 export const CONFIG = { ...LOCAL_URLS, ...(typeof SALON_URLS !== 'undefined' ? SALON_URLS : {}) };

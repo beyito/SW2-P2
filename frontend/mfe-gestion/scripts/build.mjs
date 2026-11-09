@@ -11,6 +11,7 @@ const VARIABLES = {
   iaUrl: 'VITE_IA_URL',
   sagaUrl: 'VITE_SAGA_URL',
   crmBaseUrl: 'VITE_CRM_BASE_URL',
+  biUrl: 'VITE_BI_URL',
 };
 
 const urls = Object.fromEntries(

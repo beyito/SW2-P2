@@ -50,4 +50,10 @@ run_psql crm salon_crm -f /migrations/07_avisos_crm.sql
 run_psql crm salon_crm -f /migrations/08_perfil_de_estilo.sql
 run_psql gestion salon_gestion -f /migrations/09_recepcion.sql
 
+# Usuario de solo lectura de los reportes del Servidor MCP, en ambos servidores
+if [ -n "${REPORTES_PGPASSWORD:-}" ]; then
+  run_psql gestion salon_gestion -v clave="$REPORTES_PGPASSWORD" -f /migrations/10_reportes_gestion.sql
+  run_psql crm salon_crm -v clave="$REPORTES_PGPASSWORD" -f /migrations/11_reportes_crm.sql
+fi
+
 echo "Migraciones de PostgreSQL aplicadas correctamente."

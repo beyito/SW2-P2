@@ -98,6 +98,39 @@ datos() {
   permitir "$SG_RDS" 5432 "$(ip_publica)/32"
   guardar aws SG_ALB "$SG_ALB"; guardar aws SG_ECS "$SG_ECS"
 
+  paso "Salida a internet con IP fija (NAT) para el Servidor MCP"
+  # Los reportes leen el CRM en Azure PostgreSQL, que solo acepta IP conocidas. Fargate no tiene una IP
+  # de salida fija, así que el MCP corre en una subred privada que sale por un NAT con IP elástica.
+  SUBRED_PRIVADA=$(aws ec2 describe-subnets --filters Name=vpc-id,Values="$VPC" Name=tag:Name,Values=salon-privada \
+    --query 'Subnets[0].SubnetId' --output text)
+  if [ "$SUBRED_PRIVADA" = None ]; then
+    SUBRED_PRIVADA=$(aws ec2 create-subnet --vpc-id "$VPC" --cidr-block 172.31.240.0/24 --availability-zone "${AWS_REGION}a" \
+      --tag-specifications 'ResourceType=subnet,Tags=[{Key=Name,Value=salon-privada}]' --query Subnet.SubnetId --output text)
+  fi
+  NAT=$(aws ec2 describe-nat-gateways --filter Name=tag:Name,Values=salon-nat Name=state,Values=available,pending \
+    --query 'NatGateways[0].NatGatewayId' --output text)
+  if [ "$NAT" = None ]; then
+    IP_ELASTICA=$(aws ec2 allocate-address --domain vpc --tag-specifications 'ResourceType=elastic-ip,Tags=[{Key=Name,Value=salon-nat}]' \
+      --query AllocationId --output text)
+    # El NAT vive en una subred pública de la misma zona
+    PUBLICA=$(aws ec2 describe-subnets --filters Name=vpc-id,Values="$VPC" Name=default-for-az,Values=true \
+      Name=availability-zone,Values="${AWS_REGION}a" --query 'Subnets[0].SubnetId' --output text)
+    NAT=$(aws ec2 create-nat-gateway --subnet-id "$PUBLICA" --allocation-id "$IP_ELASTICA" \
+      --tag-specifications 'ResourceType=natgateway,Tags=[{Key=Name,Value=salon-nat}]' --query NatGateway.NatGatewayId --output text)
+  fi
+  aws ec2 wait nat-gateway-available --nat-gateway-ids "$NAT"
+  TABLA=$(aws ec2 describe-route-tables --filters Name=vpc-id,Values="$VPC" Name=tag:Name,Values=salon-privada \
+    --query 'RouteTables[0].RouteTableId' --output text)
+  if [ "$TABLA" = None ]; then
+    TABLA=$(aws ec2 create-route-table --vpc-id "$VPC" --tag-specifications 'ResourceType=route-table,Tags=[{Key=Name,Value=salon-privada}]' \
+      --query RouteTable.RouteTableId --output text)
+    aws ec2 create-route --route-table-id "$TABLA" --destination-cidr-block 0.0.0.0/0 --nat-gateway-id "$NAT" >/dev/null
+    aws ec2 associate-route-table --route-table-id "$TABLA" --subnet-id "$SUBRED_PRIVADA" >/dev/null
+  fi
+  guardar aws SUBRED_PRIVADA "$SUBRED_PRIVADA"
+  guardar aws MCP_IP_SALIDA "$(aws ec2 describe-nat-gateways --nat-gateway-ids "$NAT" --query 'NatGateways[0].NatGatewayAddresses[0].PublicIp' --output text)"
+  echo "  IP de salida del Servidor MCP: $MCP_IP_SALIDA"
+
   paso "PostgreSQL en RDS (unos 10 minutos la primera vez)"
   if ! aws rds describe-db-instances --db-instance-identifier salon-postgres >/dev/null 2>&1; then
     aws rds create-db-instance --db-instance-identifier salon-postgres --engine postgres --engine-version 16 \
@@ -108,6 +141,31 @@ datos() {
   aws rds wait db-instance-available --db-instance-identifier salon-postgres
   guardar aws RDS_HOST "$(aws rds describe-db-instances --db-instance-identifier salon-postgres \
     --query 'DBInstances[0].Endpoint.Address' --output text)"
+
+  paso "Bucket de S3 para las imágenes del clóset y la comunidad"
+  # El nombre es global en todo AWS: se genera una vez con un sufijo y se conserva
+  grep -q '^S3_BUCKET=' "$SALIDA/aws.env" 2>/dev/null || guardar aws S3_BUCKET "$PREFIJO-media-$(openssl rand -hex 4)"
+  if ! aws s3api head-bucket --bucket "$S3_BUCKET" >/dev/null 2>&1; then
+    aws s3api create-bucket --bucket "$S3_BUCKET" --create-bucket-configuration "LocationConstraint=$AWS_REGION" >/dev/null
+  fi
+  # Privado y cifrado: las imágenes solo salen a través de ms-asesoria, que valida el token
+  aws s3api put-public-access-block --bucket "$S3_BUCKET" --public-access-block-configuration \
+    BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true
+  aws s3api put-bucket-encryption --bucket "$S3_BUCKET" --server-side-encryption-configuration \
+    '{"Rules":[{"ApplyServerSideEncryptionByDefault":{"SSEAlgorithm":"AES256"}}]}'
+  # Mínimo privilegio: un usuario que solo lee, escribe y borra dentro de media/
+  aws iam get-user --user-name salon-s3-asesoria >/dev/null 2>&1 || aws iam create-user --user-name salon-s3-asesoria >/dev/null
+  aws iam put-user-policy --user-name salon-s3-asesoria --policy-name imagenes-salon --policy-document "{
+    \"Version\": \"2012-10-17\",
+    \"Statement\": [{\"Effect\": \"Allow\", \"Action\": [\"s3:GetObject\", \"s3:PutObject\", \"s3:DeleteObject\"],
+      \"Resource\": \"arn:aws:s3:::$S3_BUCKET/media/*\"}]}"
+  if ! grep -q '^S3_ACCESS_KEY_ID=' "$SALIDA/aws.env" 2>/dev/null; then
+    read -r id secreto < <(aws iam create-access-key --user-name salon-s3-asesoria \
+      --query 'AccessKey.[AccessKeyId,SecretAccessKey]' --output text | tr -d '\r')
+    guardar aws S3_ACCESS_KEY_ID "$id"
+    guardar aws S3_SECRET_ACCESS_KEY "$secreto"
+  fi
+  echo "  $S3_BUCKET"
 
   paso "Registros de imágenes (ECR)"
   for repo in salon-ms-gestion salon-keycloak salon-mcp-server; do
@@ -171,20 +229,22 @@ grupo_destino() { # nombre puerto ruta-salud puerto-salud → ARN
   echo "$arn"
 }
 
-servicio_ecs() { # nombre tarea grupo-destino puerto
+servicio_ecs() { # nombre tarea grupo-destino puerto [subredes ip-publica]
+  # Por defecto, subredes públicas con IP propia. El Servidor MCP va en la privada, con la IP fija del NAT.
+  local red="awsvpcConfiguration={subnets=[${5:-${SUBREDES// /,}}],securityGroups=[$SG_ECS],assignPublicIp=${6:-ENABLED}}"
   if aws ecs describe-services --cluster salon --services "salon-$1" --query 'services[?status==`ACTIVE`]' --output text | grep -q .; then
-    aws ecs update-service --cluster salon --service "salon-$1" --task-definition "$2" --force-new-deployment >/dev/null
+    aws ecs update-service --cluster salon --service "salon-$1" --task-definition "$2" --network-configuration "$red" \
+      --force-new-deployment >/dev/null
   else
     aws ecs create-service --cluster salon --service-name "salon-$1" --task-definition "$2" --desired-count 1 \
-      --launch-type FARGATE --health-check-grace-period-seconds 180 \
-      --network-configuration "awsvpcConfiguration={subnets=[${SUBREDES// /,}],securityGroups=[$SG_ECS],assignPublicIp=ENABLED}" \
+      --launch-type FARGATE --health-check-grace-period-seconds 180 --network-configuration "$red" \
       --load-balancers "targetGroupArn=$3,containerName=$1,containerPort=$4" >/dev/null
   fi
 }
 
 servicios() {
   requerir RDS_HOST SG_ALB SG_ECS KEYCLOAK_ADMIN_CLAVE SALON_AGENT_SECRET GEMINI_API_KEY CRM_URL \
-    RABBITMQ_HOST RABBITMQ_USUARIO RABBITMQ_CLAVE RABBITMQ_VHOST
+    RABBITMQ_HOST RABBITMQ_USUARIO RABBITMQ_CLAVE RABBITMQ_VHOST REPORTES_CLAVE AZURE_PG_HOST SUBRED_PRIVADA
 
   paso "Imágenes"
   aws ecr get-login-password | docker login --username AWS --password-stdin "$REGISTRO"
@@ -255,6 +315,11 @@ servicios() {
   P_GEMINI=$(parametro gemini "$GEMINI_API_KEY")
   P_DYN_GESTION=$(parametro dynamo-gestion "$DYNAMO_GESTION_SECRETO")
   P_DYN_MCP=$(parametro dynamo-mcp "$DYNAMO_MCP_SECRETO")
+  # Reportes del Servidor MCP: usuario de solo lectura en cada base. RDS usa un certificado de la CA
+  # de Amazon, que Node no trae: se cifra sin verificarlo, igual que el sslmode=require de JDBC.
+  # Azure usa una CA pública y sí se verifica.
+  P_REP_GESTION=$(parametro reportes-gestion-url "postgres://salon_reportes:$REPORTES_CLAVE@$RDS_HOST:5432/salon_gestion?sslmode=no-verify")
+  P_REP_CRM=$(parametro reportes-crm-url "postgres://salon_reportes:$REPORTES_CLAVE@$AZURE_PG_HOST:5432/salon_crm?sslmode=require")
 
   COMUNES=(KEYCLOAK_ISSUER="$KEYCLOAK_ISSUER" KEYCLOAK_JWKS_URI="$KEYCLOAK_JWKS_URI" KEYCLOAK_AUDIENCE=salon-api
     DYNAMODB_ENDPOINT="$DYNAMODB_ENDPOINT" AWS_REGION="$AWS_REGION" ALLOWED_ORIGINS="$ALLOWED_ORIGINS")
@@ -276,11 +341,14 @@ servicios() {
   servicio_ecs gestion "$TAREA" "$TG_GESTION" 8081
 
   paso "Servidor MCP"
-  TAREA=$(registrar_tarea mcp "$REGISTRO/salon-mcp-server:latest" 4000 256 512 \
+  # 1 GiB: arma en memoria los archivos Excel y PDF de los reportes
+  TAREA=$(registrar_tarea mcp "$REGISTRO/salon-mcp-server:latest" 4000 512 1024 \
     "$(entorno "${COMUNES[@]}" AWS_ACCESS_KEY_ID="$DYNAMO_MCP_ID" GEMINI_MODEL="${GEMINI_MODEL:-gemini-2.5-flash}" \
       SALON_TIMEZONE=America/La_Paz GESTION_GRAPHQL_URL="$GESTION_URL/graphql" CRM_GRAPHQL_URL="$CRM_URL/graphql")" \
-    "$(secretos GEMINI_API_KEY="$P_GEMINI" AWS_SECRET_ACCESS_KEY="$P_DYN_MCP")")
-  servicio_ecs mcp "$TAREA" "$TG_MCP" 4000
+    "$(secretos GEMINI_API_KEY="$P_GEMINI" AWS_SECRET_ACCESS_KEY="$P_DYN_MCP" \
+      REPORTES_GESTION_DB_URL="$P_REP_GESTION" REPORTES_CRM_DB_URL="$P_REP_CRM")")
+  # En la subred privada: sale por el NAT con la IP fija que Azure PostgreSQL acepta para los reportes
+  servicio_ecs mcp "$TAREA" "$TG_MCP" 4000 "$SUBRED_PRIVADA" DISABLED
 
   DNS_ALB=$(aws elbv2 describe-load-balancers --load-balancer-arns "$ALB" --query 'LoadBalancers[0].DNSName' --output text)
   echo

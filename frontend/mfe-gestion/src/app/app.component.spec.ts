@@ -46,11 +46,14 @@ describe('AppComponent', () => {
   it('un estilista no ve el mostrador', async () => {
     const fixture = await crear(['STYLIST']);
     expect(pestanas(fixture.nativeElement)).not.toContain('erp-tab-counter');
+    // Los reportes traen datos de clientes y facturación: solo la administración
+    expect(pestanas(fixture.nativeElement)).not.toContain('erp-tab-reports');
   });
 
   it('la administración ve todas las pestañas', async () => {
     const fixture = await crear(['ADMIN']);
-    expect(pestanas(fixture.nativeElement)).toHaveLength(8);
+    expect(pestanas(fixture.nativeElement)).toHaveLength(9);
+    expect(pestanas(fixture.nativeElement)).toContain('erp-tab-reports');
   });
 
   it('un cliente no entra al módulo', async () => {

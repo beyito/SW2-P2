@@ -12,12 +12,15 @@
 source "$(dirname "$0")/comun.sh"
 requerir RDS_HOST RDS_USUARIO RDS_CLAVE AZURE_PG_HOST AZURE_PG_USUARIO AZURE_PG_CLAVE MONGO_URI
 
-paso "Migraciones de PostgreSQL (RDS y Azure)"
+# Clave del usuario de solo lectura de los reportes del Servidor MCP: se genera una vez
+grep -q '^REPORTES_CLAVE=' "$SALIDA/datos.env" 2>/dev/null || guardar datos REPORTES_CLAVE "$(openssl rand -hex 24)"
+
+paso "Migraciones de PostgreSQL (RDS y Azure), con el usuario de solo lectura de los reportes"
 docker run --rm \
   -e PGSSLMODE=require -e POSTGRES_DB=postgres \
   -e GESTION_PGHOST="$RDS_HOST" -e GESTION_PGUSER="$RDS_USUARIO" -e GESTION_PGPASSWORD="$RDS_CLAVE" \
   -e CRM_PGHOST="$AZURE_PG_HOST" -e CRM_PGUSER="$AZURE_PG_USUARIO" -e CRM_PGPASSWORD="$AZURE_PG_CLAVE" \
-  -e N8N_PGDATABASE=n8n \
+  -e N8N_PGDATABASE=n8n -e REPORTES_PGPASSWORD="$REPORTES_CLAVE" \
   -v "$RAIZ/docker/postgres/migrate.sh:/migrate.sh:ro" -v "$RAIZ/docker/postgres/migrations:/migrations:ro" \
   postgres:16-alpine sh /migrate.sh
 

@@ -5,6 +5,7 @@
 const { runAgent } = require('./agent');
 const { BackendError } = require('./backends');
 const { loadSkills } = require('./skills');
+const { ENTIDADES, catalogo, generarReporte, resumenParaModelo } = require('./reports');
 
 const DEFAULT_TIMEZONE = 'America/La_Paz';
 const PERIOD_DAYS = { DAILY: 1, WEEKLY: 7, MONTHLY: 30 };
@@ -35,6 +36,9 @@ const TOOL_ROLES = {
   proponer_reprogramacion: ['ADMIN', 'STYLIST'],
   confirmar_accion: ['ADMIN', 'STYLIST'],
   rechazar_accion: ['ADMIN', 'STYLIST'],
+  // Los reportes incluyen datos de clientes y facturación: solo la administración
+  catalogo_reportes: ['ADMIN'],
+  generar_reporte: ['ADMIN'],
 };
 
 const AGENT_TOOL = 'preguntar_al_agente';
@@ -98,7 +102,7 @@ const TOOLS = [
       type: 'object',
       properties: {
         prompt: { type: 'string', description: 'Pregunta en lenguaje natural.' },
-        agente: { type: 'string', enum: ['operacion', 'inventario', 'agenda'], description: 'Agente que responde; por defecto, operacion.' },
+        agente: { type: 'string', enum: ['operacion', 'inventario', 'agenda', 'reportes'], description: 'Agente que responde; por defecto, operacion.' },
       },
       required: ['prompt'],
     },
@@ -149,6 +153,45 @@ const TOOLS = [
         reason: { type: 'string', description: 'Motivo breve que verá la persona.' },
       },
       required: ['appointmentId', 'newDate'],
+    },
+  },
+  {
+    name: 'catalogo_reportes',
+    description: 'Lista las entidades, columnas, filtros y formatos que admite generar_reporte (CU-18).',
+    inputSchema: { type: 'object', properties: {} },
+  },
+  {
+    name: 'generar_reporte',
+    description: `Genera un reporte en Excel o PDF con datos reales, consultados en la base con un usuario de solo lectura (CU-18). Columnas por entidad: ${
+      Object.entries(ENTIDADES).map(([clave, entidad]) => `${clave} (${Object.keys(entidad.columnas).join(', ')})`).join('; ')}.`,
+    inputSchema: {
+      type: 'object',
+      properties: {
+        entidad: { type: 'string', enum: Object.keys(ENTIDADES), description: 'Qué se reporta.' },
+        columnas: { type: 'array', items: { type: 'string' }, description: 'Columnas en el orden deseado; si se omite, todas.' },
+        desde: { type: 'string', description: 'Primer día incluido, AAAA-MM-DD. No aplica a inventario.' },
+        hasta: { type: 'string', description: 'Último día incluido, AAAA-MM-DD. No aplica a inventario.' },
+        filtros: {
+          type: 'object',
+          description: 'Criterios de selección; solo los que correspondan a la entidad.',
+          properties: {
+            estilista: { type: 'string', description: 'citas: parte del nombre del estilista.' },
+            servicio: { type: 'string', description: 'citas y facturas: parte del nombre del servicio.' },
+            estado: { type: 'string', description: 'citas: Confirmada, Atendida, Cancelada, Reprogramada, Pendiente de pago, No asistió. facturas: Emitida, Pagada, Anulada, Reembolsada.' },
+            cliente: { type: 'string', description: 'facturas, puntos y clientes: parte del nombre del cliente.' },
+            metodo_pago: { type: 'string', description: 'facturas: Tarjeta en línea, Efectivo en el mostrador o Tarjeta en el mostrador.' },
+            categoria: { type: 'string', description: 'inventario y movimientos: parte de la categoría, por ejemplo COLORACION.' },
+            insumo: { type: 'string', description: 'inventario y movimientos: parte del nombre del insumo.' },
+            motivo: { type: 'string', description: 'movimientos: parte del motivo.' },
+            tipo: { type: 'string', description: 'puntos: Acumulación o Canje.' },
+            solo_criticos: { type: 'boolean', description: 'inventario: solo insumos en nivel crítico.' },
+          },
+        },
+        agrupar_por: { type: 'string', description: 'Columna de texto por la que agrupar; suma las columnas numéricas pedidas y cuenta registros.' },
+        formato: { type: 'string', enum: ['excel', 'pdf'], description: 'Formato del archivo; por defecto, excel.' },
+        titulo: { type: 'string', description: 'Título opcional del reporte.' },
+      },
+      required: ['entidad'],
     },
   },
   {
@@ -225,6 +268,9 @@ const minutesOf = (dateTime) => String(dateTime).slice(0, 16);
 
 /** Sin modelo disponible, se informa lo que el rol puede ver con datos reales, sin intentar interpretar la pregunta. */
 async function plainSummaryFor(agent, roles, handlers, today) {
+  if (agent === 'reportes') {
+    return 'El asistente no está disponible ahora. Puede armar el mismo reporte con el formulario: elija entidad, columnas, filtros y formato.';
+  }
   if (agent === 'agenda') {
     const { appointments } = await handlers.consultar_agenda({ from: today, to: today });
     const lines = appointments.map((item) => `- ${minutesOf(item.appointmentDate).slice(11)} ${item.serviceName} con ${item.stylistName}`);
@@ -239,7 +285,7 @@ async function plainSummaryFor(agent, roles, handlers, today) {
 }
 
 /** Crea el ejecutor de herramientas para los datos de una petición autenticada. */
-function createToolRunner({ backends, generateText, callModel, roles = [], actions, ownerId, now = () => new Date(), timeZone = process.env.SALON_TIMEZONE || DEFAULT_TIMEZONE }) {
+function createToolRunner({ backends, generateText, callModel, roles = [], actions, ownerId, reportDatabases, now = () => new Date(), timeZone = process.env.SALON_TIMEZONE || DEFAULT_TIMEZONE }) {
   /** Guarda la propuesta; el resumen lo arma este servidor con datos reales, no el texto del modelo. */
   async function propose(action, summary, reason) {
     const actionId = await actions.create(ownerId, action);
@@ -342,6 +388,13 @@ function createToolRunner({ backends, generateText, callModel, roles = [], actio
       return { period, range, appointments, billing };
     },
 
+    catalogo_reportes: async () => catalogo(),
+
+    generar_reporte: async (peticion) => {
+      if (!reportDatabases) throw new BackendError('Los reportes no están configurados en este servidor.');
+      return generarReporte(reportDatabases, peticion, now());
+    },
+
     generar_reporte_lenguaje_natural: async ({ prompt }) => {
       if (typeof prompt !== 'string' || !prompt.trim()) {
         throw new BackendError('Escriba la pregunta del reporte.');
@@ -374,6 +427,7 @@ function createToolRunner({ backends, generateText, callModel, roles = [], actio
     if (!skill.roles.some((role) => roles.includes(role))) throw new BackendError(`No tiene permiso para usar el agente '${agente}'.`);
 
     const pendingActions = [];
+    const reports = [];
     const today = localDate(now(), timeZone);
     const result = await runAgent({
       prompt,
@@ -383,15 +437,20 @@ function createToolRunner({ backends, generateText, callModel, roles = [], actio
       runTool: async (name, args) => {
         const output = await handlers[name](args ?? {});
         if (output?.actionId) pendingActions.push({ actionId: output.actionId, summary: output.summary, reason: output.reason });
+        // El archivo y las filas quedan para la pantalla; al modelo solo le llegan los totales
+        if (output?.archivo) {
+          reports.push(output);
+          return resumenParaModelo(output);
+        }
         return output;
       },
       today,
       timeZone,
     });
     if (result) {
-      return { query: prompt, agent: skill.name, engine: result.engine ?? 'Agente sin respuesta', generatedReport: result.answer, toolsUsed: result.toolsUsed, pendingActions };
+      return { query: prompt, agent: skill.name, engine: result.engine ?? 'Agente sin respuesta', generatedReport: result.answer, toolsUsed: result.toolsUsed, pendingActions, reports };
     }
-    return { query: prompt, agent: skill.name, engine: 'Resumen sin modelo de lenguaje', generatedReport: await plainSummaryFor(skill.name, roles, handlers, today), toolsUsed: [], pendingActions };
+    return { query: prompt, agent: skill.name, engine: 'Resumen sin modelo de lenguaje', generatedReport: await plainSummaryFor(skill.name, roles, handlers, today), toolsUsed: [], pendingActions, reports };
   };
 
   return (toolName, args) => handlers[toolName](args ?? {});

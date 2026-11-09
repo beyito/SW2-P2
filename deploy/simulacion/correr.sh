@@ -15,7 +15,7 @@ TEMPORAL="$(mktemp -d)"
 trap 'rm -rf "$TEMPORAL"' EXIT
 
 mkdir -p "$TEMPORAL/bin"
-for cli in aws az gcloud docker firebase npm curl openssl; do
+for cli in aws az gcloud docker firebase npm curl openssl python; do
   cp "$AQUI/simular" "$TEMPORAL/bin/$cli"
   chmod +x "$TEMPORAL/bin/$cli"
 done

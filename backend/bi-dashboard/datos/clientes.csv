@@ -1,0 +1,1801 @@
+cliente_id,nombre,genero,zona,fecha_registro,segmento,canal_registro
+cli-00001,Carolina Rojas,F,Plan 3000,2025-03-13,regular,App móvil
+cli-00002,Rodrigo Chávez,F,Centro,2025-10-31,ocasional,Web
+cli-00003,Rodrigo Rojas,F,Urubó,2026-03-09,frecuente,App móvil
+cli-00004,Carla Paz,F,Villa 1ro de Mayo,2026-04-20,regular,Mostrador
+cli-00005,Daniela Salvatierra,M,Sur,2026-10-30,regular,Web
+cli-00006,Luis Saavedra,F,Plan 3000,2025-04-01,ocasional,Web
+cli-00007,Mauricio Saavedra,F,Plan 3000,2025-11-28,frecuente,Web
+cli-00008,Mauricio Chávez,F,Sur,2026-07-05,ocasional,Mostrador
+cli-00009,Carolina Flores,F,Centro,2026-02-05,ocasional,App móvil
+cli-00010,Carolina Rojas,F,Sur,2026-07-14,ocasional,Web
+cli-00011,Gabriela Roca,F,Las Palmas,2026-08-23,ocasional,Mostrador
+cli-00012,Isabel Justiniano,F,Las Palmas,2026-10-18,regular,App móvil
+cli-00013,Paola Justiniano,F,Equipetrol,2026-07-06,regular,Web
+cli-00014,Marcelo Flores,F,Norte,2026-08-22,ocasional,Web
+cli-00015,Sebastián Chávez,F,Centro,2026-04-28,regular,Mostrador
+cli-00016,Javier Rojas,F,Las Palmas,2026-07-22,regular,Mostrador
+cli-00017,Andrea Antelo,F,Sur,2025-07-06,ocasional,Web
+cli-00018,Gabriela Mendoza,F,Norte,2025-07-12,regular,Web
+cli-00019,Rocío Ribera,F,Equipetrol,2024-11-25,frecuente,App móvil
+cli-00020,Sebastián Ribera,F,Las Palmas,2025-06-27,ocasional,App móvil
+cli-00021,Rocío Saavedra,F,Villa 1ro de Mayo,2025-04-13,regular,App móvil
+cli-00022,Natalia Chávez,F,Villa 1ro de Mayo,2026-05-15,frecuente,Mostrador
+cli-00023,Diego Suárez,F,Urubó,2025-12-27,frecuente,Mostrador
+cli-00024,Marcelo Vargas,F,Urbarí,2025-08-10,regular,Web
+cli-00025,Valeria Paz,F,Villa 1ro de Mayo,2025-03-02,ocasional,Mostrador
+cli-00026,Diego Justiniano,F,Villa 1ro de Mayo,2024-12-09,regular,App móvil
+cli-00027,Andrea Vargas,F,Urbarí,2025-12-02,ocasional,App móvil
+cli-00028,Luis Gutiérrez,F,Equipetrol,2025-11-26,regular,App móvil
+cli-00029,Javier Morales,F,Urubó,2025-04-29,ocasional,Web
+cli-00030,Mariana Flores,F,Plan 3000,2026-05-09,ocasional,Mostrador
+cli-00031,Andrea Aguilera,F,Sur,2025-03-30,ocasional,Mostrador
+cli-00032,Andrea Rivero,F,Warnes,2025-10-05,regular,Mostrador
+cli-00033,Carolina Chávez,F,Sur,2025-07-28,frecuente,App móvil
+cli-00034,Paola Quiroga,M,Equipetrol,2025-07-17,frecuente,App móvil
+cli-00035,Rodrigo Suárez,F,Norte,2025-08-28,regular,Web
+cli-00036,Jimena Mendoza,M,Las Palmas,2026-02-03,ocasional,App móvil
+cli-00037,Lucía Saavedra,F,Centro,2026-02-07,regular,Web
+cli-00038,Andrea Rojas,F,Urubó,2025-07-09,ocasional,App móvil
+cli-00039,Carolina Salvatierra,F,Plan 3000,2025-05-09,ocasional,Web
+cli-00040,Daniela Fernandez,F,Plan 3000,2025-08-17,regular,App móvil
+cli-00041,Gabriela Quiroga,M,Equipetrol,2025-10-27,frecuente,App móvil
+cli-00042,Sofía Salvatierra,F,Centro,2026-02-13,ocasional,App móvil
+cli-00043,Fernanda Montaño,F,Sur,2026-03-10,ocasional,Mostrador
+cli-00044,Gonzalo Flores,F,Villa 1ro de Mayo,2026-08-20,ocasional,Web
+cli-00045,Jorge Antelo,F,Norte,2026-09-29,regular,Web
+cli-00046,Javier Rojas,F,Norte,2026-05-19,ocasional,App móvil
+cli-00047,Paola Ribera,M,Warnes,2024-12-03,ocasional,Web
+cli-00048,Carolina Paz,F,Warnes,2025-03-17,frecuente,Web
+cli-00049,Alejandra Aguilera,F,Urubó,2025-11-03,frecuente,App móvil
+cli-00050,Camila Ribera,F,Norte,2026-06-18,regular,Web
+cli-00051,Carla Ribera,F,Norte,2025-04-07,frecuente,Web
+cli-00052,Rodrigo Suárez,F,Las Palmas,2026-09-28,ocasional,Mostrador
+cli-00053,Alejandro Flores,F,Norte,2026-01-03,regular,App móvil
+cli-00054,Mónica Morales,F,Las Palmas,2024-11-21,ocasional,Mostrador
+cli-00055,Isabel Paz,F,Urbarí,2026-09-18,ocasional,Mostrador
+cli-00056,Sofía Roca,F,Centro,2025-09-07,regular,App móvil
+cli-00057,Paola Suárez,F,Urbarí,2026-06-26,ocasional,Mostrador
+cli-00058,Rodrigo Flores,F,Urubó,2026-10-01,ocasional,App móvil
+cli-00059,Jorge Rivero,M,Las Palmas,2025-02-09,regular,Mostrador
+cli-00060,Gonzalo Saavedra,F,Equipetrol,2024-11-30,regular,Web
+cli-00061,Marcelo Suárez,F,Equipetrol,2026-01-19,ocasional,Web
+cli-00062,Lucía Morales,F,Las Palmas,2025-10-09,regular,Web
+cli-00063,Lucía Paz,M,Norte,2026-09-01,regular,Mostrador
+cli-00064,Alejandro Chávez,F,Norte,2026-03-19,ocasional,App móvil
+cli-00065,Jimena Suárez,F,Equipetrol,2026-06-19,ocasional,Web
+cli-00066,Gabriela Flores,F,Las Palmas,2025-04-05,frecuente,App móvil
+cli-00067,Lucía Mendoza,F,Centro,2026-07-29,frecuente,Web
+cli-00068,Gabriela Gutiérrez,F,Centro,2025-03-02,regular,App móvil
+cli-00069,Gabriela Ribera,F,Plan 3000,2025-09-10,ocasional,App móvil
+cli-00070,Daniela Gutiérrez,F,Equipetrol,2025-11-24,ocasional,App móvil
+cli-00071,Natalia Suárez,F,Sur,2025-08-15,ocasional,Web
+cli-00072,Gonzalo Chávez,F,Urbarí,2026-09-06,ocasional,Mostrador
+cli-00073,Sofía Paz,F,Urubó,2025-06-06,ocasional,Web
+cli-00074,Diego Vargas,F,Norte,2025-04-13,ocasional,Web
+cli-00075,Carla Vargas,F,Norte,2025-07-12,ocasional,Web
+cli-00076,Carla Justiniano,F,Centro,2025-04-04,ocasional,Web
+cli-00077,Alejandra Salvatierra,M,Urubó,2026-01-26,regular,App móvil
+cli-00078,Rodrigo Ribera,F,Sur,2026-04-19,ocasional,App móvil
+cli-00079,Andrea Fernandez,F,Las Palmas,2025-01-16,regular,Web
+cli-00080,Rodrigo Chávez,F,Sur,2026-02-14,ocasional,Web
+cli-00081,Diego Rivero,F,Urubó,2026-06-07,ocasional,App móvil
+cli-00082,Sofía Gutiérrez,F,Urbarí,2026-01-03,ocasional,App móvil
+cli-00083,Natalia Roca,F,Las Palmas,2026-10-20,frecuente,App móvil
+cli-00084,Carolina Saavedra,F,Equipetrol,2025-02-09,regular,Web
+cli-00085,Jorge Flores,F,Warnes,2025-10-30,regular,Mostrador
+cli-00086,Sofía Salvatierra,F,Norte,2026-04-06,regular,Mostrador
+cli-00087,Mónica Vargas,M,Urubó,2026-07-27,frecuente,Web
+cli-00088,Carla Flores,F,Norte,2026-06-06,regular,Web
+cli-00089,Daniela Flores,F,Urubó,2025-01-10,regular,Web
+cli-00090,Carolina Flores,F,Sur,2025-12-13,frecuente,App móvil
+cli-00091,Jimena Suárez,F,Warnes,2025-09-18,frecuente,Mostrador
+cli-00092,Alejandro Rojas,F,Warnes,2026-01-12,ocasional,Web
+cli-00093,Gonzalo Flores,M,Urbarí,2025-06-22,regular,Mostrador
+cli-00094,Mariana Ribera,F,Plan 3000,2026-06-19,ocasional,Web
+cli-00095,Jorge Ribera,F,Centro,2026-04-02,regular,App móvil
+cli-00096,Marcelo Saavedra,M,Las Palmas,2025-04-12,frecuente,Web
+cli-00097,Andrea Vargas,F,Sur,2026-06-27,ocasional,Web
+cli-00098,Valeria Suárez,F,Norte,2025-11-25,regular,App móvil
+cli-00099,Lucía Quiroga,F,Plan 3000,2026-09-09,ocasional,Web
+cli-00100,Mauricio Salvatierra,M,Sur,2026-04-20,regular,App móvil
+cli-00101,Gonzalo Rivero,F,Equipetrol,2025-01-14,regular,App móvil
+cli-00102,Diego Antelo,F,Plan 3000,2026-08-14,frecuente,Web
+cli-00103,Sofía Suárez,F,Plan 3000,2026-04-08,regular,App móvil
+cli-00104,Paola Justiniano,F,Sur,2025-11-27,regular,Mostrador
+cli-00105,Mauricio Mendoza,F,Equipetrol,2026-03-04,frecuente,Web
+cli-00106,Andrea Rojas,F,Las Palmas,2026-05-12,ocasional,Web
+cli-00107,Camila Ribera,F,Las Palmas,2026-09-30,ocasional,Mostrador
+cli-00108,Sofía Aguilera,M,Sur,2026-06-27,regular,Mostrador
+cli-00109,Mariana Rojas,F,Centro,2026-07-28,regular,Mostrador
+cli-00110,Rocío Morales,F,Las Palmas,2025-11-24,ocasional,Web
+cli-00111,Paula Roca,F,Plan 3000,2025-07-03,ocasional,App móvil
+cli-00112,Carla Justiniano,M,Centro,2026-01-13,frecuente,Web
+cli-00113,Isabel Saavedra,F,Centro,2026-09-15,ocasional,App móvil
+cli-00114,Camila Rojas,F,Urbarí,2025-04-12,regular,Mostrador
+cli-00115,Daniela Montaño,F,Las Palmas,2024-11-30,frecuente,Mostrador
+cli-00116,Mónica Quiroga,F,Plan 3000,2025-08-31,frecuente,App móvil
+cli-00117,Gonzalo Salvatierra,F,Sur,2025-10-17,regular,App móvil
+cli-00118,Rocío Chávez,F,Sur,2025-11-12,ocasional,Web
+cli-00119,Valeria Flores,F,Urbarí,2026-09-29,regular,Web
+cli-00120,Alejandra Saavedra,M,Centro,2026-01-07,regular,App móvil
+cli-00121,Sofía Mendoza,F,Centro,2026-10-03,frecuente,App móvil
+cli-00122,Marcelo Antelo,F,Equipetrol,2026-07-08,ocasional,Web
+cli-00123,Carolina Rivero,F,Equipetrol,2025-07-09,ocasional,Web
+cli-00124,Rodrigo Ribera,M,Sur,2026-09-08,regular,App móvil
+cli-00125,Luis Roca,F,Sur,2025-09-15,ocasional,Mostrador
+cli-00126,Paola Chávez,M,Equipetrol,2026-10-05,ocasional,App móvil
+cli-00127,Verónica Morales,F,Norte,2025-07-21,frecuente,Mostrador
+cli-00128,Alejandro Flores,F,Urbarí,2026-05-20,frecuente,Mostrador
+cli-00129,Isabel Roca,M,Equipetrol,2026-01-21,regular,Web
+cli-00130,Verónica Suárez,F,Urbarí,2026-01-30,regular,Web
+cli-00131,Alejandro Suárez,F,Equipetrol,2026-06-07,regular,Web
+cli-00132,Rocío Flores,F,Plan 3000,2026-06-04,ocasional,App móvil
+cli-00133,Fernanda Suárez,F,Equipetrol,2026-04-28,ocasional,Web
+cli-00134,Mónica Antelo,F,Norte,2025-10-02,ocasional,Mostrador
+cli-00135,Camila Rivero,F,Norte,2025-02-08,ocasional,Web
+cli-00136,Diego Saavedra,F,Las Palmas,2025-08-09,ocasional,Web
+cli-00137,Andrea Roca,F,Urbarí,2024-12-13,ocasional,App móvil
+cli-00138,Carolina Chávez,M,Equipetrol,2026-09-26,ocasional,App móvil
+cli-00139,Carla Fernandez,F,Norte,2025-08-14,regular,Web
+cli-00140,Rocío Rojas,M,Plan 3000,2026-03-21,frecuente,Web
+cli-00141,Carla Roca,F,Las Palmas,2025-01-25,regular,Mostrador
+cli-00142,Alejandra Chávez,F,Norte,2025-06-30,ocasional,Web
+cli-00143,Paola Justiniano,F,Urubó,2026-03-08,frecuente,Web
+cli-00144,Andrea Rojas,F,Equipetrol,2026-08-13,ocasional,Web
+cli-00145,Jimena Justiniano,F,Sur,2026-01-17,regular,Web
+cli-00146,Paula Quiroga,F,Norte,2025-07-09,ocasional,App móvil
+cli-00147,Gonzalo Antelo,F,Equipetrol,2026-07-18,regular,Mostrador
+cli-00148,Verónica Justiniano,F,Urubó,2026-03-23,ocasional,App móvil
+cli-00149,Natalia Ribera,F,Villa 1ro de Mayo,2026-02-03,ocasional,App móvil
+cli-00150,Verónica Flores,F,Warnes,2026-07-04,ocasional,App móvil
+cli-00151,Carolina Antelo,F,Plan 3000,2026-01-10,frecuente,Web
+cli-00152,Rocío Aguilera,F,Las Palmas,2026-09-28,regular,Mostrador
+cli-00153,Mónica Montaño,F,Warnes,2025-03-02,regular,Web
+cli-00154,Jimena Gutiérrez,F,Equipetrol,2026-01-02,regular,Web
+cli-00155,Carolina Rojas,F,Norte,2025-11-25,regular,Mostrador
+cli-00156,Fernanda Vargas,F,Norte,2025-02-21,frecuente,App móvil
+cli-00157,Marcelo Ribera,F,Norte,2026-07-20,regular,Web
+cli-00158,Paula Roca,F,Villa 1ro de Mayo,2025-02-11,regular,Mostrador
+cli-00159,Sebastián Vargas,M,Las Palmas,2026-01-27,ocasional,Web
+cli-00160,Valeria Roca,F,Las Palmas,2026-10-26,regular,Mostrador
+cli-00161,Daniela Rivero,F,Sur,2025-10-22,regular,Web
+cli-00162,Gonzalo Vargas,F,Urubó,2025-09-11,frecuente,Web
+cli-00163,Luis Quiroga,F,Urubó,2026-07-04,ocasional,Web
+cli-00164,Verónica Rivero,F,Plan 3000,2026-03-22,ocasional,Mostrador
+cli-00165,Verónica Flores,F,Sur,2025-08-14,ocasional,Web
+cli-00166,Lucía Antelo,F,Plan 3000,2026-03-06,regular,Web
+cli-00167,Paula Suárez,F,Sur,2026-09-21,ocasional,Mostrador
+cli-00168,Natalia Fernandez,F,Centro,2025-08-14,ocasional,Web
+cli-00169,Alejandro Rojas,F,Norte,2025-08-19,ocasional,Web
+cli-00170,Gabriela Paz,F,Warnes,2025-11-28,regular,App móvil
+cli-00171,Isabel Paz,M,Norte,2025-11-22,regular,App móvil
+cli-00172,Camila Paz,F,Equipetrol,2026-06-29,ocasional,Web
+cli-00173,Jimena Morales,M,Norte,2026-05-08,regular,Web
+cli-00174,Luis Rivero,M,Urbarí,2025-08-06,ocasional,Web
+cli-00175,Javier Montaño,F,Equipetrol,2025-05-02,ocasional,App móvil
+cli-00176,Lucía Vargas,M,Sur,2026-01-04,ocasional,Web
+cli-00177,Marcelo Gutiérrez,F,Plan 3000,2026-10-29,ocasional,App móvil
+cli-00178,Rodrigo Ribera,F,Urubó,2024-12-22,regular,Mostrador
+cli-00179,Diego Roca,F,Equipetrol,2025-10-23,regular,Web
+cli-00180,Jimena Suárez,F,Las Palmas,2025-07-12,ocasional,Web
+cli-00181,Mónica Roca,F,Urbarí,2026-10-10,regular,Web
+cli-00182,Mariana Antelo,F,Warnes,2026-06-20,frecuente,App móvil
+cli-00183,Andrea Justiniano,M,Equipetrol,2026-03-14,regular,App móvil
+cli-00184,Daniela Fernandez,F,Las Palmas,2025-02-02,regular,Web
+cli-00185,Daniela Justiniano,F,Equipetrol,2025-06-05,regular,App móvil
+cli-00186,Sofía Vargas,F,Urbarí,2026-04-26,regular,Web
+cli-00187,Alejandro Chávez,F,Urbarí,2025-03-14,regular,Web
+cli-00188,Alejandro Montaño,M,Warnes,2025-09-18,frecuente,App móvil
+cli-00189,Jimena Paz,F,Urbarí,2026-07-02,frecuente,Web
+cli-00190,Lucía Vargas,F,Norte,2026-03-23,frecuente,App móvil
+cli-00191,Lucía Rojas,F,Las Palmas,2026-10-14,frecuente,Web
+cli-00192,Mariana Morales,F,Norte,2025-12-10,regular,Web
+cli-00193,Javier Ribera,M,Warnes,2026-08-18,ocasional,Web
+cli-00194,Carla Chávez,F,Plan 3000,2026-03-17,regular,App móvil
+cli-00195,Valeria Paz,F,Centro,2026-01-20,ocasional,App móvil
+cli-00196,Valeria Salvatierra,F,Urbarí,2026-04-23,ocasional,Mostrador
+cli-00197,Marcelo Aguilera,F,Urubó,2026-01-30,regular,App móvil
+cli-00198,Alejandra Roca,F,Equipetrol,2026-08-25,ocasional,App móvil
+cli-00199,Mónica Aguilera,M,Villa 1ro de Mayo,2025-12-06,ocasional,Mostrador
+cli-00200,Natalia Antelo,F,Urbarí,2026-10-06,regular,Mostrador
+cli-00201,Gabriela Morales,F,Sur,2025-11-27,ocasional,Web
+cli-00202,Alejandro Vargas,F,Las Palmas,2025-10-12,ocasional,Web
+cli-00203,Alejandra Antelo,F,Urbarí,2025-08-11,regular,Web
+cli-00204,Verónica Ribera,F,Centro,2026-08-02,ocasional,App móvil
+cli-00205,Luis Quiroga,F,Urubó,2025-12-17,ocasional,Mostrador
+cli-00206,Paola Rivero,F,Sur,2025-08-28,frecuente,Web
+cli-00207,Verónica Antelo,F,Sur,2026-06-17,ocasional,Mostrador
+cli-00208,Rodrigo Justiniano,F,Centro,2026-08-05,ocasional,Web
+cli-00209,Luis Gutiérrez,F,Plan 3000,2026-08-26,regular,App móvil
+cli-00210,Gabriela Rivero,M,Equipetrol,2026-05-30,regular,Mostrador
+cli-00211,Rocío Salvatierra,F,Norte,2025-06-27,regular,App móvil
+cli-00212,Andrea Saavedra,F,Urubó,2024-11-24,regular,Web
+cli-00213,Jorge Gutiérrez,F,Equipetrol,2026-10-21,ocasional,Mostrador
+cli-00214,Daniela Montaño,F,Urubó,2025-10-15,frecuente,App móvil
+cli-00215,Valeria Fernandez,F,Equipetrol,2026-05-27,frecuente,Web
+cli-00216,Valeria Fernandez,F,Equipetrol,2025-03-24,frecuente,App móvil
+cli-00217,Mariana Chávez,F,Urbarí,2025-05-20,ocasional,Web
+cli-00218,Carolina Flores,F,Las Palmas,2024-12-18,frecuente,App móvil
+cli-00219,Luis Aguilera,F,Plan 3000,2025-02-21,regular,Web
+cli-00220,Camila Suárez,M,Sur,2025-06-20,frecuente,Mostrador
+cli-00221,Alejandro Mendoza,M,Equipetrol,2025-01-06,regular,Web
+cli-00222,Daniela Antelo,F,Norte,2025-05-18,regular,Web
+cli-00223,Valeria Gutiérrez,F,Equipetrol,2026-07-12,regular,Web
+cli-00224,Mariana Montaño,F,Sur,2026-01-01,frecuente,Web
+cli-00225,Jorge Suárez,F,Centro,2025-09-03,regular,Web
+cli-00226,Mauricio Mendoza,F,Equipetrol,2026-08-02,frecuente,Web
+cli-00227,Carolina Antelo,M,Centro,2025-12-15,ocasional,Web
+cli-00228,Verónica Montaño,M,Norte,2026-07-11,ocasional,App móvil
+cli-00229,Rodrigo Salvatierra,F,Centro,2024-12-06,regular,Web
+cli-00230,Natalia Salvatierra,M,Sur,2025-11-02,ocasional,App móvil
+cli-00231,Rodrigo Salvatierra,F,Urbarí,2026-01-05,ocasional,App móvil
+cli-00232,Paula Suárez,F,Urbarí,2025-02-16,regular,Mostrador
+cli-00233,Mariana Flores,F,Centro,2026-10-29,regular,Mostrador
+cli-00234,Andrea Fernandez,F,Plan 3000,2026-08-08,ocasional,Mostrador
+cli-00235,Alejandro Vargas,M,Norte,2026-05-05,regular,Web
+cli-00236,Luis Fernandez,F,Las Palmas,2026-01-08,ocasional,App móvil
+cli-00237,Valeria Rojas,F,Sur,2026-05-02,frecuente,App móvil
+cli-00238,Fernanda Rojas,F,Sur,2025-11-20,regular,Mostrador
+cli-00239,Mariana Salvatierra,F,Norte,2025-06-16,ocasional,Web
+cli-00240,Paola Chávez,F,Plan 3000,2026-05-30,ocasional,Web
+cli-00241,Alejandro Flores,M,Las Palmas,2025-12-02,ocasional,App móvil
+cli-00242,Paola Flores,F,Norte,2026-03-18,frecuente,App móvil
+cli-00243,Jimena Aguilera,F,Las Palmas,2024-12-02,frecuente,Web
+cli-00244,Natalia Vargas,F,Urubó,2026-09-02,regular,Mostrador
+cli-00245,Paola Paz,M,Las Palmas,2026-08-09,frecuente,Mostrador
+cli-00246,Mauricio Chávez,F,Las Palmas,2025-01-09,regular,Mostrador
+cli-00247,Alejandro Rojas,M,Villa 1ro de Mayo,2026-06-11,frecuente,Web
+cli-00248,Alejandra Salvatierra,F,Equipetrol,2025-06-18,regular,Mostrador
+cli-00249,Camila Rojas,F,Urbarí,2026-04-04,ocasional,Web
+cli-00250,Javier Fernandez,M,Norte,2024-12-28,ocasional,Web
+cli-00251,Sofía Rojas,M,Sur,2025-09-14,frecuente,Web
+cli-00252,Marcelo Flores,F,Norte,2026-04-02,ocasional,App móvil
+cli-00253,Paola Flores,F,Centro,2026-08-09,frecuente,Mostrador
+cli-00254,Gabriela Vargas,F,Villa 1ro de Mayo,2025-09-29,frecuente,App móvil
+cli-00255,Luis Aguilera,F,Urubó,2026-07-05,ocasional,Mostrador
+cli-00256,Valeria Justiniano,F,Norte,2026-01-15,regular,Mostrador
+cli-00257,Luis Salvatierra,F,Urbarí,2025-07-26,regular,Web
+cli-00258,Mauricio Gutiérrez,F,Urbarí,2025-11-18,regular,Mostrador
+cli-00259,Lucía Rivero,F,Sur,2026-08-02,ocasional,Web
+cli-00260,Jorge Roca,M,Centro,2025-07-19,ocasional,Web
+cli-00261,Camila Justiniano,F,Norte,2025-01-07,regular,App móvil
+cli-00262,Alejandra Rivero,F,Urbarí,2026-02-09,frecuente,App móvil
+cli-00263,Verónica Suárez,F,Plan 3000,2026-09-17,ocasional,App móvil
+cli-00264,Verónica Aguilera,F,Norte,2024-11-19,ocasional,Mostrador
+cli-00265,Mauricio Quiroga,F,Equipetrol,2025-08-10,ocasional,Web
+cli-00266,Mariana Antelo,F,Las Palmas,2025-06-24,ocasional,Web
+cli-00267,Isabel Paz,M,Las Palmas,2025-09-03,regular,App móvil
+cli-00268,Valeria Quiroga,F,Urbarí,2025-12-24,regular,Web
+cli-00269,Paula Antelo,F,Urbarí,2026-02-15,regular,Mostrador
+cli-00270,Gabriela Fernandez,M,Centro,2026-05-14,regular,App móvil
+cli-00271,Camila Suárez,F,Urubó,2025-12-24,ocasional,Web
+cli-00272,Daniela Antelo,F,Urbarí,2024-11-22,regular,App móvil
+cli-00273,Mónica Flores,M,Las Palmas,2025-07-08,regular,App móvil
+cli-00274,Carla Mendoza,M,Sur,2026-07-10,regular,Web
+cli-00275,Carla Mendoza,M,Urbarí,2025-11-03,ocasional,Web
+cli-00276,Verónica Suárez,M,Equipetrol,2025-12-07,regular,Web
+cli-00277,Sebastián Justiniano,F,Las Palmas,2026-10-04,ocasional,App móvil
+cli-00278,Alejandro Paz,F,Equipetrol,2026-04-06,regular,Mostrador
+cli-00279,Paola Suárez,M,Las Palmas,2026-02-12,ocasional,App móvil
+cli-00280,Andrea Suárez,F,Equipetrol,2025-12-31,ocasional,App móvil
+cli-00281,Mauricio Saavedra,F,Villa 1ro de Mayo,2026-10-08,frecuente,Web
+cli-00282,Diego Vargas,F,Urubó,2026-04-10,ocasional,Web
+cli-00283,Lucía Suárez,F,Villa 1ro de Mayo,2026-03-10,frecuente,App móvil
+cli-00284,Mónica Aguilera,F,Norte,2025-12-25,regular,Web
+cli-00285,Mauricio Rivero,F,Warnes,2026-07-01,ocasional,Web
+cli-00286,Sebastián Justiniano,F,Plan 3000,2025-07-31,ocasional,App móvil
+cli-00287,Jimena Justiniano,F,Urubó,2026-10-06,ocasional,Web
+cli-00288,Carolina Salvatierra,M,Norte,2025-11-26,regular,Web
+cli-00289,Natalia Gutiérrez,F,Norte,2024-11-03,regular,Web
+cli-00290,Luis Mendoza,F,Sur,2026-06-12,frecuente,Mostrador
+cli-00291,Sebastián Montaño,F,Villa 1ro de Mayo,2026-03-06,ocasional,Web
+cli-00292,Javier Salvatierra,F,Villa 1ro de Mayo,2025-01-19,ocasional,Mostrador
+cli-00293,Gabriela Paz,F,Norte,2025-08-12,frecuente,App móvil
+cli-00294,Sebastián Gutiérrez,M,Urbarí,2026-03-12,ocasional,Web
+cli-00295,Alejandro Montaño,F,Urbarí,2026-08-07,frecuente,App móvil
+cli-00296,Verónica Morales,F,Centro,2025-01-23,ocasional,Web
+cli-00297,Natalia Chávez,F,Urbarí,2025-02-01,regular,Web
+cli-00298,Fernanda Rojas,F,Norte,2026-02-06,regular,Mostrador
+cli-00299,Carla Flores,M,Centro,2025-04-02,regular,Mostrador
+cli-00300,Sofía Paz,F,Norte,2025-12-25,ocasional,Web
+cli-00301,Fernanda Suárez,F,Norte,2026-07-08,frecuente,App móvil
+cli-00302,Alejandra Mendoza,F,Las Palmas,2025-02-01,regular,Web
+cli-00303,Sofía Fernandez,F,Las Palmas,2025-06-03,regular,Web
+cli-00304,Jimena Rojas,F,Las Palmas,2026-03-31,ocasional,Web
+cli-00305,Daniela Rivero,F,Equipetrol,2025-12-01,ocasional,Web
+cli-00306,Diego Ribera,F,Norte,2025-11-21,regular,App móvil
+cli-00307,Marcelo Rivero,M,Sur,2026-01-18,regular,Web
+cli-00308,Alejandro Rivero,M,Villa 1ro de Mayo,2026-07-20,ocasional,Web
+cli-00309,Natalia Rojas,F,Urbarí,2026-03-22,regular,App móvil
+cli-00310,Carla Aguilera,F,Equipetrol,2026-08-06,regular,Web
+cli-00311,Isabel Roca,F,Villa 1ro de Mayo,2025-11-18,ocasional,Web
+cli-00312,Isabel Justiniano,M,Plan 3000,2026-04-26,ocasional,Mostrador
+cli-00313,Carolina Rivero,F,Equipetrol,2026-08-30,frecuente,Mostrador
+cli-00314,Andrea Paz,F,Sur,2026-07-17,frecuente,App móvil
+cli-00315,Rodrigo Chávez,F,Sur,2026-04-18,regular,App móvil
+cli-00316,Isabel Rojas,F,Sur,2026-02-09,ocasional,Mostrador
+cli-00317,Fernanda Antelo,F,Las Palmas,2026-03-30,regular,Web
+cli-00318,Paola Antelo,F,Sur,2026-06-10,ocasional,App móvil
+cli-00319,Isabel Suárez,F,Norte,2025-12-26,regular,App móvil
+cli-00320,Carolina Mendoza,F,Norte,2025-01-24,regular,Mostrador
+cli-00321,Daniela Roca,F,Equipetrol,2025-03-31,frecuente,Web
+cli-00322,Valeria Salvatierra,F,Sur,2026-06-13,regular,App móvil
+cli-00323,Fernanda Justiniano,F,Centro,2025-12-29,ocasional,Web
+cli-00324,Rocío Saavedra,F,Centro,2026-10-17,ocasional,App móvil
+cli-00325,Paula Gutiérrez,F,Plan 3000,2026-10-30,regular,Web
+cli-00326,Carla Mendoza,F,Equipetrol,2026-06-14,ocasional,Web
+cli-00327,Paula Mendoza,F,Sur,2025-05-27,ocasional,Mostrador
+cli-00328,Daniela Justiniano,F,Urbarí,2026-05-01,regular,Web
+cli-00329,Sofía Vargas,F,Villa 1ro de Mayo,2025-04-22,ocasional,Mostrador
+cli-00330,Gabriela Quiroga,F,Sur,2026-08-26,regular,Web
+cli-00331,Natalia Morales,F,Norte,2026-08-11,frecuente,Web
+cli-00332,Mauricio Mendoza,F,Villa 1ro de Mayo,2025-04-18,ocasional,Mostrador
+cli-00333,Mauricio Flores,F,Urbarí,2025-05-18,ocasional,App móvil
+cli-00334,Fernanda Chávez,F,Urubó,2026-03-24,ocasional,Web
+cli-00335,Jimena Aguilera,F,Plan 3000,2026-06-22,regular,App móvil
+cli-00336,Mariana Fernandez,F,Las Palmas,2026-10-17,regular,App móvil
+cli-00337,Daniela Aguilera,F,Villa 1ro de Mayo,2025-10-14,ocasional,App móvil
+cli-00338,Sofía Montaño,F,Urbarí,2026-10-30,regular,Mostrador
+cli-00339,Mariana Ribera,F,Norte,2025-01-04,ocasional,App móvil
+cli-00340,Sofía Gutiérrez,F,Centro,2025-08-09,frecuente,Web
+cli-00341,Valeria Roca,M,Plan 3000,2024-11-29,ocasional,Web
+cli-00342,Sebastián Suárez,F,Urbarí,2025-09-22,regular,Web
+cli-00343,Valeria Suárez,M,Las Palmas,2026-01-17,ocasional,Web
+cli-00344,Carolina Suárez,F,Sur,2026-07-06,regular,Web
+cli-00345,Gonzalo Saavedra,F,Equipetrol,2024-11-02,ocasional,Web
+cli-00346,Marcelo Roca,F,Urbarí,2026-09-07,frecuente,Web
+cli-00347,Carla Justiniano,F,Norte,2026-02-02,regular,Web
+cli-00348,Fernanda Paz,F,Urbarí,2026-03-01,ocasional,App móvil
+cli-00349,Jimena Gutiérrez,F,Urubó,2025-04-23,ocasional,Web
+cli-00350,Luis Ribera,F,Equipetrol,2025-10-22,ocasional,Web
+cli-00351,Alejandra Flores,M,Sur,2025-09-22,ocasional,App móvil
+cli-00352,Gabriela Ribera,F,Las Palmas,2025-01-08,ocasional,App móvil
+cli-00353,Natalia Saavedra,F,Urubó,2025-10-21,frecuente,App móvil
+cli-00354,Luis Quiroga,F,Las Palmas,2026-07-02,regular,App móvil
+cli-00355,Valeria Ribera,F,Urbarí,2024-12-11,frecuente,App móvil
+cli-00356,Carla Salvatierra,M,Norte,2025-03-25,regular,Web
+cli-00357,Carla Mendoza,M,Norte,2026-03-23,ocasional,App móvil
+cli-00358,Carla Vargas,M,Villa 1ro de Mayo,2025-12-17,regular,Web
+cli-00359,Isabel Salvatierra,F,Sur,2025-08-21,ocasional,App móvil
+cli-00360,Alejandra Fernandez,F,Las Palmas,2026-04-08,ocasional,App móvil
+cli-00361,Sofía Ribera,F,Urubó,2026-01-10,regular,App móvil
+cli-00362,Jorge Fernandez,F,Sur,2026-07-15,ocasional,Web
+cli-00363,Paula Salvatierra,F,Villa 1ro de Mayo,2025-02-20,ocasional,Mostrador
+cli-00364,Isabel Chávez,F,Norte,2025-01-03,regular,Web
+cli-00365,Carolina Quiroga,F,Sur,2025-11-20,regular,App móvil
+cli-00366,Paula Antelo,F,Urbarí,2026-09-16,regular,Web
+cli-00367,Luis Saavedra,F,Las Palmas,2025-03-19,regular,Web
+cli-00368,Javier Roca,F,Las Palmas,2025-11-11,regular,Web
+cli-00369,Mónica Mendoza,F,Urbarí,2025-08-27,regular,Web
+cli-00370,Diego Aguilera,F,Urbarí,2026-04-12,regular,Mostrador
+cli-00371,Gabriela Ribera,F,Equipetrol,2026-06-22,regular,App móvil
+cli-00372,Mónica Ribera,F,Equipetrol,2026-07-19,regular,Web
+cli-00373,Lucía Saavedra,M,Urbarí,2026-04-12,ocasional,Web
+cli-00374,Paula Flores,F,Norte,2026-04-12,regular,App móvil
+cli-00375,Alejandro Gutiérrez,F,Sur,2026-04-09,ocasional,App móvil
+cli-00376,Sebastián Chávez,F,Norte,2025-02-15,regular,App móvil
+cli-00377,Fernanda Rojas,F,Urubó,2026-05-19,ocasional,Web
+cli-00378,Daniela Vargas,M,Urubó,2025-10-27,frecuente,Web
+cli-00379,Paula Mendoza,F,Las Palmas,2026-09-30,regular,Web
+cli-00380,Isabel Saavedra,F,Urubó,2025-11-04,regular,Web
+cli-00381,Gabriela Saavedra,F,Norte,2025-07-16,ocasional,Mostrador
+cli-00382,Marcelo Chávez,F,Villa 1ro de Mayo,2026-03-12,ocasional,Mostrador
+cli-00383,Andrea Vargas,F,Las Palmas,2025-07-29,regular,App móvil
+cli-00384,Sebastián Ribera,F,Plan 3000,2024-12-31,regular,Mostrador
+cli-00385,Andrea Antelo,F,Centro,2024-12-15,ocasional,Mostrador
+cli-00386,Verónica Chávez,F,Plan 3000,2026-10-13,regular,Web
+cli-00387,Gabriela Saavedra,F,Sur,2026-10-05,regular,Mostrador
+cli-00388,Paola Paz,M,Centro,2026-01-16,regular,Web
+cli-00389,Mauricio Roca,F,Plan 3000,2025-12-05,regular,App móvil
+cli-00390,Sebastián Montaño,F,Sur,2025-12-11,frecuente,Mostrador
+cli-00391,Diego Vargas,F,Las Palmas,2025-03-02,frecuente,Web
+cli-00392,Marcelo Fernandez,F,Plan 3000,2025-05-06,ocasional,App móvil
+cli-00393,Rocío Vargas,F,Las Palmas,2025-08-04,ocasional,Mostrador
+cli-00394,Fernanda Vargas,M,Warnes,2026-09-08,regular,Web
+cli-00395,Natalia Salvatierra,M,Plan 3000,2024-12-09,regular,Web
+cli-00396,Lucía Mendoza,F,Urubó,2026-07-12,regular,Web
+cli-00397,Paola Montaño,F,Norte,2025-02-09,ocasional,App móvil
+cli-00398,Alejandra Suárez,M,Equipetrol,2026-08-26,ocasional,App móvil
+cli-00399,Rodrigo Suárez,F,Sur,2025-01-12,ocasional,Web
+cli-00400,Andrea Montaño,F,Centro,2024-12-23,regular,Mostrador
+cli-00401,Paula Justiniano,F,Sur,2025-11-23,ocasional,Web
+cli-00402,Gabriela Morales,M,Urbarí,2026-04-28,frecuente,Web
+cli-00403,Alejandra Paz,F,Warnes,2026-09-26,regular,App móvil
+cli-00404,Mauricio Quiroga,F,Sur,2026-09-08,frecuente,Mostrador
+cli-00405,Rodrigo Suárez,M,Norte,2026-09-29,ocasional,Mostrador
+cli-00406,Daniela Aguilera,M,Centro,2025-06-28,ocasional,Web
+cli-00407,Paola Roca,F,Plan 3000,2026-06-11,ocasional,Web
+cli-00408,Andrea Morales,F,Norte,2025-02-16,frecuente,Web
+cli-00409,Fernanda Salvatierra,F,Centro,2025-04-07,frecuente,Mostrador
+cli-00410,Fernanda Fernandez,F,Las Palmas,2026-05-06,regular,Web
+cli-00411,Alejandra Gutiérrez,M,Plan 3000,2025-06-30,regular,Web
+cli-00412,Paola Ribera,M,Norte,2025-03-27,ocasional,Mostrador
+cli-00413,Sebastián Suárez,M,Urbarí,2025-10-05,ocasional,Mostrador
+cli-00414,Sebastián Ribera,F,Equipetrol,2026-06-14,ocasional,Web
+cli-00415,Paola Mendoza,F,Equipetrol,2026-10-23,ocasional,Web
+cli-00416,Rocío Justiniano,F,Urbarí,2024-12-23,frecuente,Web
+cli-00417,Carla Quiroga,M,Urbarí,2025-04-18,frecuente,Mostrador
+cli-00418,Camila Ribera,F,Urbarí,2026-05-21,frecuente,App móvil
+cli-00419,Rocío Saavedra,F,Plan 3000,2025-08-30,ocasional,Web
+cli-00420,Paola Morales,F,Norte,2026-03-07,ocasional,Web
+cli-00421,Sebastián Gutiérrez,F,Norte,2025-03-13,ocasional,App móvil
+cli-00422,Carla Morales,M,Norte,2025-04-01,ocasional,Web
+cli-00423,Gonzalo Rojas,M,Urbarí,2025-05-07,ocasional,Web
+cli-00424,Javier Aguilera,F,Norte,2026-06-22,frecuente,Web
+cli-00425,Carla Gutiérrez,F,Sur,2026-03-16,ocasional,App móvil
+cli-00426,Verónica Ribera,F,Villa 1ro de Mayo,2025-05-12,ocasional,Mostrador
+cli-00427,Rocío Justiniano,F,Equipetrol,2026-10-17,regular,App móvil
+cli-00428,Camila Gutiérrez,F,Sur,2025-02-26,frecuente,Web
+cli-00429,Valeria Justiniano,F,Urubó,2026-07-03,ocasional,Web
+cli-00430,Carolina Fernandez,F,Plan 3000,2026-05-14,frecuente,Web
+cli-00431,Gabriela Saavedra,F,Norte,2026-06-01,frecuente,Web
+cli-00432,Carolina Rivero,M,Villa 1ro de Mayo,2025-06-27,regular,Web
+cli-00433,Gabriela Paz,M,Centro,2026-06-03,regular,Mostrador
+cli-00434,Isabel Salvatierra,F,Warnes,2024-12-06,regular,App móvil
+cli-00435,Gabriela Fernandez,F,Sur,2025-01-18,frecuente,Mostrador
+cli-00436,Sebastián Fernandez,F,Las Palmas,2024-12-30,ocasional,Web
+cli-00437,Mauricio Rojas,M,Sur,2025-06-02,ocasional,Mostrador
+cli-00438,Mariana Justiniano,F,Plan 3000,2025-03-18,regular,Mostrador
+cli-00439,Valeria Rivero,F,Centro,2025-07-24,ocasional,Web
+cli-00440,Paola Saavedra,F,Equipetrol,2025-02-13,regular,App móvil
+cli-00441,Carla Morales,F,Equipetrol,2025-04-14,regular,Web
+cli-00442,Valeria Aguilera,F,Urubó,2025-08-28,regular,Web
+cli-00443,Jorge Aguilera,F,Plan 3000,2025-05-01,regular,Mostrador
+cli-00444,Rocío Saavedra,F,Equipetrol,2026-04-11,ocasional,App móvil
+cli-00445,Mariana Rojas,F,Sur,2025-11-02,regular,App móvil
+cli-00446,Fernanda Chávez,F,Norte,2026-10-29,ocasional,App móvil
+cli-00447,Sebastián Ribera,F,Villa 1ro de Mayo,2026-02-27,frecuente,Web
+cli-00448,Mariana Montaño,F,Sur,2025-07-17,regular,Web
+cli-00449,Rocío Rivero,F,Equipetrol,2025-12-18,regular,Web
+cli-00450,Fernanda Saavedra,F,Villa 1ro de Mayo,2026-05-25,regular,App móvil
+cli-00451,Jorge Morales,F,Equipetrol,2024-12-21,ocasional,Web
+cli-00452,Carolina Salvatierra,F,Sur,2026-08-21,ocasional,App móvil
+cli-00453,Isabel Quiroga,F,Norte,2026-08-04,regular,Web
+cli-00454,Fernanda Roca,M,Urbarí,2025-04-10,regular,Web
+cli-00455,Sebastián Rojas,F,Norte,2025-11-05,ocasional,Web
+cli-00456,Fernanda Gutiérrez,F,Equipetrol,2025-09-02,frecuente,Web
+cli-00457,Verónica Aguilera,F,Sur,2026-03-21,ocasional,Web
+cli-00458,Alejandra Flores,F,Centro,2025-03-27,regular,Mostrador
+cli-00459,Mónica Salvatierra,F,Norte,2025-07-26,frecuente,Web
+cli-00460,Carla Saavedra,F,Plan 3000,2026-04-24,ocasional,Web
+cli-00461,Mauricio Vargas,F,Las Palmas,2026-09-24,regular,Web
+cli-00462,Mónica Ribera,F,Sur,2026-04-20,regular,Mostrador
+cli-00463,Verónica Rojas,F,Norte,2026-08-23,frecuente,App móvil
+cli-00464,Sebastián Vargas,F,Norte,2025-09-02,frecuente,Web
+cli-00465,Verónica Mendoza,F,Urbarí,2025-08-30,ocasional,Mostrador
+cli-00466,Valeria Montaño,F,Las Palmas,2026-03-15,regular,Web
+cli-00467,Mariana Roca,F,Norte,2026-10-17,frecuente,Mostrador
+cli-00468,Andrea Gutiérrez,F,Norte,2025-02-08,regular,Web
+cli-00469,Paola Montaño,F,Centro,2025-06-17,ocasional,Mostrador
+cli-00470,Fernanda Rivero,F,Sur,2025-08-19,ocasional,Mostrador
+cli-00471,Carla Ribera,F,Plan 3000,2024-12-17,regular,App móvil
+cli-00472,Natalia Ribera,F,Norte,2025-07-12,frecuente,Mostrador
+cli-00473,Jorge Aguilera,F,Las Palmas,2025-08-29,ocasional,App móvil
+cli-00474,Javier Gutiérrez,F,Urbarí,2026-06-14,ocasional,Mostrador
+cli-00475,Marcelo Ribera,F,Norte,2026-02-04,regular,App móvil
+cli-00476,Valeria Morales,F,Equipetrol,2026-05-07,regular,Web
+cli-00477,Lucía Flores,F,Norte,2026-09-26,ocasional,App móvil
+cli-00478,Jorge Gutiérrez,M,Villa 1ro de Mayo,2025-03-16,regular,App móvil
+cli-00479,Sebastián Rojas,M,Norte,2025-01-31,regular,Web
+cli-00480,Valeria Roca,F,Equipetrol,2026-07-12,ocasional,App móvil
+cli-00481,Alejandro Saavedra,F,Norte,2025-04-14,regular,Web
+cli-00482,Mónica Justiniano,F,Villa 1ro de Mayo,2024-11-22,frecuente,Mostrador
+cli-00483,Mauricio Gutiérrez,F,Norte,2025-10-07,regular,Web
+cli-00484,Natalia Rojas,F,Norte,2026-07-13,regular,Web
+cli-00485,Carla Salvatierra,F,Equipetrol,2026-04-27,ocasional,Web
+cli-00486,Daniela Rojas,F,Urubó,2025-08-05,ocasional,Web
+cli-00487,Rocío Vargas,F,Norte,2025-08-20,regular,App móvil
+cli-00488,Verónica Fernandez,M,Equipetrol,2025-07-15,regular,Web
+cli-00489,Gonzalo Ribera,F,Las Palmas,2026-04-24,regular,Mostrador
+cli-00490,Sebastián Rivero,M,Urubó,2026-04-18,regular,App móvil
+cli-00491,Alejandra Ribera,F,Equipetrol,2026-01-31,ocasional,Web
+cli-00492,Verónica Antelo,F,Las Palmas,2026-01-05,ocasional,Web
+cli-00493,Verónica Montaño,M,Sur,2026-10-04,regular,Web
+cli-00494,Carla Antelo,F,Plan 3000,2024-12-27,ocasional,Mostrador
+cli-00495,Lucía Aguilera,M,Norte,2026-09-16,ocasional,Web
+cli-00496,Mariana Roca,F,Norte,2025-06-29,frecuente,App móvil
+cli-00497,Mauricio Quiroga,F,Norte,2026-07-25,ocasional,App móvil
+cli-00498,Luis Rojas,F,Urubó,2025-10-06,regular,Mostrador
+cli-00499,Daniela Suárez,F,Plan 3000,2026-09-11,regular,Web
+cli-00500,Natalia Flores,F,Las Palmas,2026-06-08,regular,App móvil
+cli-00501,Mónica Morales,F,Sur,2025-05-31,ocasional,Web
+cli-00502,Jorge Suárez,F,Equipetrol,2025-03-09,frecuente,Web
+cli-00503,Marcelo Quiroga,F,Urbarí,2025-04-21,ocasional,Mostrador
+cli-00504,Verónica Aguilera,F,Las Palmas,2026-03-09,regular,App móvil
+cli-00505,Marcelo Aguilera,F,Las Palmas,2025-12-03,regular,Web
+cli-00506,Carla Fernandez,F,Warnes,2025-12-17,regular,App móvil
+cli-00507,Mónica Quiroga,F,Urbarí,2026-10-15,ocasional,Mostrador
+cli-00508,Gabriela Mendoza,F,Sur,2025-04-04,ocasional,Web
+cli-00509,Jorge Paz,F,Warnes,2026-09-13,frecuente,Mostrador
+cli-00510,Alejandra Antelo,F,Equipetrol,2025-12-14,frecuente,App móvil
+cli-00511,Verónica Mendoza,F,Urbarí,2026-05-04,regular,Web
+cli-00512,Lucía Gutiérrez,F,Las Palmas,2025-07-25,ocasional,Web
+cli-00513,Jorge Justiniano,F,Equipetrol,2026-03-15,regular,Web
+cli-00514,Mónica Saavedra,F,Urbarí,2025-04-07,ocasional,Web
+cli-00515,Diego Rivero,F,Urubó,2025-02-10,regular,Web
+cli-00516,Sofía Chávez,F,Sur,2026-05-03,ocasional,App móvil
+cli-00517,Carolina Rivero,F,Villa 1ro de Mayo,2026-07-26,frecuente,Mostrador
+cli-00518,Fernanda Rivero,F,Las Palmas,2026-08-28,ocasional,Web
+cli-00519,Javier Vargas,F,Urubó,2026-01-17,ocasional,App móvil
+cli-00520,Javier Rivero,F,Sur,2026-03-29,regular,Mostrador
+cli-00521,Carla Justiniano,M,Urbarí,2025-08-16,regular,App móvil
+cli-00522,Luis Justiniano,F,Equipetrol,2025-04-28,frecuente,App móvil
+cli-00523,Sebastián Justiniano,F,Urubó,2025-05-31,ocasional,Web
+cli-00524,Luis Flores,F,Urbarí,2026-07-22,regular,App móvil
+cli-00525,Javier Quiroga,F,Norte,2025-04-19,ocasional,Mostrador
+cli-00526,Andrea Suárez,F,Urbarí,2025-09-29,ocasional,Mostrador
+cli-00527,Paula Mendoza,M,Plan 3000,2025-07-27,ocasional,App móvil
+cli-00528,Valeria Mendoza,F,Equipetrol,2025-08-23,regular,App móvil
+cli-00529,Rocío Morales,F,Norte,2025-08-26,regular,Web
+cli-00530,Verónica Saavedra,F,Sur,2025-05-31,ocasional,Web
+cli-00531,Marcelo Justiniano,M,Urbarí,2026-09-24,regular,Web
+cli-00532,Natalia Aguilera,F,Equipetrol,2025-11-17,regular,App móvil
+cli-00533,Marcelo Gutiérrez,F,Centro,2026-02-06,regular,Web
+cli-00534,Verónica Justiniano,F,Villa 1ro de Mayo,2026-10-30,ocasional,Web
+cli-00535,Luis Chávez,F,Urbarí,2025-03-31,regular,App móvil
+cli-00536,Mauricio Salvatierra,F,Equipetrol,2026-06-03,ocasional,App móvil
+cli-00537,Alejandra Fernandez,M,Plan 3000,2025-09-02,ocasional,Web
+cli-00538,Sofía Rivero,F,Norte,2025-01-20,ocasional,Web
+cli-00539,Mónica Rojas,F,Sur,2026-02-13,ocasional,Web
+cli-00540,Jimena Aguilera,F,Norte,2025-05-26,frecuente,Web
+cli-00541,Carla Aguilera,F,Warnes,2026-05-03,regular,App móvil
+cli-00542,Gonzalo Aguilera,M,Villa 1ro de Mayo,2025-08-29,frecuente,Mostrador
+cli-00543,Gabriela Justiniano,M,Plan 3000,2025-05-25,ocasional,Web
+cli-00544,Jorge Chávez,F,Urbarí,2025-09-07,frecuente,Web
+cli-00545,Natalia Mendoza,F,Villa 1ro de Mayo,2026-10-01,ocasional,App móvil
+cli-00546,Alejandro Aguilera,F,Plan 3000,2026-01-31,regular,App móvil
+cli-00547,Isabel Gutiérrez,F,Norte,2026-07-29,regular,Web
+cli-00548,Marcelo Saavedra,F,Las Palmas,2026-08-05,ocasional,Web
+cli-00549,Carla Chávez,F,Las Palmas,2025-12-22,regular,App móvil
+cli-00550,Carla Rivero,F,Equipetrol,2025-11-13,ocasional,Web
+cli-00551,Sofía Gutiérrez,F,Las Palmas,2025-05-24,ocasional,Web
+cli-00552,Lucía Antelo,F,Plan 3000,2026-07-03,ocasional,Web
+cli-00553,Jorge Quiroga,F,Urbarí,2026-10-24,ocasional,Web
+cli-00554,Gabriela Chávez,F,Plan 3000,2026-09-09,regular,Mostrador
+cli-00555,Camila Chávez,M,Equipetrol,2026-07-20,ocasional,Mostrador
+cli-00556,Mónica Fernandez,F,Urubó,2025-10-08,ocasional,App móvil
+cli-00557,Marcelo Gutiérrez,F,Urubó,2025-08-13,ocasional,App móvil
+cli-00558,Fernanda Paz,F,Urubó,2025-10-29,regular,App móvil
+cli-00559,Marcelo Mendoza,F,Centro,2026-05-30,ocasional,Web
+cli-00560,Isabel Suárez,F,Las Palmas,2024-12-22,regular,Web
+cli-00561,Jorge Rojas,F,Urbarí,2025-08-06,ocasional,App móvil
+cli-00562,Marcelo Vargas,M,Equipetrol,2026-05-25,regular,Web
+cli-00563,Carolina Salvatierra,F,Urubó,2025-03-21,ocasional,Mostrador
+cli-00564,Daniela Fernandez,F,Equipetrol,2026-01-11,ocasional,Web
+cli-00565,Carla Ribera,F,Las Palmas,2026-09-22,ocasional,Mostrador
+cli-00566,Gabriela Justiniano,F,Norte,2026-06-13,regular,Web
+cli-00567,Sebastián Quiroga,F,Urbarí,2025-12-27,frecuente,App móvil
+cli-00568,Mónica Aguilera,F,Centro,2026-06-22,ocasional,Web
+cli-00569,Sebastián Flores,F,Sur,2025-07-22,frecuente,Web
+cli-00570,Camila Aguilera,F,Sur,2026-02-01,ocasional,App móvil
+cli-00571,Verónica Justiniano,M,Norte,2025-03-11,regular,Web
+cli-00572,Carla Paz,F,Plan 3000,2026-02-24,regular,Web
+cli-00573,Javier Mendoza,F,Warnes,2026-06-11,ocasional,Web
+cli-00574,Javier Antelo,M,Centro,2025-08-21,ocasional,Web
+cli-00575,Paola Ribera,F,Equipetrol,2025-04-15,regular,Mostrador
+cli-00576,Alejandro Vargas,F,Norte,2025-06-02,ocasional,Web
+cli-00577,Jorge Ribera,F,Norte,2026-07-01,frecuente,App móvil
+cli-00578,Diego Chávez,F,Urbarí,2026-09-23,ocasional,Web
+cli-00579,Gonzalo Fernandez,F,Urbarí,2025-11-02,ocasional,Web
+cli-00580,Mariana Montaño,F,Centro,2026-05-20,frecuente,Web
+cli-00581,Valeria Justiniano,M,Plan 3000,2025-08-05,regular,Mostrador
+cli-00582,Sofía Saavedra,F,Urbarí,2025-05-13,regular,App móvil
+cli-00583,Camila Morales,F,Las Palmas,2026-05-27,regular,Web
+cli-00584,Diego Antelo,F,Urbarí,2025-08-31,regular,Web
+cli-00585,Camila Antelo,M,Sur,2026-08-21,frecuente,Web
+cli-00586,Luis Ribera,F,Las Palmas,2025-03-23,frecuente,Web
+cli-00587,Fernanda Mendoza,F,Equipetrol,2025-08-01,regular,App móvil
+cli-00588,Daniela Chávez,M,Plan 3000,2026-06-21,regular,Web
+cli-00589,Verónica Quiroga,M,Centro,2026-08-07,frecuente,App móvil
+cli-00590,Jorge Paz,F,Urubó,2025-05-12,ocasional,App móvil
+cli-00591,Sofía Paz,F,Sur,2025-06-07,ocasional,App móvil
+cli-00592,Alejandro Vargas,F,Equipetrol,2024-11-01,regular,Web
+cli-00593,Rodrigo Justiniano,F,Centro,2026-09-19,regular,App móvil
+cli-00594,Mariana Justiniano,M,Urubó,2025-05-11,ocasional,Web
+cli-00595,Diego Suárez,F,Norte,2026-08-21,regular,Web
+cli-00596,Javier Rivero,M,Equipetrol,2025-11-15,regular,Web
+cli-00597,Sebastián Justiniano,F,Plan 3000,2026-07-31,ocasional,App móvil
+cli-00598,Daniela Mendoza,F,Villa 1ro de Mayo,2026-03-24,regular,Web
+cli-00599,Fernanda Fernandez,M,Centro,2026-06-22,ocasional,Web
+cli-00600,Luis Saavedra,F,Equipetrol,2026-05-17,regular,Web
+cli-00601,Fernanda Paz,M,Plan 3000,2025-07-06,regular,App móvil
+cli-00602,Alejandra Ribera,F,Las Palmas,2026-03-10,regular,Web
+cli-00603,Sebastián Antelo,F,Centro,2026-05-30,regular,App móvil
+cli-00604,Jimena Salvatierra,F,Villa 1ro de Mayo,2026-09-16,ocasional,App móvil
+cli-00605,Rocío Paz,F,Norte,2026-10-15,ocasional,Mostrador
+cli-00606,Andrea Antelo,F,Urbarí,2025-12-21,frecuente,Web
+cli-00607,Sofía Chávez,F,Equipetrol,2025-08-30,frecuente,Mostrador
+cli-00608,Javier Suárez,F,Villa 1ro de Mayo,2026-03-01,regular,Mostrador
+cli-00609,Gabriela Paz,M,Centro,2026-08-17,ocasional,App móvil
+cli-00610,Mónica Roca,F,Las Palmas,2025-07-15,ocasional,Mostrador
+cli-00611,Mariana Antelo,F,Norte,2026-09-23,regular,App móvil
+cli-00612,Camila Flores,F,Urubó,2026-01-20,regular,Web
+cli-00613,Diego Mendoza,F,Plan 3000,2025-06-05,regular,Web
+cli-00614,Mariana Paz,F,Plan 3000,2025-06-11,regular,Mostrador
+cli-00615,Rocío Chávez,F,Villa 1ro de Mayo,2025-05-02,frecuente,App móvil
+cli-00616,Mauricio Paz,F,Norte,2025-10-04,regular,App móvil
+cli-00617,Alejandra Roca,M,Sur,2025-04-20,ocasional,App móvil
+cli-00618,Daniela Vargas,F,Urubó,2026-08-11,ocasional,Mostrador
+cli-00619,Marcelo Mendoza,F,Norte,2026-07-31,ocasional,Web
+cli-00620,Sofía Aguilera,F,Centro,2025-10-02,regular,Web
+cli-00621,Rocío Chávez,F,Las Palmas,2025-02-08,regular,App móvil
+cli-00622,Daniela Gutiérrez,F,Sur,2026-05-18,frecuente,App móvil
+cli-00623,Gabriela Rojas,F,Norte,2025-02-16,regular,App móvil
+cli-00624,Alejandro Aguilera,M,Equipetrol,2025-12-05,regular,Web
+cli-00625,Natalia Justiniano,F,Equipetrol,2025-05-08,ocasional,Web
+cli-00626,Paola Fernandez,F,Urbarí,2025-11-22,frecuente,Web
+cli-00627,Javier Roca,F,Equipetrol,2025-12-08,regular,Web
+cli-00628,Mónica Suárez,F,Plan 3000,2025-11-17,ocasional,Mostrador
+cli-00629,Rocío Chávez,F,Equipetrol,2026-07-31,frecuente,Web
+cli-00630,Paola Rivero,M,Plan 3000,2025-10-14,frecuente,Web
+cli-00631,Carolina Paz,F,Sur,2025-10-21,regular,App móvil
+cli-00632,Sofía Roca,F,Urubó,2025-12-14,regular,Web
+cli-00633,Lucía Montaño,F,Sur,2025-01-01,frecuente,Web
+cli-00634,Alejandra Montaño,F,Villa 1ro de Mayo,2026-04-16,ocasional,Web
+cli-00635,Paula Salvatierra,F,Equipetrol,2026-09-20,frecuente,Mostrador
+cli-00636,Alejandra Aguilera,F,Norte,2026-08-30,regular,App móvil
+cli-00637,Andrea Ribera,M,Norte,2026-04-11,regular,Web
+cli-00638,Luis Fernandez,F,Plan 3000,2025-01-20,regular,App móvil
+cli-00639,Alejandro Aguilera,F,Plan 3000,2026-10-03,frecuente,Mostrador
+cli-00640,Carolina Salvatierra,F,Norte,2025-06-19,ocasional,Web
+cli-00641,Alejandro Suárez,M,Sur,2025-12-08,frecuente,Web
+cli-00642,Fernanda Gutiérrez,F,Equipetrol,2026-08-13,regular,Web
+cli-00643,Carolina Vargas,M,Equipetrol,2025-09-14,regular,App móvil
+cli-00644,Mariana Paz,F,Equipetrol,2025-02-06,ocasional,Web
+cli-00645,Camila Ribera,M,Equipetrol,2026-05-30,regular,App móvil
+cli-00646,Sofía Vargas,F,Villa 1ro de Mayo,2025-08-02,frecuente,Mostrador
+cli-00647,Andrea Quiroga,M,Centro,2026-05-15,regular,Web
+cli-00648,Valeria Chávez,F,Norte,2026-09-20,regular,Web
+cli-00649,Paula Paz,F,Urubó,2025-02-19,regular,Web
+cli-00650,Diego Aguilera,F,Equipetrol,2024-12-22,frecuente,App móvil
+cli-00651,Gonzalo Quiroga,F,Equipetrol,2025-12-07,ocasional,Web
+cli-00652,Mariana Aguilera,M,Las Palmas,2025-09-21,ocasional,Web
+cli-00653,Jimena Chávez,F,Warnes,2025-08-27,regular,Mostrador
+cli-00654,Camila Chávez,F,Las Palmas,2025-03-24,ocasional,Mostrador
+cli-00655,Valeria Aguilera,M,Norte,2026-01-31,regular,Web
+cli-00656,Diego Gutiérrez,M,Equipetrol,2026-08-07,regular,Web
+cli-00657,Camila Roca,F,Plan 3000,2025-11-16,ocasional,Web
+cli-00658,Mariana Fernandez,F,Las Palmas,2025-08-06,regular,App móvil
+cli-00659,Mariana Quiroga,M,Urubó,2025-05-27,regular,App móvil
+cli-00660,Gonzalo Rivero,F,Warnes,2024-12-22,ocasional,App móvil
+cli-00661,Mónica Fernandez,F,Plan 3000,2026-01-21,regular,App móvil
+cli-00662,Alejandro Montaño,F,Plan 3000,2026-06-29,frecuente,App móvil
+cli-00663,Jimena Montaño,F,Las Palmas,2026-05-04,regular,Mostrador
+cli-00664,Lucía Morales,F,Warnes,2025-11-09,regular,Web
+cli-00665,Diego Vargas,F,Sur,2025-07-20,ocasional,Web
+cli-00666,Fernanda Antelo,F,Equipetrol,2025-09-17,frecuente,Web
+cli-00667,Lucía Rojas,F,Las Palmas,2026-02-21,ocasional,Web
+cli-00668,Daniela Ribera,F,Plan 3000,2026-09-18,regular,App móvil
+cli-00669,Andrea Quiroga,F,Urbarí,2026-10-06,ocasional,Web
+cli-00670,Alejandra Aguilera,F,Norte,2025-12-23,ocasional,Web
+cli-00671,Verónica Justiniano,F,Norte,2025-11-09,ocasional,App móvil
+cli-00672,Daniela Saavedra,F,Equipetrol,2024-11-23,ocasional,App móvil
+cli-00673,Fernanda Flores,M,Urubó,2026-01-08,regular,App móvil
+cli-00674,Mauricio Montaño,F,Urubó,2026-08-13,regular,Mostrador
+cli-00675,Isabel Saavedra,F,Urbarí,2025-10-03,ocasional,App móvil
+cli-00676,Diego Mendoza,F,Equipetrol,2026-09-20,frecuente,Web
+cli-00677,Gabriela Fernandez,F,Centro,2026-10-01,ocasional,App móvil
+cli-00678,Carolina Chávez,F,Equipetrol,2026-09-08,regular,Web
+cli-00679,Sofía Suárez,F,Norte,2025-09-22,regular,App móvil
+cli-00680,Valeria Vargas,F,Las Palmas,2024-12-29,ocasional,App móvil
+cli-00681,Verónica Salvatierra,F,Urubó,2026-07-16,regular,Web
+cli-00682,Fernanda Rivero,F,Warnes,2026-02-14,frecuente,Web
+cli-00683,Alejandro Mendoza,F,Warnes,2025-05-14,ocasional,Web
+cli-00684,Alejandra Aguilera,F,Sur,2026-01-01,regular,Web
+cli-00685,Paula Montaño,F,Equipetrol,2026-02-26,ocasional,Web
+cli-00686,Valeria Antelo,F,Norte,2025-09-17,frecuente,Web
+cli-00687,Gabriela Salvatierra,F,Plan 3000,2026-03-24,regular,Web
+cli-00688,Verónica Mendoza,F,Norte,2025-02-01,ocasional,App móvil
+cli-00689,Gonzalo Rivero,F,Norte,2025-04-30,ocasional,App móvil
+cli-00690,Gabriela Suárez,M,Urubó,2025-12-30,ocasional,Web
+cli-00691,Alejandro Morales,F,Urubó,2025-03-17,regular,Web
+cli-00692,Alejandro Aguilera,F,Norte,2026-05-03,regular,App móvil
+cli-00693,Daniela Salvatierra,F,Urbarí,2026-08-06,ocasional,Web
+cli-00694,Lucía Salvatierra,F,Plan 3000,2026-02-11,regular,App móvil
+cli-00695,Mauricio Suárez,F,Sur,2026-03-29,regular,Web
+cli-00696,Alejandro Flores,F,Equipetrol,2026-08-20,regular,Web
+cli-00697,Mariana Rojas,F,Centro,2025-12-26,frecuente,Mostrador
+cli-00698,Rodrigo Roca,F,Centro,2025-09-21,frecuente,Web
+cli-00699,Andrea Paz,F,Las Palmas,2026-07-07,frecuente,Mostrador
+cli-00700,Luis Morales,M,Urbarí,2026-03-12,ocasional,App móvil
+cli-00701,Carolina Salvatierra,M,Las Palmas,2026-10-26,regular,App móvil
+cli-00702,Verónica Montaño,F,Sur,2025-09-03,regular,Mostrador
+cli-00703,Luis Fernandez,F,Urbarí,2026-10-11,ocasional,Web
+cli-00704,Jorge Rivero,F,Sur,2026-02-10,ocasional,Mostrador
+cli-00705,Sofía Paz,F,Centro,2025-06-14,ocasional,Mostrador
+cli-00706,Andrea Salvatierra,F,Urubó,2025-08-13,frecuente,App móvil
+cli-00707,Mariana Justiniano,F,Urbarí,2026-02-10,ocasional,Web
+cli-00708,Jorge Paz,F,Urbarí,2026-08-06,ocasional,App móvil
+cli-00709,Rocío Flores,F,Urbarí,2026-02-20,ocasional,Web
+cli-00710,Javier Antelo,M,Centro,2025-05-25,ocasional,App móvil
+cli-00711,Luis Rojas,F,Norte,2026-02-07,ocasional,App móvil
+cli-00712,Mauricio Justiniano,M,Equipetrol,2025-07-14,frecuente,App móvil
+cli-00713,Daniela Gutiérrez,F,Norte,2025-07-30,regular,Mostrador
+cli-00714,Rodrigo Montaño,F,Equipetrol,2025-06-22,regular,Web
+cli-00715,Rodrigo Salvatierra,F,Equipetrol,2026-06-02,regular,Web
+cli-00716,Sebastián Mendoza,F,Norte,2025-07-07,ocasional,App móvil
+cli-00717,Fernanda Rojas,F,Equipetrol,2026-07-04,ocasional,Mostrador
+cli-00718,Marcelo Quiroga,F,Equipetrol,2025-08-24,regular,Web
+cli-00719,Diego Vargas,M,Equipetrol,2025-02-20,frecuente,Mostrador
+cli-00720,Javier Rivero,F,Sur,2025-12-18,regular,App móvil
+cli-00721,Carla Paz,F,Warnes,2025-02-26,ocasional,Mostrador
+cli-00722,Diego Morales,F,Las Palmas,2024-12-26,regular,Web
+cli-00723,Isabel Fernandez,F,Centro,2025-09-11,regular,Web
+cli-00724,Gabriela Justiniano,F,Norte,2025-08-01,regular,App móvil
+cli-00725,Valeria Roca,F,Norte,2025-07-07,regular,Mostrador
+cli-00726,Carla Flores,F,Centro,2026-08-05,regular,App móvil
+cli-00727,Fernanda Gutiérrez,M,Equipetrol,2025-12-21,regular,App móvil
+cli-00728,Alejandro Saavedra,F,Sur,2025-01-12,ocasional,App móvil
+cli-00729,Camila Paz,F,Norte,2026-03-12,ocasional,Mostrador
+cli-00730,Paola Rivero,F,Las Palmas,2025-11-22,ocasional,Mostrador
+cli-00731,Mónica Vargas,F,Equipetrol,2025-03-04,ocasional,Mostrador
+cli-00732,Daniela Fernandez,F,Urbarí,2026-04-17,frecuente,App móvil
+cli-00733,Sebastián Saavedra,F,Villa 1ro de Mayo,2025-06-12,frecuente,Web
+cli-00734,Carla Fernandez,F,Equipetrol,2025-06-13,ocasional,Web
+cli-00735,Sebastián Roca,M,Las Palmas,2025-11-05,ocasional,Web
+cli-00736,Lucía Paz,F,Plan 3000,2026-03-16,ocasional,Web
+cli-00737,Daniela Flores,F,Villa 1ro de Mayo,2026-09-11,frecuente,App móvil
+cli-00738,Mariana Aguilera,F,Urbarí,2025-12-17,ocasional,Web
+cli-00739,Diego Saavedra,F,Villa 1ro de Mayo,2026-06-12,ocasional,Web
+cli-00740,Javier Mendoza,F,Sur,2025-11-01,ocasional,App móvil
+cli-00741,Isabel Rojas,F,Villa 1ro de Mayo,2025-03-18,regular,App móvil
+cli-00742,Alejandra Suárez,F,Warnes,2026-08-02,ocasional,Web
+cli-00743,Andrea Saavedra,F,Sur,2026-05-09,frecuente,Mostrador
+cli-00744,Rocío Paz,F,Sur,2025-02-21,regular,Web
+cli-00745,Lucía Ribera,M,Las Palmas,2026-10-11,frecuente,App móvil
+cli-00746,Javier Ribera,F,Urbarí,2026-03-04,ocasional,Mostrador
+cli-00747,Isabel Paz,F,Centro,2025-09-19,ocasional,App móvil
+cli-00748,Paula Gutiérrez,M,Las Palmas,2025-01-06,ocasional,App móvil
+cli-00749,Gabriela Rivero,F,Urubó,2026-02-17,ocasional,App móvil
+cli-00750,Gonzalo Paz,F,Centro,2026-07-15,frecuente,Mostrador
+cli-00751,Carla Mendoza,F,Sur,2026-06-30,ocasional,Web
+cli-00752,Mauricio Ribera,F,Sur,2025-06-19,ocasional,Web
+cli-00753,Paola Aguilera,M,Sur,2025-05-10,frecuente,App móvil
+cli-00754,Paula Quiroga,F,Las Palmas,2026-03-28,ocasional,Mostrador
+cli-00755,Rodrigo Rivero,F,Urbarí,2026-05-17,ocasional,Web
+cli-00756,Mónica Gutiérrez,F,Equipetrol,2026-01-06,ocasional,Web
+cli-00757,Rodrigo Vargas,M,Urubó,2025-11-24,ocasional,Mostrador
+cli-00758,Natalia Aguilera,F,Villa 1ro de Mayo,2025-04-22,ocasional,Web
+cli-00759,Carolina Morales,F,Plan 3000,2025-03-13,regular,App móvil
+cli-00760,Carla Ribera,F,Norte,2025-08-30,ocasional,App móvil
+cli-00761,Jorge Justiniano,F,Urubó,2025-07-25,regular,Web
+cli-00762,Mariana Morales,M,Warnes,2024-12-06,regular,Web
+cli-00763,Alejandra Saavedra,F,Equipetrol,2025-04-14,regular,App móvil
+cli-00764,Paula Salvatierra,F,Las Palmas,2024-12-02,ocasional,App móvil
+cli-00765,Rodrigo Suárez,F,Sur,2026-06-24,regular,Mostrador
+cli-00766,Javier Vargas,F,Equipetrol,2025-02-11,ocasional,Mostrador
+cli-00767,Verónica Quiroga,F,Equipetrol,2025-05-29,ocasional,App móvil
+cli-00768,Lucía Fernandez,F,Urbarí,2025-06-08,ocasional,Web
+cli-00769,Rodrigo Mendoza,F,Las Palmas,2026-07-18,ocasional,Mostrador
+cli-00770,Diego Montaño,F,Villa 1ro de Mayo,2026-08-27,regular,Mostrador
+cli-00771,Mauricio Ribera,F,Equipetrol,2025-11-23,regular,App móvil
+cli-00772,Sofía Fernandez,F,Norte,2025-12-02,regular,Web
+cli-00773,Valeria Fernandez,F,Warnes,2025-03-20,regular,App móvil
+cli-00774,Mónica Paz,F,Warnes,2025-08-19,ocasional,Mostrador
+cli-00775,Sebastián Ribera,M,Urbarí,2026-02-08,ocasional,App móvil
+cli-00776,Isabel Mendoza,F,Sur,2026-03-14,regular,App móvil
+cli-00777,Alejandro Saavedra,F,Plan 3000,2024-12-01,regular,Mostrador
+cli-00778,Natalia Vargas,F,Centro,2025-03-31,regular,Mostrador
+cli-00779,Natalia Salvatierra,F,Urbarí,2025-05-20,regular,App móvil
+cli-00780,Paula Mendoza,F,Sur,2026-03-31,ocasional,Web
+cli-00781,Valeria Mendoza,F,Equipetrol,2024-12-30,ocasional,Mostrador
+cli-00782,Gabriela Fernandez,F,Urbarí,2024-12-25,regular,App móvil
+cli-00783,Alejandra Paz,F,Sur,2025-11-15,regular,Mostrador
+cli-00784,Lucía Morales,F,Sur,2024-11-06,regular,App móvil
+cli-00785,Natalia Rojas,M,Warnes,2025-06-07,ocasional,Web
+cli-00786,Sebastián Morales,M,Equipetrol,2026-10-25,regular,Mostrador
+cli-00787,Mariana Vargas,F,Warnes,2026-09-02,regular,Mostrador
+cli-00788,Jorge Flores,M,Plan 3000,2026-03-11,ocasional,Web
+cli-00789,Mariana Ribera,F,Sur,2025-08-02,frecuente,Web
+cli-00790,Mariana Morales,F,Plan 3000,2025-07-13,ocasional,Web
+cli-00791,Gonzalo Fernandez,F,Urbarí,2026-01-23,ocasional,App móvil
+cli-00792,Paola Antelo,F,Urubó,2026-08-16,ocasional,App móvil
+cli-00793,Alejandra Roca,F,Urubó,2024-11-25,frecuente,App móvil
+cli-00794,Sofía Roca,F,Warnes,2026-02-14,regular,Mostrador
+cli-00795,Gonzalo Chávez,F,Las Palmas,2026-06-29,ocasional,Web
+cli-00796,Gonzalo Quiroga,F,Las Palmas,2025-06-26,frecuente,Web
+cli-00797,Isabel Fernandez,F,Urubó,2025-08-16,regular,Web
+cli-00798,Daniela Vargas,F,Norte,2025-12-27,frecuente,Web
+cli-00799,Marcelo Justiniano,M,Norte,2025-07-26,ocasional,App móvil
+cli-00800,Rodrigo Montaño,F,Centro,2026-04-15,ocasional,Web
+cli-00801,Diego Suárez,F,Urbarí,2025-08-19,frecuente,Web
+cli-00802,Rocío Montaño,F,Las Palmas,2025-12-12,regular,Web
+cli-00803,Gonzalo Aguilera,M,Villa 1ro de Mayo,2025-11-11,ocasional,Web
+cli-00804,Gabriela Roca,F,Centro,2025-01-12,regular,Web
+cli-00805,Marcelo Antelo,F,Las Palmas,2026-09-22,regular,App móvil
+cli-00806,Sofía Gutiérrez,F,Norte,2026-09-23,regular,App móvil
+cli-00807,Luis Morales,F,Sur,2025-05-26,regular,Mostrador
+cli-00808,Sebastián Aguilera,F,Norte,2026-10-16,ocasional,Web
+cli-00809,Rodrigo Rivero,F,Urubó,2026-06-23,ocasional,App móvil
+cli-00810,Luis Morales,F,Norte,2026-10-28,ocasional,App móvil
+cli-00811,Rodrigo Flores,F,Equipetrol,2026-09-04,ocasional,Web
+cli-00812,Mónica Morales,F,Norte,2026-02-04,ocasional,App móvil
+cli-00813,Andrea Roca,F,Las Palmas,2025-11-30,ocasional,Mostrador
+cli-00814,Alejandro Flores,F,Plan 3000,2024-12-19,regular,Web
+cli-00815,Sofía Montaño,F,Urbarí,2026-10-06,ocasional,App móvil
+cli-00816,Carolina Rivero,F,Norte,2025-09-09,ocasional,Mostrador
+cli-00817,Mariana Suárez,F,Sur,2025-06-04,ocasional,Web
+cli-00818,Luis Rojas,F,Norte,2025-04-06,frecuente,Web
+cli-00819,Andrea Fernandez,F,Urubó,2025-05-04,ocasional,Web
+cli-00820,Camila Ribera,F,Villa 1ro de Mayo,2026-05-05,regular,Mostrador
+cli-00821,Camila Roca,F,Norte,2025-04-06,regular,App móvil
+cli-00822,Fernanda Aguilera,F,Norte,2026-08-23,frecuente,Web
+cli-00823,Paola Quiroga,F,Las Palmas,2026-01-09,regular,Mostrador
+cli-00824,Mónica Rivero,F,Villa 1ro de Mayo,2025-04-20,frecuente,Web
+cli-00825,Paula Saavedra,F,Plan 3000,2026-06-12,ocasional,App móvil
+cli-00826,Gabriela Roca,F,Norte,2024-12-15,ocasional,App móvil
+cli-00827,Jorge Paz,M,Warnes,2024-11-16,ocasional,Web
+cli-00828,Jimena Flores,F,Urubó,2025-09-09,frecuente,Mostrador
+cli-00829,Alejandro Antelo,F,Las Palmas,2026-05-19,ocasional,Web
+cli-00830,Alejandro Vargas,F,Urbarí,2026-10-02,ocasional,App móvil
+cli-00831,Sofía Morales,M,Sur,2025-05-29,ocasional,App móvil
+cli-00832,Javier Quiroga,M,Sur,2025-12-10,ocasional,Web
+cli-00833,Mauricio Ribera,F,Norte,2025-03-26,frecuente,App móvil
+cli-00834,Verónica Suárez,F,Las Palmas,2025-08-31,regular,Mostrador
+cli-00835,Diego Roca,F,Norte,2025-01-30,ocasional,Web
+cli-00836,Jimena Paz,F,Sur,2025-08-26,ocasional,Mostrador
+cli-00837,Valeria Roca,M,Las Palmas,2026-07-25,ocasional,App móvil
+cli-00838,Fernanda Quiroga,F,Sur,2025-11-08,frecuente,Web
+cli-00839,Carla Antelo,F,Plan 3000,2026-06-27,ocasional,Mostrador
+cli-00840,Marcelo Roca,M,Norte,2026-02-25,regular,App móvil
+cli-00841,Marcelo Morales,F,Las Palmas,2025-09-24,ocasional,App móvil
+cli-00842,Isabel Mendoza,F,Villa 1ro de Mayo,2026-04-05,regular,Web
+cli-00843,Camila Morales,F,Sur,2025-11-11,ocasional,Web
+cli-00844,Marcelo Salvatierra,F,Equipetrol,2026-02-28,regular,Mostrador
+cli-00845,Isabel Montaño,F,Equipetrol,2025-12-23,ocasional,Web
+cli-00846,Diego Paz,F,Warnes,2024-11-05,regular,Web
+cli-00847,Valeria Salvatierra,F,Warnes,2026-05-28,regular,Web
+cli-00848,Daniela Ribera,F,Las Palmas,2025-11-21,regular,Web
+cli-00849,Rocío Justiniano,F,Urbarí,2025-11-25,ocasional,App móvil
+cli-00850,Javier Rojas,F,Sur,2025-12-14,ocasional,Mostrador
+cli-00851,Andrea Roca,F,Sur,2025-07-22,ocasional,Web
+cli-00852,Paola Paz,F,Norte,2025-08-20,regular,App móvil
+cli-00853,Camila Chávez,F,Urbarí,2025-11-21,ocasional,Mostrador
+cli-00854,Rodrigo Quiroga,F,Centro,2025-02-04,ocasional,Web
+cli-00855,Diego Suárez,F,Equipetrol,2026-03-07,frecuente,App móvil
+cli-00856,Mauricio Mendoza,F,Warnes,2026-06-23,frecuente,App móvil
+cli-00857,Carolina Roca,F,Urbarí,2025-04-15,regular,Mostrador
+cli-00858,Paola Quiroga,M,Plan 3000,2026-07-31,ocasional,Mostrador
+cli-00859,Sofía Saavedra,M,Plan 3000,2026-01-06,regular,Mostrador
+cli-00860,Paola Mendoza,F,Warnes,2025-01-16,regular,Mostrador
+cli-00861,Alejandra Fernandez,F,Norte,2024-12-10,ocasional,App móvil
+cli-00862,Paola Fernandez,F,Equipetrol,2025-12-20,regular,App móvil
+cli-00863,Verónica Gutiérrez,F,Sur,2026-10-15,ocasional,App móvil
+cli-00864,Gabriela Morales,F,Sur,2026-03-08,ocasional,Web
+cli-00865,Valeria Gutiérrez,F,Norte,2025-12-09,ocasional,Mostrador
+cli-00866,Mariana Roca,F,Plan 3000,2026-04-21,regular,Web
+cli-00867,Gonzalo Rojas,M,Norte,2026-04-10,frecuente,App móvil
+cli-00868,Carla Rivero,F,Sur,2025-09-08,frecuente,Web
+cli-00869,Jorge Flores,F,Villa 1ro de Mayo,2026-03-15,regular,Web
+cli-00870,Alejandro Vargas,F,Las Palmas,2026-06-22,regular,Mostrador
+cli-00871,Jorge Roca,F,Plan 3000,2026-06-16,ocasional,Web
+cli-00872,Alejandro Montaño,F,Equipetrol,2025-12-13,ocasional,Web
+cli-00873,Isabel Gutiérrez,F,Urubó,2026-07-03,regular,Mostrador
+cli-00874,Marcelo Suárez,F,Plan 3000,2025-10-27,regular,App móvil
+cli-00875,Javier Gutiérrez,F,Las Palmas,2025-09-08,ocasional,App móvil
+cli-00876,Isabel Paz,F,Las Palmas,2025-09-15,regular,App móvil
+cli-00877,Carla Montaño,M,Urbarí,2025-05-10,ocasional,Web
+cli-00878,Jorge Antelo,F,Norte,2025-07-08,regular,Web
+cli-00879,Valeria Paz,F,Plan 3000,2026-01-28,regular,Mostrador
+cli-00880,Isabel Rivero,F,Urbarí,2025-03-18,regular,Web
+cli-00881,Marcelo Gutiérrez,F,Las Palmas,2025-12-05,regular,Web
+cli-00882,Marcelo Montaño,F,Equipetrol,2025-03-13,frecuente,App móvil
+cli-00883,Daniela Saavedra,F,Norte,2024-12-08,ocasional,App móvil
+cli-00884,Carla Quiroga,F,Norte,2026-10-06,frecuente,App móvil
+cli-00885,Lucía Ribera,F,Urbarí,2026-07-16,regular,App móvil
+cli-00886,Paula Gutiérrez,F,Equipetrol,2025-01-25,ocasional,App móvil
+cli-00887,Gabriela Justiniano,F,Las Palmas,2025-04-19,regular,Web
+cli-00888,Sofía Antelo,M,Norte,2025-04-20,regular,Mostrador
+cli-00889,Paula Mendoza,F,Norte,2026-07-13,frecuente,Mostrador
+cli-00890,Gabriela Rojas,F,Las Palmas,2025-08-31,ocasional,App móvil
+cli-00891,Luis Rojas,M,Norte,2026-09-26,ocasional,Mostrador
+cli-00892,Paola Gutiérrez,F,Urbarí,2026-01-13,ocasional,App móvil
+cli-00893,Luis Gutiérrez,F,Equipetrol,2026-05-24,regular,App móvil
+cli-00894,Alejandra Suárez,F,Centro,2025-03-04,regular,Web
+cli-00895,Fernanda Paz,M,Urbarí,2026-04-10,ocasional,Web
+cli-00896,Sebastián Montaño,F,Equipetrol,2026-02-28,regular,App móvil
+cli-00897,Valeria Gutiérrez,M,Sur,2025-11-10,frecuente,Web
+cli-00898,Camila Quiroga,F,Norte,2025-12-25,regular,App móvil
+cli-00899,Diego Justiniano,F,Urbarí,2025-06-16,ocasional,App móvil
+cli-00900,Daniela Suárez,F,Warnes,2025-10-02,regular,Web
+cli-00901,Isabel Justiniano,M,Equipetrol,2025-07-10,ocasional,Mostrador
+cli-00902,Mauricio Gutiérrez,M,Norte,2025-09-12,ocasional,App móvil
+cli-00903,Mauricio Aguilera,F,Centro,2026-08-02,ocasional,Mostrador
+cli-00904,Alejandra Aguilera,F,Equipetrol,2024-11-13,frecuente,App móvil
+cli-00905,Daniela Quiroga,F,Centro,2026-07-16,ocasional,Web
+cli-00906,Isabel Antelo,M,Equipetrol,2025-10-11,regular,Web
+cli-00907,Marcelo Justiniano,F,Urbarí,2025-02-23,ocasional,App móvil
+cli-00908,Mónica Gutiérrez,M,Equipetrol,2025-11-02,regular,Mostrador
+cli-00909,Isabel Suárez,F,Urbarí,2025-12-19,ocasional,Web
+cli-00910,Lucía Suárez,F,Las Palmas,2026-09-04,ocasional,Web
+cli-00911,Verónica Chávez,F,Villa 1ro de Mayo,2025-09-30,regular,Web
+cli-00912,Alejandro Saavedra,F,Equipetrol,2025-08-13,ocasional,Web
+cli-00913,Rodrigo Quiroga,F,Centro,2025-03-21,regular,Mostrador
+cli-00914,Sofía Mendoza,F,Centro,2025-08-03,regular,Web
+cli-00915,Jimena Fernandez,F,Equipetrol,2025-08-22,ocasional,Web
+cli-00916,Jorge Flores,F,Sur,2025-04-25,ocasional,Web
+cli-00917,Andrea Morales,F,Norte,2024-12-14,frecuente,App móvil
+cli-00918,Mónica Chávez,F,Urubó,2025-07-29,ocasional,App móvil
+cli-00919,Carla Gutiérrez,F,Sur,2026-06-05,regular,Mostrador
+cli-00920,Andrea Flores,F,Las Palmas,2026-01-16,regular,Mostrador
+cli-00921,Valeria Montaño,M,Plan 3000,2025-07-20,regular,Mostrador
+cli-00922,Andrea Gutiérrez,M,Norte,2026-05-20,regular,App móvil
+cli-00923,Paula Antelo,M,Equipetrol,2026-07-16,ocasional,App móvil
+cli-00924,Mónica Antelo,F,Urubó,2025-10-02,ocasional,App móvil
+cli-00925,Jimena Rivero,F,Norte,2025-12-20,frecuente,Mostrador
+cli-00926,Isabel Mendoza,F,Sur,2026-08-17,regular,App móvil
+cli-00927,Isabel Rivero,M,Urubó,2025-05-06,frecuente,Web
+cli-00928,Gonzalo Justiniano,M,Sur,2026-07-18,ocasional,Web
+cli-00929,Alejandra Flores,F,Villa 1ro de Mayo,2025-04-03,frecuente,App móvil
+cli-00930,Gabriela Paz,F,Warnes,2025-08-11,regular,Mostrador
+cli-00931,Mónica Justiniano,F,Urbarí,2026-05-28,ocasional,App móvil
+cli-00932,Diego Aguilera,F,Urbarí,2025-12-25,ocasional,Web
+cli-00933,Carla Morales,M,Centro,2026-03-18,ocasional,Mostrador
+cli-00934,Valeria Aguilera,F,Norte,2026-07-14,ocasional,Web
+cli-00935,Lucía Salvatierra,F,Villa 1ro de Mayo,2025-04-04,frecuente,App móvil
+cli-00936,Jorge Montaño,F,Norte,2026-10-03,ocasional,App móvil
+cli-00937,Isabel Mendoza,F,Plan 3000,2026-06-29,frecuente,Web
+cli-00938,Fernanda Salvatierra,M,Sur,2026-10-20,frecuente,Web
+cli-00939,Rodrigo Morales,M,Las Palmas,2026-08-05,ocasional,Mostrador
+cli-00940,Luis Aguilera,F,Villa 1ro de Mayo,2025-11-27,frecuente,App móvil
+cli-00941,Rodrigo Suárez,F,Equipetrol,2025-08-08,ocasional,App móvil
+cli-00942,Alejandro Vargas,M,Equipetrol,2025-06-29,ocasional,Web
+cli-00943,Gonzalo Chávez,F,Centro,2026-01-27,regular,Mostrador
+cli-00944,Luis Gutiérrez,F,Norte,2026-01-15,ocasional,Web
+cli-00945,Mónica Paz,F,Las Palmas,2025-05-27,ocasional,App móvil
+cli-00946,Camila Paz,F,Warnes,2025-01-31,ocasional,Web
+cli-00947,Gabriela Chávez,F,Plan 3000,2026-01-19,frecuente,Web
+cli-00948,Jorge Montaño,F,Las Palmas,2026-09-04,frecuente,Web
+cli-00949,Fernanda Vargas,F,Centro,2024-11-04,ocasional,App móvil
+cli-00950,Gabriela Antelo,F,Norte,2026-09-24,ocasional,App móvil
+cli-00951,Luis Rojas,F,Urbarí,2026-05-25,ocasional,App móvil
+cli-00952,Gonzalo Saavedra,F,Sur,2026-07-17,ocasional,Web
+cli-00953,Rocío Justiniano,M,Norte,2026-07-14,regular,App móvil
+cli-00954,Camila Ribera,F,Norte,2025-03-15,regular,Mostrador
+cli-00955,Natalia Vargas,F,Equipetrol,2025-09-09,ocasional,App móvil
+cli-00956,Fernanda Paz,F,Plan 3000,2026-05-12,ocasional,App móvil
+cli-00957,Isabel Paz,F,Sur,2026-03-29,regular,App móvil
+cli-00958,Alejandra Saavedra,F,Urbarí,2025-03-20,ocasional,App móvil
+cli-00959,Sebastián Justiniano,M,Norte,2026-01-07,regular,App móvil
+cli-00960,Mónica Vargas,F,Sur,2025-11-23,regular,Web
+cli-00961,Luis Chávez,F,Sur,2026-02-27,ocasional,Web
+cli-00962,Camila Suárez,F,Norte,2025-02-28,regular,Web
+cli-00963,Sebastián Vargas,F,Villa 1ro de Mayo,2026-05-01,regular,Mostrador
+cli-00964,Verónica Rivero,F,Norte,2025-12-30,ocasional,Web
+cli-00965,Jorge Fernandez,F,Sur,2025-01-24,ocasional,Mostrador
+cli-00966,Carolina Rivero,F,Norte,2026-06-29,regular,Web
+cli-00967,Sofía Montaño,F,Villa 1ro de Mayo,2026-01-19,regular,Web
+cli-00968,Paula Suárez,F,Urbarí,2025-09-16,ocasional,Web
+cli-00969,Fernanda Roca,F,Centro,2026-04-07,frecuente,App móvil
+cli-00970,Camila Suárez,F,Equipetrol,2026-07-31,regular,Mostrador
+cli-00971,Sebastián Mendoza,F,Plan 3000,2025-03-06,ocasional,Web
+cli-00972,Diego Morales,F,Norte,2025-11-21,ocasional,Mostrador
+cli-00973,Rodrigo Antelo,F,Warnes,2025-05-18,ocasional,Web
+cli-00974,Natalia Roca,F,Norte,2025-08-16,frecuente,Mostrador
+cli-00975,Gabriela Mendoza,F,Urbarí,2026-02-07,ocasional,Web
+cli-00976,Jorge Justiniano,F,Urbarí,2025-12-06,ocasional,Web
+cli-00977,Mauricio Mendoza,F,Equipetrol,2025-03-14,frecuente,Web
+cli-00978,Fernanda Paz,M,Villa 1ro de Mayo,2026-04-23,frecuente,App móvil
+cli-00979,Rodrigo Flores,F,Las Palmas,2026-09-30,ocasional,App móvil
+cli-00980,Isabel Saavedra,F,Plan 3000,2025-10-26,frecuente,Web
+cli-00981,Rocío Ribera,M,Urbarí,2026-08-12,ocasional,Mostrador
+cli-00982,Camila Salvatierra,M,Norte,2025-01-18,frecuente,Web
+cli-00983,Alejandra Saavedra,F,Urubó,2026-02-18,frecuente,Mostrador
+cli-00984,Jorge Antelo,M,Plan 3000,2026-06-07,regular,App móvil
+cli-00985,Daniela Rojas,F,Norte,2026-06-29,regular,Web
+cli-00986,Jorge Salvatierra,F,Equipetrol,2026-03-08,regular,Web
+cli-00987,Mariana Mendoza,F,Las Palmas,2025-12-25,frecuente,Web
+cli-00988,Mariana Justiniano,F,Las Palmas,2024-11-02,ocasional,Mostrador
+cli-00989,Diego Chávez,F,Norte,2025-11-17,frecuente,Web
+cli-00990,Daniela Justiniano,M,Urbarí,2025-10-22,frecuente,Web
+cli-00991,Rodrigo Suárez,M,Villa 1ro de Mayo,2025-05-13,ocasional,Web
+cli-00992,Mariana Gutiérrez,F,Villa 1ro de Mayo,2025-01-28,ocasional,Web
+cli-00993,Camila Antelo,M,Las Palmas,2024-12-07,ocasional,Mostrador
+cli-00994,Isabel Antelo,M,Norte,2025-09-25,regular,App móvil
+cli-00995,Mónica Rivero,M,Sur,2025-05-19,ocasional,App móvil
+cli-00996,Mauricio Aguilera,F,Centro,2026-01-20,regular,Mostrador
+cli-00997,Alejandro Suárez,M,Villa 1ro de Mayo,2025-08-09,regular,Web
+cli-00998,Alejandro Fernandez,F,Urbarí,2025-11-10,ocasional,Web
+cli-00999,Carla Suárez,F,Las Palmas,2025-11-28,frecuente,App móvil
+cli-01000,Sebastián Paz,F,Sur,2026-03-30,regular,App móvil
+cli-01001,Sofía Montaño,M,Norte,2025-12-18,ocasional,Mostrador
+cli-01002,Daniela Flores,F,Equipetrol,2025-10-17,ocasional,Web
+cli-01003,Isabel Montaño,M,Urubó,2026-06-08,ocasional,Mostrador
+cli-01004,Mónica Vargas,F,Villa 1ro de Mayo,2024-12-21,regular,Web
+cli-01005,Alejandro Mendoza,F,Sur,2025-03-03,frecuente,Web
+cli-01006,Alejandro Suárez,F,Sur,2026-02-11,frecuente,Web
+cli-01007,Sofía Justiniano,F,Sur,2025-12-31,ocasional,App móvil
+cli-01008,Gonzalo Vargas,F,Urbarí,2025-02-26,ocasional,App móvil
+cli-01009,Alejandro Antelo,F,Centro,2025-06-26,regular,Web
+cli-01010,Carla Quiroga,F,Las Palmas,2026-06-30,regular,App móvil
+cli-01011,Carolina Aguilera,F,Las Palmas,2026-01-21,regular,Web
+cli-01012,Diego Mendoza,F,Plan 3000,2025-12-09,ocasional,Web
+cli-01013,Luis Montaño,M,Norte,2026-01-26,regular,App móvil
+cli-01014,Valeria Ribera,F,Centro,2025-12-07,regular,Web
+cli-01015,Camila Mendoza,F,Sur,2026-08-20,regular,Mostrador
+cli-01016,Andrea Gutiérrez,F,Warnes,2025-12-29,regular,App móvil
+cli-01017,Luis Ribera,F,Equipetrol,2024-12-29,ocasional,Web
+cli-01018,Alejandra Chávez,F,Urubó,2026-03-22,ocasional,App móvil
+cli-01019,Lucía Ribera,F,Las Palmas,2025-10-14,regular,App móvil
+cli-01020,Valeria Suárez,F,Equipetrol,2026-02-03,frecuente,Web
+cli-01021,Mónica Flores,F,Las Palmas,2025-09-07,ocasional,Web
+cli-01022,Jorge Chávez,F,Urubó,2025-09-14,ocasional,Web
+cli-01023,Alejandra Morales,F,Sur,2026-10-17,regular,Mostrador
+cli-01024,Isabel Roca,F,Urbarí,2026-02-23,regular,Web
+cli-01025,Paola Salvatierra,F,Plan 3000,2026-07-03,ocasional,Web
+cli-01026,Mónica Morales,F,Centro,2026-08-01,ocasional,Web
+cli-01027,Verónica Aguilera,F,Equipetrol,2024-12-12,regular,App móvil
+cli-01028,Andrea Fernandez,F,Equipetrol,2025-05-17,regular,Web
+cli-01029,Rocío Quiroga,F,Plan 3000,2026-08-31,frecuente,Web
+cli-01030,Javier Rojas,F,Norte,2026-04-07,ocasional,App móvil
+cli-01031,Carolina Antelo,F,Equipetrol,2026-07-01,regular,App móvil
+cli-01032,Gonzalo Gutiérrez,F,Centro,2025-02-04,ocasional,Mostrador
+cli-01033,Paula Fernandez,F,Urbarí,2026-03-11,ocasional,App móvil
+cli-01034,Marcelo Quiroga,F,Centro,2025-12-24,ocasional,Web
+cli-01035,Gonzalo Aguilera,F,Equipetrol,2026-06-17,ocasional,App móvil
+cli-01036,Paola Chávez,M,Villa 1ro de Mayo,2025-09-17,regular,Mostrador
+cli-01037,Camila Fernandez,F,Norte,2026-03-03,ocasional,Mostrador
+cli-01038,Camila Suárez,F,Plan 3000,2026-10-18,frecuente,Web
+cli-01039,Gabriela Aguilera,F,Urubó,2026-08-31,ocasional,Mostrador
+cli-01040,Gabriela Mendoza,F,Villa 1ro de Mayo,2026-04-07,regular,App móvil
+cli-01041,Verónica Gutiérrez,F,Plan 3000,2024-11-12,ocasional,Web
+cli-01042,Carolina Gutiérrez,F,Urubó,2026-04-14,ocasional,Web
+cli-01043,Rodrigo Gutiérrez,F,Norte,2025-09-04,frecuente,Web
+cli-01044,Camila Morales,F,Plan 3000,2025-07-27,frecuente,App móvil
+cli-01045,Natalia Rojas,F,Warnes,2025-05-24,regular,App móvil
+cli-01046,Lucía Gutiérrez,F,Norte,2026-01-10,ocasional,Web
+cli-01047,Rodrigo Ribera,F,Urbarí,2025-02-14,ocasional,App móvil
+cli-01048,Mariana Mendoza,F,Sur,2026-01-30,frecuente,App móvil
+cli-01049,Javier Antelo,F,Urubó,2025-07-18,regular,Web
+cli-01050,Rodrigo Suárez,F,Urubó,2026-04-13,regular,Web
+cli-01051,Sofía Mendoza,F,Norte,2026-01-11,ocasional,Web
+cli-01052,Carla Chávez,F,Las Palmas,2026-01-07,ocasional,Mostrador
+cli-01053,Alejandro Justiniano,F,Equipetrol,2025-12-04,ocasional,App móvil
+cli-01054,Sofía Salvatierra,F,Centro,2025-02-09,ocasional,Web
+cli-01055,Alejandro Gutiérrez,F,Plan 3000,2025-09-07,ocasional,Web
+cli-01056,Gabriela Gutiérrez,F,Plan 3000,2026-06-12,frecuente,Web
+cli-01057,Verónica Morales,F,Sur,2026-03-11,regular,App móvil
+cli-01058,Verónica Saavedra,F,Norte,2024-12-24,frecuente,Web
+cli-01059,Lucía Antelo,M,Las Palmas,2025-09-15,ocasional,Mostrador
+cli-01060,Sofía Montaño,F,Plan 3000,2026-06-29,regular,Web
+cli-01061,Javier Quiroga,F,Villa 1ro de Mayo,2026-04-20,ocasional,Web
+cli-01062,Gabriela Rojas,M,Centro,2025-10-06,ocasional,App móvil
+cli-01063,Paola Rivero,F,Las Palmas,2026-05-08,ocasional,Web
+cli-01064,Natalia Saavedra,F,Warnes,2026-07-10,ocasional,App móvil
+cli-01065,Marcelo Rivero,F,Las Palmas,2025-05-25,ocasional,Web
+cli-01066,Valeria Vargas,F,Las Palmas,2025-02-27,regular,Mostrador
+cli-01067,Sebastián Aguilera,M,Equipetrol,2026-07-27,regular,Web
+cli-01068,Marcelo Justiniano,F,Urbarí,2025-08-03,regular,Web
+cli-01069,Jorge Aguilera,M,Urbarí,2026-01-13,ocasional,Mostrador
+cli-01070,Gabriela Rivero,M,Urbarí,2025-02-18,ocasional,App móvil
+cli-01071,Mauricio Ribera,F,Urubó,2026-03-24,frecuente,App móvil
+cli-01072,Verónica Chávez,F,Sur,2026-09-27,regular,Web
+cli-01073,Isabel Antelo,F,Urbarí,2024-12-18,ocasional,Mostrador
+cli-01074,Andrea Mendoza,M,Equipetrol,2026-05-23,regular,App móvil
+cli-01075,Valeria Chávez,F,Norte,2025-05-01,frecuente,Web
+cli-01076,Mónica Antelo,F,Plan 3000,2026-09-01,frecuente,Web
+cli-01077,Diego Justiniano,F,Urbarí,2025-09-15,regular,App móvil
+cli-01078,Javier Justiniano,F,Urbarí,2026-09-27,ocasional,App móvil
+cli-01079,Alejandra Paz,F,Centro,2026-10-24,ocasional,App móvil
+cli-01080,Lucía Antelo,M,Sur,2026-02-18,frecuente,Mostrador
+cli-01081,Gonzalo Aguilera,F,Warnes,2026-09-25,ocasional,Web
+cli-01082,Paula Antelo,F,Las Palmas,2025-03-15,ocasional,Web
+cli-01083,Daniela Suárez,F,Urubó,2025-10-16,ocasional,Web
+cli-01084,Jorge Roca,F,Equipetrol,2025-12-30,regular,Web
+cli-01085,Sofía Chávez,M,Las Palmas,2026-06-24,ocasional,Web
+cli-01086,Paula Quiroga,F,Equipetrol,2026-09-18,frecuente,Web
+cli-01087,Gonzalo Aguilera,F,Sur,2026-10-22,ocasional,App móvil
+cli-01088,Javier Chávez,F,Norte,2024-11-16,regular,Web
+cli-01089,Mariana Chávez,F,Norte,2025-04-02,ocasional,App móvil
+cli-01090,Lucía Chávez,F,Centro,2025-12-12,regular,App móvil
+cli-01091,Carolina Chávez,F,Sur,2024-12-29,regular,Web
+cli-01092,Carolina Saavedra,F,Norte,2025-02-17,regular,Mostrador
+cli-01093,Carla Saavedra,F,Norte,2025-09-19,frecuente,App móvil
+cli-01094,Gonzalo Quiroga,F,Urbarí,2025-11-22,regular,Web
+cli-01095,Lucía Salvatierra,M,Las Palmas,2026-07-15,frecuente,Web
+cli-01096,Valeria Montaño,F,Warnes,2025-06-30,ocasional,Web
+cli-01097,Gonzalo Montaño,M,Equipetrol,2025-02-20,regular,App móvil
+cli-01098,Paula Quiroga,F,Urubó,2025-11-06,ocasional,Web
+cli-01099,Diego Vargas,M,Plan 3000,2025-09-30,frecuente,Web
+cli-01100,Mauricio Chávez,F,Urbarí,2025-01-08,ocasional,App móvil
+cli-01101,Mauricio Aguilera,F,Norte,2026-03-11,regular,App móvil
+cli-01102,Alejandro Aguilera,M,Urbarí,2024-12-31,regular,Mostrador
+cli-01103,Gonzalo Montaño,F,Equipetrol,2025-05-22,ocasional,App móvil
+cli-01104,Marcelo Mendoza,F,Plan 3000,2025-01-22,regular,Web
+cli-01105,Sofía Antelo,F,Las Palmas,2025-02-18,regular,App móvil
+cli-01106,Paola Quiroga,F,Urbarí,2026-01-19,ocasional,Web
+cli-01107,Mauricio Rojas,F,Equipetrol,2026-07-24,frecuente,Web
+cli-01108,Mauricio Flores,F,Villa 1ro de Mayo,2025-09-07,ocasional,Web
+cli-01109,Camila Antelo,F,Urubó,2025-05-18,ocasional,Web
+cli-01110,Rocío Ribera,M,Warnes,2026-01-02,frecuente,Web
+cli-01111,Mauricio Quiroga,F,Urbarí,2025-07-19,regular,Web
+cli-01112,Mauricio Rivero,F,Equipetrol,2025-03-01,regular,App móvil
+cli-01113,Isabel Gutiérrez,F,Centro,2026-04-22,ocasional,Web
+cli-01114,Lucía Quiroga,F,Warnes,2026-06-24,ocasional,App móvil
+cli-01115,Lucía Aguilera,F,Norte,2026-03-14,ocasional,Web
+cli-01116,Valeria Mendoza,M,Norte,2026-06-28,ocasional,Web
+cli-01117,Carla Paz,F,Urubó,2026-05-22,regular,Mostrador
+cli-01118,Diego Mendoza,F,Las Palmas,2026-08-26,regular,App móvil
+cli-01119,Carla Salvatierra,F,Urubó,2026-10-27,regular,Mostrador
+cli-01120,Lucía Rivero,F,Centro,2025-06-09,regular,Web
+cli-01121,Luis Roca,F,Equipetrol,2025-12-23,ocasional,App móvil
+cli-01122,Daniela Ribera,F,Las Palmas,2025-10-30,ocasional,App móvil
+cli-01123,Alejandro Flores,F,Centro,2026-03-03,ocasional,Web
+cli-01124,Natalia Paz,F,Sur,2026-06-11,ocasional,Web
+cli-01125,Luis Gutiérrez,F,Las Palmas,2026-08-16,ocasional,Web
+cli-01126,Diego Vargas,F,Centro,2026-04-13,ocasional,Web
+cli-01127,Gonzalo Paz,F,Equipetrol,2026-10-03,ocasional,App móvil
+cli-01128,Luis Morales,F,Plan 3000,2025-03-12,regular,Web
+cli-01129,Luis Antelo,F,Las Palmas,2025-07-12,regular,App móvil
+cli-01130,Isabel Chávez,F,Sur,2026-05-27,regular,Web
+cli-01131,Mauricio Roca,F,Centro,2025-11-11,regular,Web
+cli-01132,Carolina Paz,F,Equipetrol,2025-09-26,regular,Web
+cli-01133,Javier Vargas,F,Urubó,2024-12-29,ocasional,Web
+cli-01134,Paula Flores,M,Centro,2026-02-28,regular,Web
+cli-01135,Diego Rivero,F,Sur,2026-04-02,frecuente,App móvil
+cli-01136,Gonzalo Montaño,F,Equipetrol,2025-10-03,regular,App móvil
+cli-01137,Gonzalo Rivero,F,Centro,2026-04-16,frecuente,Web
+cli-01138,Valeria Morales,F,Norte,2025-04-27,regular,Mostrador
+cli-01139,Mauricio Rojas,F,Villa 1ro de Mayo,2026-10-28,ocasional,App móvil
+cli-01140,Gabriela Paz,F,Urbarí,2026-04-26,ocasional,Web
+cli-01141,Alejandra Aguilera,M,Urubó,2025-01-14,regular,Web
+cli-01142,Isabel Rivero,F,Urubó,2026-03-18,ocasional,Web
+cli-01143,Paula Chávez,M,Urbarí,2026-08-16,regular,Mostrador
+cli-01144,Daniela Suárez,F,Las Palmas,2025-12-22,frecuente,Mostrador
+cli-01145,Javier Flores,F,Urbarí,2026-04-15,regular,App móvil
+cli-01146,Mónica Flores,M,Las Palmas,2025-10-30,ocasional,Web
+cli-01147,Daniela Morales,F,Warnes,2026-02-08,frecuente,App móvil
+cli-01148,Gabriela Ribera,F,Urubó,2025-05-18,regular,App móvil
+cli-01149,Jorge Salvatierra,F,Urubó,2025-11-27,regular,Web
+cli-01150,Carla Suárez,F,Urbarí,2025-12-17,ocasional,Web
+cli-01151,Mauricio Aguilera,F,Las Palmas,2025-08-10,regular,App móvil
+cli-01152,Carla Vargas,F,Urubó,2025-08-03,ocasional,App móvil
+cli-01153,Rodrigo Chávez,F,Centro,2025-05-28,frecuente,Web
+cli-01154,Javier Roca,F,Centro,2026-08-01,frecuente,Web
+cli-01155,Andrea Suárez,F,Warnes,2025-12-19,ocasional,Web
+cli-01156,Valeria Flores,F,Urubó,2025-01-22,regular,App móvil
+cli-01157,Rocío Justiniano,M,Las Palmas,2026-07-29,ocasional,App móvil
+cli-01158,Jimena Quiroga,F,Centro,2026-10-01,ocasional,Mostrador
+cli-01159,Carolina Montaño,F,Las Palmas,2025-10-18,ocasional,App móvil
+cli-01160,Rocío Morales,F,Centro,2025-06-20,regular,Mostrador
+cli-01161,Rodrigo Montaño,F,Norte,2026-07-06,ocasional,App móvil
+cli-01162,Lucía Montaño,F,Equipetrol,2025-06-30,frecuente,App móvil
+cli-01163,Lucía Salvatierra,M,Norte,2026-09-16,regular,Web
+cli-01164,Isabel Aguilera,M,Plan 3000,2026-01-18,ocasional,App móvil
+cli-01165,Javier Rojas,F,Equipetrol,2025-12-30,regular,Web
+cli-01166,Luis Suárez,F,Centro,2026-01-21,regular,App móvil
+cli-01167,Rocío Suárez,M,Sur,2025-04-02,ocasional,Web
+cli-01168,Carolina Montaño,M,Las Palmas,2025-11-25,regular,App móvil
+cli-01169,Andrea Roca,F,Equipetrol,2026-10-11,regular,App móvil
+cli-01170,Jorge Morales,F,Las Palmas,2026-10-26,regular,App móvil
+cli-01171,Alejandra Ribera,F,Plan 3000,2025-03-08,regular,App móvil
+cli-01172,Diego Paz,F,Sur,2026-02-17,ocasional,Web
+cli-01173,Andrea Morales,F,Sur,2026-01-01,ocasional,App móvil
+cli-01174,Paula Justiniano,F,Urbarí,2026-08-22,ocasional,Mostrador
+cli-01175,Marcelo Rivero,F,Sur,2026-02-06,regular,Web
+cli-01176,Mariana Morales,F,Centro,2026-07-25,frecuente,Web
+cli-01177,Jimena Mendoza,F,Urbarí,2026-10-04,ocasional,Web
+cli-01178,Sofía Mendoza,M,Las Palmas,2025-06-29,regular,App móvil
+cli-01179,Luis Salvatierra,F,Plan 3000,2025-10-05,regular,Mostrador
+cli-01180,Mónica Morales,F,Centro,2026-04-27,frecuente,Web
+cli-01181,Verónica Vargas,F,Centro,2025-12-15,regular,Web
+cli-01182,Paula Suárez,M,Villa 1ro de Mayo,2025-01-19,ocasional,Web
+cli-01183,Mauricio Saavedra,F,Urbarí,2026-07-01,regular,Web
+cli-01184,Javier Suárez,F,Plan 3000,2026-07-14,ocasional,App móvil
+cli-01185,Luis Roca,F,Sur,2026-05-08,ocasional,Web
+cli-01186,Carla Justiniano,F,Sur,2025-09-02,ocasional,App móvil
+cli-01187,Verónica Rivero,F,Equipetrol,2026-04-25,regular,App móvil
+cli-01188,Sebastián Rojas,F,Plan 3000,2026-03-23,ocasional,App móvil
+cli-01189,Javier Montaño,F,Norte,2026-01-18,regular,Mostrador
+cli-01190,Andrea Suárez,F,Urbarí,2026-06-20,ocasional,App móvil
+cli-01191,Rodrigo Salvatierra,F,Villa 1ro de Mayo,2026-08-10,ocasional,Web
+cli-01192,Alejandra Justiniano,F,Norte,2026-01-29,frecuente,App móvil
+cli-01193,Diego Roca,M,Sur,2025-10-09,regular,App móvil
+cli-01194,Isabel Salvatierra,M,Sur,2025-10-24,ocasional,Mostrador
+cli-01195,Alejandra Ribera,F,Villa 1ro de Mayo,2025-11-05,frecuente,Web
+cli-01196,Paola Justiniano,F,Urubó,2026-07-26,ocasional,App móvil
+cli-01197,Alejandro Chávez,F,Urubó,2026-06-10,regular,App móvil
+cli-01198,Jorge Gutiérrez,F,Equipetrol,2026-02-02,ocasional,Web
+cli-01199,Natalia Ribera,F,Plan 3000,2026-05-31,regular,Web
+cli-01200,Isabel Rivero,F,Urbarí,2026-04-10,frecuente,Web
+cli-01201,Camila Rivero,F,Centro,2025-05-11,ocasional,App móvil
+cli-01202,Rodrigo Chávez,F,Urubó,2025-12-20,ocasional,Web
+cli-01203,Verónica Quiroga,M,Warnes,2026-02-18,ocasional,Web
+cli-01204,Sofía Morales,F,Equipetrol,2025-08-07,ocasional,Mostrador
+cli-01205,Javier Gutiérrez,F,Equipetrol,2026-10-06,regular,Mostrador
+cli-01206,Isabel Roca,F,Sur,2025-07-02,ocasional,Web
+cli-01207,Jimena Gutiérrez,M,Sur,2025-06-13,regular,Web
+cli-01208,Luis Quiroga,F,Equipetrol,2025-01-25,ocasional,Web
+cli-01209,Mariana Paz,M,Equipetrol,2025-05-28,regular,Mostrador
+cli-01210,Daniela Ribera,F,Norte,2026-01-01,ocasional,App móvil
+cli-01211,Alejandro Rojas,F,Centro,2025-07-19,regular,Mostrador
+cli-01212,Carla Suárez,F,Centro,2025-07-07,frecuente,App móvil
+cli-01213,Gonzalo Rivero,M,Sur,2026-01-16,regular,App móvil
+cli-01214,Isabel Justiniano,M,Villa 1ro de Mayo,2026-09-14,regular,App móvil
+cli-01215,Diego Ribera,M,Warnes,2026-02-14,ocasional,Web
+cli-01216,Daniela Fernandez,F,Urbarí,2025-04-05,regular,Web
+cli-01217,Luis Chávez,M,Norte,2026-09-01,ocasional,Web
+cli-01218,Valeria Rivero,F,Norte,2025-03-03,ocasional,Web
+cli-01219,Carolina Quiroga,F,Sur,2026-07-27,ocasional,App móvil
+cli-01220,Gabriela Salvatierra,F,Norte,2025-07-03,ocasional,Web
+cli-01221,Camila Roca,F,Norte,2026-06-19,regular,App móvil
+cli-01222,Fernanda Suárez,F,Equipetrol,2026-07-03,frecuente,App móvil
+cli-01223,Verónica Gutiérrez,F,Plan 3000,2025-10-28,ocasional,Web
+cli-01224,Sebastián Saavedra,F,Las Palmas,2026-06-27,ocasional,App móvil
+cli-01225,Luis Chávez,F,Plan 3000,2025-12-13,regular,Web
+cli-01226,Rocío Chávez,F,Urbarí,2026-05-31,regular,Web
+cli-01227,Natalia Morales,F,Villa 1ro de Mayo,2025-12-11,frecuente,Web
+cli-01228,Gonzalo Chávez,F,Centro,2025-10-21,ocasional,Web
+cli-01229,Lucía Ribera,F,Equipetrol,2026-04-11,ocasional,Web
+cli-01230,Valeria Chávez,F,Centro,2025-02-13,regular,Mostrador
+cli-01231,Carolina Vargas,M,Norte,2024-12-24,regular,App móvil
+cli-01232,Mariana Rivero,F,Urbarí,2025-04-06,ocasional,App móvil
+cli-01233,Verónica Flores,F,Equipetrol,2026-03-28,regular,App móvil
+cli-01234,Isabel Montaño,F,Plan 3000,2026-03-23,regular,App móvil
+cli-01235,Mónica Gutiérrez,F,Equipetrol,2026-02-05,regular,Web
+cli-01236,Paola Montaño,F,Norte,2025-05-05,ocasional,Mostrador
+cli-01237,Rocío Mendoza,F,Las Palmas,2025-10-20,regular,Web
+cli-01238,Mariana Antelo,F,Urubó,2025-12-29,ocasional,App móvil
+cli-01239,Mónica Vargas,F,Plan 3000,2025-01-09,ocasional,Web
+cli-01240,Rodrigo Flores,F,Sur,2026-09-10,regular,App móvil
+cli-01241,Paula Rivero,F,Equipetrol,2025-10-07,regular,Mostrador
+cli-01242,Andrea Morales,F,Sur,2025-04-28,regular,App móvil
+cli-01243,Carolina Saavedra,F,Urbarí,2026-06-23,regular,App móvil
+cli-01244,Rodrigo Chávez,F,Norte,2024-12-14,regular,App móvil
+cli-01245,Valeria Vargas,F,Warnes,2025-06-05,regular,Web
+cli-01246,Marcelo Suárez,F,Sur,2026-10-14,ocasional,Web
+cli-01247,Paula Quiroga,F,Sur,2025-09-08,ocasional,Web
+cli-01248,Lucía Justiniano,F,Norte,2025-09-01,frecuente,Web
+cli-01249,Sebastián Flores,M,Sur,2024-12-07,frecuente,Web
+cli-01250,Sebastián Ribera,F,Centro,2026-07-21,ocasional,App móvil
+cli-01251,Valeria Ribera,M,Urbarí,2025-04-24,regular,Mostrador
+cli-01252,Sofía Vargas,F,Centro,2025-01-19,regular,Mostrador
+cli-01253,Alejandra Vargas,F,Centro,2026-09-24,ocasional,App móvil
+cli-01254,Rodrigo Flores,F,Urbarí,2025-07-21,regular,Web
+cli-01255,Marcelo Roca,F,Norte,2025-10-09,regular,Web
+cli-01256,Carla Fernandez,M,Sur,2025-06-18,ocasional,App móvil
+cli-01257,Jorge Saavedra,F,Urbarí,2025-10-12,ocasional,Web
+cli-01258,Alejandra Suárez,F,Centro,2025-09-28,regular,Mostrador
+cli-01259,Paola Morales,F,Sur,2026-10-15,ocasional,App móvil
+cli-01260,Mariana Paz,M,Plan 3000,2025-06-24,regular,Web
+cli-01261,Jorge Paz,F,Warnes,2026-10-08,ocasional,App móvil
+cli-01262,Rocío Roca,F,Plan 3000,2026-05-21,regular,App móvil
+cli-01263,Jimena Quiroga,M,Plan 3000,2026-07-19,ocasional,Web
+cli-01264,Natalia Chávez,F,Norte,2025-04-10,ocasional,Mostrador
+cli-01265,Mariana Rojas,F,Equipetrol,2026-07-29,regular,App móvil
+cli-01266,Javier Mendoza,F,Urbarí,2026-08-09,ocasional,Mostrador
+cli-01267,Alejandra Gutiérrez,M,Las Palmas,2024-12-12,ocasional,Mostrador
+cli-01268,Luis Aguilera,F,Equipetrol,2026-05-07,ocasional,Mostrador
+cli-01269,Fernanda Morales,F,Urbarí,2026-05-24,regular,App móvil
+cli-01270,Daniela Justiniano,F,Urbarí,2026-04-26,ocasional,App móvil
+cli-01271,Camila Justiniano,F,Las Palmas,2026-08-27,regular,App móvil
+cli-01272,Gonzalo Aguilera,M,Urbarí,2026-04-24,ocasional,App móvil
+cli-01273,Sofía Rojas,F,Villa 1ro de Mayo,2026-03-02,regular,Web
+cli-01274,Mauricio Paz,F,Urbarí,2024-11-13,frecuente,Mostrador
+cli-01275,Sebastián Quiroga,F,Norte,2025-02-03,regular,Web
+cli-01276,Mauricio Aguilera,F,Urubó,2026-05-23,ocasional,Web
+cli-01277,Natalia Rojas,F,Plan 3000,2025-11-21,regular,App móvil
+cli-01278,Alejandra Fernandez,F,Las Palmas,2026-10-15,regular,Web
+cli-01279,Daniela Justiniano,M,Centro,2026-02-20,regular,Web
+cli-01280,Camila Paz,M,Plan 3000,2024-12-29,ocasional,App móvil
+cli-01281,Jorge Mendoza,F,Urbarí,2026-01-12,ocasional,Web
+cli-01282,Natalia Rivero,M,Centro,2025-02-26,regular,Web
+cli-01283,Alejandro Fernandez,F,Norte,2025-03-09,regular,App móvil
+cli-01284,Rocío Gutiérrez,F,Warnes,2026-07-15,ocasional,Web
+cli-01285,Paola Rojas,M,Villa 1ro de Mayo,2025-11-02,frecuente,Mostrador
+cli-01286,Sebastián Antelo,F,Plan 3000,2026-10-10,regular,Web
+cli-01287,Andrea Fernandez,F,Norte,2026-02-20,ocasional,Mostrador
+cli-01288,Jimena Montaño,F,Villa 1ro de Mayo,2026-08-02,ocasional,Web
+cli-01289,Sebastián Rivero,F,Equipetrol,2026-10-06,regular,Web
+cli-01290,Daniela Saavedra,F,Las Palmas,2025-08-05,regular,App móvil
+cli-01291,Paula Salvatierra,F,Norte,2025-09-29,regular,Web
+cli-01292,Rodrigo Roca,F,Norte,2025-05-23,regular,Web
+cli-01293,Sebastián Paz,F,Equipetrol,2026-09-14,frecuente,Mostrador
+cli-01294,Verónica Rojas,F,Warnes,2025-04-12,ocasional,Web
+cli-01295,Daniela Quiroga,F,Plan 3000,2026-01-28,frecuente,App móvil
+cli-01296,Luis Rivero,F,Las Palmas,2026-04-11,frecuente,App móvil
+cli-01297,Fernanda Salvatierra,F,Plan 3000,2026-08-01,ocasional,Web
+cli-01298,Paula Rojas,F,Equipetrol,2026-08-06,regular,App móvil
+cli-01299,Alejandra Vargas,M,Sur,2026-01-31,frecuente,Mostrador
+cli-01300,Andrea Morales,F,Urbarí,2026-09-02,ocasional,App móvil
+cli-01301,Carla Antelo,F,Urbarí,2025-02-19,frecuente,App móvil
+cli-01302,Camila Fernandez,F,Urubó,2026-02-07,regular,App móvil
+cli-01303,Verónica Flores,F,Urbarí,2025-02-05,ocasional,Web
+cli-01304,Javier Chávez,F,Equipetrol,2025-08-27,frecuente,Mostrador
+cli-01305,Alejandra Rivero,F,Sur,2025-07-17,regular,Mostrador
+cli-01306,Carolina Aguilera,M,Urubó,2024-12-20,ocasional,Web
+cli-01307,Fernanda Rojas,F,Norte,2026-06-27,ocasional,App móvil
+cli-01308,Gonzalo Paz,F,Sur,2025-06-25,regular,App móvil
+cli-01309,Alejandro Ribera,F,Las Palmas,2026-06-06,regular,App móvil
+cli-01310,Diego Rojas,F,Urbarí,2026-10-26,regular,App móvil
+cli-01311,Mónica Quiroga,F,Sur,2025-09-04,regular,Web
+cli-01312,Alejandra Salvatierra,M,Villa 1ro de Mayo,2026-07-02,regular,App móvil
+cli-01313,Daniela Vargas,F,Equipetrol,2026-09-09,regular,Mostrador
+cli-01314,Gonzalo Ribera,F,Plan 3000,2026-08-21,frecuente,App móvil
+cli-01315,Rodrigo Rivero,F,Sur,2026-05-07,regular,Web
+cli-01316,Sofía Aguilera,F,Plan 3000,2025-09-18,ocasional,Web
+cli-01317,Verónica Vargas,F,Las Palmas,2025-12-05,ocasional,Web
+cli-01318,Gonzalo Paz,F,Urbarí,2026-09-07,regular,App móvil
+cli-01319,Rocío Fernandez,F,Urbarí,2025-08-05,frecuente,Web
+cli-01320,Diego Gutiérrez,F,Urubó,2025-10-02,ocasional,Mostrador
+cli-01321,Alejandro Salvatierra,F,Equipetrol,2025-12-21,regular,App móvil
+cli-01322,Gabriela Vargas,F,Centro,2025-03-05,ocasional,Web
+cli-01323,Luis Ribera,F,Las Palmas,2026-03-22,ocasional,Mostrador
+cli-01324,Paula Fernandez,F,Sur,2025-09-13,frecuente,Web
+cli-01325,Camila Mendoza,M,Equipetrol,2026-04-14,frecuente,Web
+cli-01326,Valeria Montaño,M,Urbarí,2026-05-25,ocasional,Mostrador
+cli-01327,Marcelo Vargas,M,Urbarí,2026-07-23,ocasional,Web
+cli-01328,Gonzalo Montaño,M,Sur,2025-12-26,regular,Web
+cli-01329,Jimena Flores,F,Urubó,2026-04-30,ocasional,Mostrador
+cli-01330,Marcelo Mendoza,F,Warnes,2025-11-30,ocasional,Web
+cli-01331,Daniela Flores,F,Norte,2026-01-01,ocasional,Web
+cli-01332,Valeria Suárez,F,Las Palmas,2026-06-05,frecuente,Web
+cli-01333,Sebastián Saavedra,F,Plan 3000,2025-04-12,ocasional,Mostrador
+cli-01334,Camila Fernandez,F,Las Palmas,2026-05-17,regular,Web
+cli-01335,Carla Rivero,F,Urubó,2026-04-07,regular,Web
+cli-01336,Gabriela Aguilera,F,Sur,2026-10-20,ocasional,App móvil
+cli-01337,Rocío Roca,M,Warnes,2026-10-16,ocasional,Mostrador
+cli-01338,Alejandra Flores,F,Centro,2025-03-31,regular,Web
+cli-01339,Sebastián Rojas,F,Sur,2026-03-30,ocasional,Mostrador
+cli-01340,Andrea Rivero,F,Norte,2026-07-02,regular,Web
+cli-01341,Lucía Suárez,F,Centro,2026-07-27,regular,App móvil
+cli-01342,Carolina Quiroga,F,Sur,2024-11-30,frecuente,Web
+cli-01343,Mauricio Antelo,F,Warnes,2025-07-06,frecuente,App móvil
+cli-01344,Mauricio Roca,F,Urbarí,2025-11-02,frecuente,App móvil
+cli-01345,Valeria Saavedra,F,Equipetrol,2026-07-27,regular,App móvil
+cli-01346,Camila Mendoza,F,Norte,2026-02-02,ocasional,Web
+cli-01347,Alejandra Rivero,F,Equipetrol,2026-06-03,ocasional,Web
+cli-01348,Mauricio Morales,F,Las Palmas,2025-06-13,regular,Web
+cli-01349,Camila Chávez,F,Villa 1ro de Mayo,2025-03-18,regular,Web
+cli-01350,Mónica Saavedra,F,Plan 3000,2025-03-08,frecuente,Mostrador
+cli-01351,Jimena Mendoza,F,Centro,2025-11-18,frecuente,App móvil
+cli-01352,Alejandro Salvatierra,F,Villa 1ro de Mayo,2026-07-01,ocasional,Web
+cli-01353,Paola Fernandez,F,Villa 1ro de Mayo,2026-07-07,regular,App móvil
+cli-01354,Isabel Flores,F,Norte,2026-07-05,regular,App móvil
+cli-01355,Isabel Suárez,M,Urubó,2026-06-05,regular,App móvil
+cli-01356,Natalia Chávez,F,Norte,2025-12-04,regular,App móvil
+cli-01357,Marcelo Flores,M,Plan 3000,2025-09-15,regular,App móvil
+cli-01358,Alejandra Morales,F,Norte,2026-10-30,regular,Web
+cli-01359,Paola Flores,M,Plan 3000,2025-12-30,frecuente,Web
+cli-01360,Sofía Paz,F,Equipetrol,2026-10-25,regular,Mostrador
+cli-01361,Mónica Chávez,F,Sur,2026-07-01,regular,App móvil
+cli-01362,Verónica Roca,M,Equipetrol,2026-08-21,frecuente,Web
+cli-01363,Sofía Suárez,F,Norte,2025-06-28,regular,App móvil
+cli-01364,Valeria Saavedra,M,Norte,2025-06-08,regular,Web
+cli-01365,Paula Quiroga,M,Las Palmas,2025-02-09,regular,Mostrador
+cli-01366,Sebastián Flores,F,Equipetrol,2026-08-12,frecuente,Web
+cli-01367,Diego Gutiérrez,F,Sur,2026-06-29,ocasional,App móvil
+cli-01368,Andrea Paz,F,Las Palmas,2026-01-04,ocasional,Web
+cli-01369,Paola Fernandez,M,Equipetrol,2026-07-28,regular,Web
+cli-01370,Valeria Salvatierra,M,Las Palmas,2026-02-02,ocasional,Web
+cli-01371,Paola Mendoza,F,Centro,2025-05-30,ocasional,App móvil
+cli-01372,Paola Fernandez,M,Urubó,2026-02-19,ocasional,Web
+cli-01373,Gonzalo Gutiérrez,F,Villa 1ro de Mayo,2025-11-24,ocasional,App móvil
+cli-01374,Natalia Gutiérrez,F,Norte,2025-11-08,regular,App móvil
+cli-01375,Daniela Chávez,F,Urbarí,2026-06-14,regular,Web
+cli-01376,Fernanda Antelo,F,Las Palmas,2026-10-19,ocasional,Mostrador
+cli-01377,Verónica Mendoza,M,Plan 3000,2025-07-09,regular,Web
+cli-01378,Gabriela Roca,F,Sur,2026-05-23,regular,Web
+cli-01379,Jorge Chávez,F,Las Palmas,2025-04-19,ocasional,App móvil
+cli-01380,Paula Ribera,F,Sur,2026-07-08,regular,Mostrador
+cli-01381,Lucía Gutiérrez,F,Urbarí,2026-02-16,frecuente,Mostrador
+cli-01382,Daniela Aguilera,F,Sur,2026-10-27,ocasional,Mostrador
+cli-01383,Alejandra Suárez,F,Sur,2025-11-24,ocasional,Web
+cli-01384,Mónica Montaño,F,Equipetrol,2025-10-05,ocasional,Mostrador
+cli-01385,Paola Fernandez,F,Norte,2026-01-07,regular,Web
+cli-01386,Mónica Morales,F,Centro,2025-01-26,ocasional,App móvil
+cli-01387,Alejandro Mendoza,F,Villa 1ro de Mayo,2026-02-26,ocasional,Web
+cli-01388,Mónica Montaño,F,Sur,2025-05-26,regular,App móvil
+cli-01389,Jorge Mendoza,F,Equipetrol,2026-04-13,ocasional,App móvil
+cli-01390,Gonzalo Justiniano,F,Norte,2025-06-27,ocasional,Web
+cli-01391,Carolina Montaño,M,Urbarí,2025-08-31,frecuente,App móvil
+cli-01392,Rocío Chávez,F,Villa 1ro de Mayo,2026-09-22,frecuente,App móvil
+cli-01393,Paola Mendoza,F,Urbarí,2024-11-16,ocasional,App móvil
+cli-01394,Fernanda Aguilera,F,Urbarí,2025-04-07,ocasional,Web
+cli-01395,Carolina Mendoza,M,Norte,2026-06-21,ocasional,Mostrador
+cli-01396,Camila Suárez,F,Urbarí,2026-03-02,regular,App móvil
+cli-01397,Andrea Gutiérrez,F,Centro,2026-05-11,regular,App móvil
+cli-01398,Camila Fernandez,F,Urbarí,2026-06-08,ocasional,App móvil
+cli-01399,Mónica Rojas,F,Norte,2025-09-07,regular,Web
+cli-01400,Alejandro Chávez,M,Urbarí,2025-04-28,regular,Web
+cli-01401,Mauricio Rojas,F,Urbarí,2025-09-02,ocasional,Mostrador
+cli-01402,Lucía Rojas,M,Urbarí,2025-11-11,ocasional,Mostrador
+cli-01403,Luis Quiroga,F,Norte,2025-06-23,frecuente,App móvil
+cli-01404,Sofía Vargas,F,Equipetrol,2026-07-25,ocasional,Mostrador
+cli-01405,Sofía Rojas,M,Norte,2025-11-20,ocasional,Web
+cli-01406,Valeria Rojas,F,Urbarí,2026-08-31,regular,App móvil
+cli-01407,Natalia Salvatierra,F,Villa 1ro de Mayo,2025-05-03,regular,Mostrador
+cli-01408,Mauricio Rojas,F,Las Palmas,2025-05-31,ocasional,App móvil
+cli-01409,Paola Morales,F,Villa 1ro de Mayo,2025-04-12,ocasional,App móvil
+cli-01410,Fernanda Suárez,F,Las Palmas,2025-08-24,ocasional,App móvil
+cli-01411,Rodrigo Paz,F,Sur,2025-12-20,ocasional,Web
+cli-01412,Jimena Aguilera,F,Norte,2025-11-08,regular,Web
+cli-01413,Jimena Fernandez,M,Urbarí,2025-07-10,frecuente,App móvil
+cli-01414,Verónica Quiroga,F,Las Palmas,2026-07-23,regular,Web
+cli-01415,Rocío Roca,F,Sur,2026-08-23,ocasional,Mostrador
+cli-01416,Mauricio Ribera,F,Centro,2024-12-29,regular,Mostrador
+cli-01417,Javier Flores,F,Las Palmas,2025-01-12,ocasional,App móvil
+cli-01418,Isabel Montaño,F,Equipetrol,2025-05-21,frecuente,Web
+cli-01419,Diego Rojas,F,Norte,2025-05-27,regular,App móvil
+cli-01420,Marcelo Justiniano,F,Centro,2025-01-17,ocasional,App móvil
+cli-01421,Mauricio Quiroga,F,Sur,2026-01-11,ocasional,Web
+cli-01422,Verónica Ribera,F,Urbarí,2025-10-25,regular,Web
+cli-01423,Javier Quiroga,F,Las Palmas,2026-07-07,regular,Web
+cli-01424,Andrea Chávez,F,Plan 3000,2025-05-11,frecuente,App móvil
+cli-01425,Luis Chávez,F,Norte,2026-10-24,regular,App móvil
+cli-01426,Sofía Montaño,F,Norte,2026-09-09,ocasional,App móvil
+cli-01427,Mariana Antelo,F,Norte,2026-10-06,ocasional,Web
+cli-01428,Paula Salvatierra,F,Urubó,2025-03-13,ocasional,Mostrador
+cli-01429,Lucía Ribera,F,Plan 3000,2025-05-05,ocasional,Web
+cli-01430,Mariana Justiniano,F,Plan 3000,2025-03-12,regular,App móvil
+cli-01431,Natalia Quiroga,F,Equipetrol,2025-06-08,regular,App móvil
+cli-01432,Valeria Quiroga,F,Villa 1ro de Mayo,2026-03-27,regular,App móvil
+cli-01433,Mariana Paz,F,Plan 3000,2025-02-12,frecuente,Web
+cli-01434,Isabel Rivero,M,Centro,2025-06-27,ocasional,Web
+cli-01435,Jorge Morales,F,Centro,2026-04-27,frecuente,App móvil
+cli-01436,Sebastián Montaño,F,Plan 3000,2025-02-13,ocasional,Web
+cli-01437,Sebastián Montaño,F,Equipetrol,2026-05-19,regular,Mostrador
+cli-01438,Jorge Salvatierra,F,Las Palmas,2026-05-14,regular,App móvil
+cli-01439,Diego Montaño,F,Las Palmas,2026-09-04,ocasional,App móvil
+cli-01440,Paola Rivero,M,Plan 3000,2026-06-20,ocasional,Web
+cli-01441,Luis Suárez,F,Centro,2025-04-10,ocasional,App móvil
+cli-01442,Mónica Flores,M,Urbarí,2026-03-10,ocasional,Mostrador
+cli-01443,Carolina Antelo,M,Urubó,2025-12-29,ocasional,App móvil
+cli-01444,Carolina Rojas,F,Centro,2026-09-27,ocasional,App móvil
+cli-01445,Rocío Saavedra,M,Urbarí,2025-10-11,regular,Web
+cli-01446,Sebastián Suárez,F,Norte,2025-07-15,ocasional,Web
+cli-01447,Alejandro Antelo,M,Villa 1ro de Mayo,2026-09-09,frecuente,Web
+cli-01448,Jimena Paz,F,Sur,2025-08-03,regular,App móvil
+cli-01449,Sebastián Flores,F,Warnes,2026-07-20,regular,App móvil
+cli-01450,Alejandra Aguilera,F,Las Palmas,2026-02-22,ocasional,App móvil
+cli-01451,Rodrigo Ribera,F,Centro,2026-06-05,ocasional,App móvil
+cli-01452,Fernanda Aguilera,F,Villa 1ro de Mayo,2025-10-07,regular,Web
+cli-01453,Camila Roca,F,Equipetrol,2025-07-22,regular,Web
+cli-01454,Mauricio Saavedra,F,Sur,2026-10-04,regular,Web
+cli-01455,Luis Antelo,F,Sur,2026-03-17,regular,Mostrador
+cli-01456,Jimena Chávez,M,Equipetrol,2026-03-07,frecuente,App móvil
+cli-01457,Carla Mendoza,F,Villa 1ro de Mayo,2026-08-14,regular,Web
+cli-01458,Valeria Suárez,M,Sur,2026-01-27,ocasional,App móvil
+cli-01459,Andrea Suárez,M,Norte,2026-07-04,ocasional,App móvil
+cli-01460,Jorge Aguilera,F,Sur,2025-06-17,frecuente,Web
+cli-01461,Marcelo Justiniano,F,Plan 3000,2026-09-30,regular,Mostrador
+cli-01462,Isabel Roca,F,Centro,2026-02-07,ocasional,Web
+cli-01463,Natalia Saavedra,F,Warnes,2025-04-07,ocasional,Web
+cli-01464,Rocío Antelo,F,Equipetrol,2025-02-10,ocasional,App móvil
+cli-01465,Gonzalo Montaño,F,Urbarí,2025-03-25,ocasional,Web
+cli-01466,Isabel Salvatierra,M,Urbarí,2026-06-04,frecuente,App móvil
+cli-01467,Daniela Quiroga,F,Norte,2025-09-23,ocasional,App móvil
+cli-01468,Rocío Antelo,F,Las Palmas,2026-04-07,regular,Web
+cli-01469,Daniela Antelo,F,Centro,2025-12-11,regular,App móvil
+cli-01470,Andrea Aguilera,F,Norte,2025-12-22,ocasional,Web
+cli-01471,Camila Morales,F,Urbarí,2025-11-30,ocasional,App móvil
+cli-01472,Lucía Roca,F,Plan 3000,2025-11-27,frecuente,Web
+cli-01473,Alejandra Saavedra,F,Las Palmas,2025-06-09,frecuente,Web
+cli-01474,Sebastián Paz,F,Las Palmas,2026-07-12,frecuente,App móvil
+cli-01475,Alejandro Rivero,M,Sur,2026-01-31,regular,Web
+cli-01476,Mauricio Flores,F,Plan 3000,2026-08-15,ocasional,Web
+cli-01477,Rodrigo Rivero,F,Sur,2025-03-04,regular,Web
+cli-01478,Sebastián Chávez,M,Plan 3000,2026-03-27,frecuente,Mostrador
+cli-01479,Luis Flores,F,Equipetrol,2026-03-19,ocasional,Mostrador
+cli-01480,Sofía Mendoza,F,Plan 3000,2026-01-28,regular,App móvil
+cli-01481,Rodrigo Saavedra,F,Villa 1ro de Mayo,2025-11-02,regular,Web
+cli-01482,Mónica Montaño,M,Las Palmas,2025-10-29,regular,Mostrador
+cli-01483,Carolina Rojas,F,Norte,2025-06-28,regular,Web
+cli-01484,Diego Paz,F,Centro,2025-11-10,ocasional,Mostrador
+cli-01485,Mariana Fernandez,F,Las Palmas,2026-10-26,ocasional,Web
+cli-01486,Gonzalo Roca,F,Centro,2025-06-15,regular,App móvil
+cli-01487,Alejandra Gutiérrez,M,Sur,2026-09-26,ocasional,App móvil
+cli-01488,Jimena Rojas,F,Equipetrol,2026-08-03,ocasional,Web
+cli-01489,Verónica Morales,M,Las Palmas,2026-06-15,regular,App móvil
+cli-01490,Marcelo Flores,F,Las Palmas,2026-09-03,regular,Web
+cli-01491,Gabriela Fernandez,F,Urubó,2026-09-23,ocasional,Mostrador
+cli-01492,Paola Flores,F,Centro,2025-06-02,regular,App móvil
+cli-01493,Lucía Morales,F,Sur,2026-02-06,frecuente,Web
+cli-01494,Daniela Chávez,F,Villa 1ro de Mayo,2025-06-28,regular,App móvil
+cli-01495,Sofía Quiroga,F,Equipetrol,2025-08-08,regular,App móvil
+cli-01496,Rocío Chávez,F,Sur,2025-12-10,ocasional,App móvil
+cli-01497,Andrea Rivero,F,Sur,2025-03-20,frecuente,Web
+cli-01498,Mariana Mendoza,F,Norte,2025-05-07,frecuente,App móvil
+cli-01499,Paula Paz,F,Norte,2026-06-30,regular,Web
+cli-01500,Fernanda Paz,F,Equipetrol,2026-08-02,frecuente,Web
+cli-01501,Andrea Montaño,M,Equipetrol,2025-09-16,frecuente,Web
+cli-01502,Rocío Antelo,F,Plan 3000,2026-08-07,regular,App móvil
+cli-01503,Marcelo Mendoza,F,Plan 3000,2026-06-04,ocasional,App móvil
+cli-01504,Carolina Flores,F,Warnes,2026-05-22,ocasional,Mostrador
+cli-01505,Alejandro Rojas,F,Centro,2025-02-04,frecuente,Web
+cli-01506,Gonzalo Flores,F,Equipetrol,2026-09-02,regular,App móvil
+cli-01507,Paula Fernandez,F,Equipetrol,2026-06-27,frecuente,App móvil
+cli-01508,Fernanda Rivero,F,Norte,2025-04-10,ocasional,Mostrador
+cli-01509,Gonzalo Vargas,M,Villa 1ro de Mayo,2026-08-24,frecuente,Web
+cli-01510,Paola Vargas,F,Las Palmas,2025-09-11,ocasional,App móvil
+cli-01511,Luis Vargas,M,Urubó,2026-04-28,regular,App móvil
+cli-01512,Daniela Salvatierra,F,Equipetrol,2026-02-04,regular,Web
+cli-01513,Diego Gutiérrez,F,Plan 3000,2025-02-04,regular,Web
+cli-01514,Diego Gutiérrez,F,Sur,2026-08-10,ocasional,Mostrador
+cli-01515,Mauricio Justiniano,F,Centro,2026-04-15,ocasional,Web
+cli-01516,Carolina Flores,F,Urbarí,2026-04-30,regular,App móvil
+cli-01517,Fernanda Gutiérrez,F,Plan 3000,2026-09-19,ocasional,App móvil
+cli-01518,Marcelo Roca,M,Equipetrol,2026-09-06,regular,App móvil
+cli-01519,Carla Montaño,F,Urubó,2026-09-16,ocasional,App móvil
+cli-01520,Luis Aguilera,M,Sur,2024-12-06,ocasional,Web
+cli-01521,Gonzalo Roca,F,Plan 3000,2026-08-26,frecuente,Web
+cli-01522,Jorge Vargas,M,Urubó,2026-02-15,regular,Web
+cli-01523,Paola Quiroga,F,Norte,2025-11-20,regular,Web
+cli-01524,Natalia Morales,M,Centro,2026-05-23,regular,App móvil
+cli-01525,Gabriela Paz,F,Sur,2025-09-19,ocasional,App móvil
+cli-01526,Sebastián Roca,F,Villa 1ro de Mayo,2026-01-22,frecuente,Mostrador
+cli-01527,Sebastián Rivero,F,Plan 3000,2026-03-13,ocasional,App móvil
+cli-01528,Daniela Roca,F,Centro,2025-07-01,ocasional,App móvil
+cli-01529,Lucía Rivero,F,Warnes,2025-08-01,ocasional,App móvil
+cli-01530,Isabel Rojas,F,Sur,2025-05-25,ocasional,App móvil
+cli-01531,Lucía Salvatierra,F,Villa 1ro de Mayo,2025-05-09,ocasional,Mostrador
+cli-01532,Sofía Suárez,F,Urbarí,2026-04-18,frecuente,Web
+cli-01533,Paola Salvatierra,F,Norte,2026-02-18,frecuente,App móvil
+cli-01534,Sofía Aguilera,F,Sur,2026-01-08,regular,Mostrador
+cli-01535,Valeria Mendoza,F,Urbarí,2026-10-16,regular,Web
+cli-01536,Alejandra Saavedra,F,Sur,2025-11-06,regular,Web
+cli-01537,Sebastián Paz,F,Urbarí,2026-05-11,ocasional,Mostrador
+cli-01538,Luis Salvatierra,F,Sur,2026-07-27,frecuente,App móvil
+cli-01539,Rocío Roca,F,Sur,2025-11-01,regular,App móvil
+cli-01540,Alejandra Gutiérrez,M,Urubó,2024-12-17,ocasional,App móvil
+cli-01541,Lucía Paz,F,Equipetrol,2026-06-06,frecuente,Web
+cli-01542,Luis Mendoza,M,Equipetrol,2025-03-15,regular,Mostrador
+cli-01543,Mariana Rivero,M,Equipetrol,2026-04-22,ocasional,Mostrador
+cli-01544,Verónica Salvatierra,F,Centro,2025-03-15,regular,Mostrador
+cli-01545,Mónica Flores,F,Norte,2025-09-11,regular,App móvil
+cli-01546,Mariana Montaño,F,Plan 3000,2025-08-28,frecuente,App móvil
+cli-01547,Sofía Antelo,F,Plan 3000,2025-04-16,ocasional,Web
+cli-01548,Gabriela Ribera,F,Equipetrol,2026-02-12,ocasional,App móvil
+cli-01549,Lucía Morales,F,Norte,2025-06-06,ocasional,Web
+cli-01550,Alejandro Mendoza,F,Urbarí,2026-01-07,ocasional,App móvil
+cli-01551,Mariana Quiroga,M,Equipetrol,2026-01-01,ocasional,Web
+cli-01552,Mariana Rojas,F,Norte,2025-04-12,regular,Web
+cli-01553,Mauricio Rivero,F,Urbarí,2025-06-29,regular,Web
+cli-01554,Diego Chávez,F,Plan 3000,2025-06-30,regular,Mostrador
+cli-01555,Fernanda Quiroga,M,Sur,2025-12-12,ocasional,Mostrador
+cli-01556,Gonzalo Roca,F,Las Palmas,2026-04-24,ocasional,Web
+cli-01557,Gabriela Mendoza,F,Sur,2025-09-02,ocasional,App móvil
+cli-01558,Paola Vargas,F,Sur,2026-07-03,ocasional,App móvil
+cli-01559,Sofía Fernandez,M,Centro,2026-02-16,regular,Web
+cli-01560,Natalia Salvatierra,F,Norte,2025-12-05,regular,App móvil
+cli-01561,Paula Paz,F,Norte,2025-08-12,ocasional,Web
+cli-01562,Marcelo Fernandez,F,Norte,2024-12-28,ocasional,Web
+cli-01563,Carla Aguilera,F,Las Palmas,2026-05-28,regular,Web
+cli-01564,Rocío Mendoza,F,Las Palmas,2025-01-12,ocasional,App móvil
+cli-01565,Carla Mendoza,M,Urbarí,2024-12-12,frecuente,Web
+cli-01566,Paola Chávez,M,Equipetrol,2025-04-27,frecuente,Web
+cli-01567,Sofía Antelo,F,Norte,2026-04-30,ocasional,Web
+cli-01568,Fernanda Salvatierra,F,Las Palmas,2025-10-11,ocasional,Web
+cli-01569,Andrea Flores,F,Norte,2025-08-12,regular,Mostrador
+cli-01570,Marcelo Fernandez,F,Plan 3000,2026-07-28,ocasional,Mostrador
+cli-01571,Andrea Salvatierra,F,Plan 3000,2025-03-14,frecuente,Web
+cli-01572,Marcelo Gutiérrez,F,Sur,2026-10-30,regular,App móvil
+cli-01573,Rodrigo Antelo,M,Norte,2026-04-07,frecuente,Web
+cli-01574,Natalia Suárez,F,Sur,2025-09-22,frecuente,Web
+cli-01575,Diego Vargas,F,Sur,2026-08-22,ocasional,Web
+cli-01576,Daniela Aguilera,F,Urubó,2026-05-06,regular,App móvil
+cli-01577,Lucía Mendoza,F,Urbarí,2026-09-12,ocasional,App móvil
+cli-01578,Lucía Montaño,F,Urbarí,2025-11-14,frecuente,App móvil
+cli-01579,Paula Roca,F,Las Palmas,2025-03-17,ocasional,App móvil
+cli-01580,Marcelo Flores,F,Norte,2026-07-05,regular,Mostrador
+cli-01581,Valeria Aguilera,M,Sur,2026-04-28,frecuente,App móvil
+cli-01582,Gonzalo Justiniano,F,Norte,2026-04-22,regular,App móvil
+cli-01583,Natalia Gutiérrez,M,Norte,2026-04-26,ocasional,Web
+cli-01584,Natalia Suárez,F,Plan 3000,2026-09-02,regular,Web
+cli-01585,Diego Vargas,F,Plan 3000,2024-11-19,frecuente,Mostrador
+cli-01586,Alejandro Salvatierra,F,Urbarí,2026-07-15,ocasional,Web
+cli-01587,Verónica Suárez,F,Plan 3000,2026-07-22,ocasional,App móvil
+cli-01588,Javier Morales,F,Norte,2025-11-03,frecuente,App móvil
+cli-01589,Rocío Antelo,F,Warnes,2025-09-12,ocasional,Web
+cli-01590,Isabel Flores,M,Equipetrol,2025-02-26,regular,Mostrador
+cli-01591,Carla Ribera,M,Norte,2025-03-25,ocasional,App móvil
+cli-01592,Gabriela Saavedra,F,Equipetrol,2025-04-29,regular,App móvil
+cli-01593,Fernanda Roca,F,Norte,2026-09-14,frecuente,App móvil
+cli-01594,Paola Justiniano,F,Centro,2025-02-01,ocasional,Web
+cli-01595,Alejandro Suárez,F,Warnes,2026-02-24,regular,Web
+cli-01596,Sebastián Salvatierra,F,Villa 1ro de Mayo,2026-02-05,regular,Web
+cli-01597,Sebastián Rojas,F,Sur,2025-01-10,ocasional,App móvil
+cli-01598,Andrea Rivero,F,Sur,2026-08-07,regular,App móvil
+cli-01599,Alejandra Fernandez,F,Norte,2026-10-22,ocasional,Web
+cli-01600,Sofía Fernandez,M,Las Palmas,2026-05-16,ocasional,Web
+cli-01601,Luis Rivero,M,Sur,2025-03-18,ocasional,Mostrador
+cli-01602,Mariana Montaño,M,Plan 3000,2026-08-08,regular,Web
+cli-01603,Verónica Chávez,F,Villa 1ro de Mayo,2025-09-28,regular,App móvil
+cli-01604,Luis Paz,M,Norte,2026-08-27,frecuente,App móvil
+cli-01605,Paola Saavedra,F,Norte,2026-02-25,ocasional,App móvil
+cli-01606,Rocío Morales,F,Sur,2025-12-17,frecuente,Web
+cli-01607,Mauricio Paz,M,Villa 1ro de Mayo,2026-06-07,ocasional,Web
+cli-01608,Rodrigo Chávez,F,Norte,2025-07-20,regular,App móvil
+cli-01609,Fernanda Paz,F,Equipetrol,2025-03-14,ocasional,App móvil
+cli-01610,Fernanda Ribera,M,Centro,2025-02-27,frecuente,Mostrador
+cli-01611,Valeria Justiniano,F,Sur,2026-01-05,ocasional,App móvil
+cli-01612,Luis Ribera,F,Norte,2026-04-12,ocasional,Web
+cli-01613,Gabriela Gutiérrez,F,Sur,2026-07-14,ocasional,Web
+cli-01614,Paula Mendoza,F,Norte,2026-04-25,regular,Mostrador
+cli-01615,Gabriela Chávez,F,Equipetrol,2025-12-14,regular,Web
+cli-01616,Mauricio Suárez,M,Centro,2026-03-16,frecuente,Web
+cli-01617,Mariana Morales,F,Las Palmas,2025-10-14,regular,Web
+cli-01618,Rodrigo Vargas,F,Norte,2026-08-17,ocasional,Mostrador
+cli-01619,Andrea Morales,F,Equipetrol,2024-11-09,ocasional,Web
+cli-01620,Fernanda Fernandez,F,Equipetrol,2025-05-16,ocasional,Web
+cli-01621,Paola Roca,F,Equipetrol,2025-06-20,regular,Web
+cli-01622,Diego Rivero,F,Norte,2025-11-13,frecuente,App móvil
+cli-01623,Gabriela Rojas,M,Centro,2025-10-07,ocasional,Web
+cli-01624,Gonzalo Fernandez,F,Centro,2025-09-17,ocasional,App móvil
+cli-01625,Isabel Montaño,F,Sur,2026-06-28,regular,App móvil
+cli-01626,Natalia Suárez,F,Urbarí,2026-03-22,ocasional,Mostrador
+cli-01627,Carla Montaño,F,Villa 1ro de Mayo,2026-05-21,frecuente,Web
+cli-01628,Jorge Quiroga,F,Equipetrol,2026-10-06,regular,Web
+cli-01629,Carla Quiroga,F,Equipetrol,2025-03-18,regular,Web
+cli-01630,Carla Vargas,F,Norte,2025-06-12,frecuente,Web
+cli-01631,Diego Justiniano,F,Sur,2025-03-26,ocasional,Web
+cli-01632,Camila Antelo,F,Urubó,2025-05-23,regular,Mostrador
+cli-01633,Paula Justiniano,F,Equipetrol,2026-04-30,ocasional,Web
+cli-01634,Lucía Montaño,F,Urbarí,2025-07-06,ocasional,App móvil
+cli-01635,Fernanda Fernandez,F,Villa 1ro de Mayo,2026-09-23,ocasional,App móvil
+cli-01636,Natalia Ribera,F,Equipetrol,2025-04-12,frecuente,Web
+cli-01637,Marcelo Roca,F,Equipetrol,2025-12-16,ocasional,Web
+cli-01638,Andrea Gutiérrez,F,Norte,2026-01-12,ocasional,Web
+cli-01639,Javier Justiniano,F,Villa 1ro de Mayo,2025-12-20,ocasional,Mostrador
+cli-01640,Sofía Mendoza,F,Sur,2026-09-26,regular,App móvil
+cli-01641,Sebastián Mendoza,M,Centro,2026-04-26,regular,Web
+cli-01642,Rocío Gutiérrez,M,Plan 3000,2026-07-01,regular,App móvil
+cli-01643,Paola Aguilera,F,Plan 3000,2026-07-04,frecuente,App móvil
+cli-01644,Rocío Montaño,F,Las Palmas,2026-05-19,ocasional,Web
+cli-01645,Daniela Aguilera,M,Urubó,2025-08-27,ocasional,App móvil
+cli-01646,Valeria Antelo,F,Urubó,2025-04-24,frecuente,Web
+cli-01647,Paula Paz,F,Centro,2025-09-16,regular,Mostrador
+cli-01648,Daniela Ribera,M,Norte,2025-08-20,frecuente,App móvil
+cli-01649,Verónica Mendoza,F,Urbarí,2025-05-31,regular,Mostrador
+cli-01650,Fernanda Flores,F,Warnes,2025-12-18,regular,Web
+cli-01651,Fernanda Roca,F,Norte,2026-01-29,regular,Web
+cli-01652,Sofía Antelo,F,Norte,2026-08-08,ocasional,Web
+cli-01653,Rocío Justiniano,F,Villa 1ro de Mayo,2025-04-15,ocasional,Web
+cli-01654,Isabel Montaño,M,Sur,2026-08-16,ocasional,Mostrador
+cli-01655,Camila Quiroga,F,Equipetrol,2025-06-09,ocasional,Web
+cli-01656,Gabriela Aguilera,F,Norte,2025-01-19,ocasional,Web
+cli-01657,Isabel Aguilera,F,Sur,2024-12-13,ocasional,App móvil
+cli-01658,Rocío Roca,F,Sur,2025-06-17,ocasional,App móvil
+cli-01659,Diego Ribera,M,Villa 1ro de Mayo,2026-10-16,regular,App móvil
+cli-01660,Valeria Rojas,F,Equipetrol,2026-01-17,ocasional,Web
+cli-01661,Carolina Flores,F,Villa 1ro de Mayo,2026-07-16,ocasional,Web
+cli-01662,Verónica Fernandez,F,Norte,2026-01-07,regular,App móvil
+cli-01663,Verónica Aguilera,M,Las Palmas,2024-12-29,regular,App móvil
+cli-01664,Sofía Ribera,F,Urubó,2025-06-02,ocasional,Web
+cli-01665,Paola Rojas,F,Las Palmas,2025-09-28,ocasional,Web
+cli-01666,Isabel Rivero,F,Plan 3000,2026-03-29,regular,Web
+cli-01667,Javier Roca,F,Equipetrol,2025-10-11,frecuente,Web
+cli-01668,Carla Chávez,F,Urubó,2026-08-03,ocasional,Web
+cli-01669,Alejandra Roca,M,Sur,2025-10-31,regular,Mostrador
+cli-01670,Alejandro Vargas,F,Villa 1ro de Mayo,2025-11-25,regular,Mostrador
+cli-01671,Carla Paz,F,Urbarí,2026-07-30,regular,App móvil
+cli-01672,Jorge Montaño,F,Villa 1ro de Mayo,2025-05-02,regular,App móvil
+cli-01673,Rocío Gutiérrez,M,Villa 1ro de Mayo,2026-05-01,ocasional,Mostrador
+cli-01674,Jorge Montaño,F,Norte,2025-02-08,ocasional,App móvil
+cli-01675,Carolina Suárez,F,Sur,2025-05-11,regular,App móvil
+cli-01676,Gonzalo Antelo,F,Sur,2025-01-18,regular,Web
+cli-01677,Andrea Flores,F,Urbarí,2026-07-24,frecuente,Mostrador
+cli-01678,Isabel Antelo,M,Norte,2026-08-17,frecuente,Web
+cli-01679,Rocío Mendoza,F,Las Palmas,2026-06-09,frecuente,App móvil
+cli-01680,Camila Antelo,F,Centro,2024-12-06,ocasional,Web
+cli-01681,Verónica Morales,F,Sur,2025-09-13,ocasional,App móvil
+cli-01682,Gonzalo Chávez,M,Urbarí,2026-02-14,frecuente,App móvil
+cli-01683,Jorge Paz,F,Urbarí,2026-10-21,regular,Web
+cli-01684,Jimena Rojas,F,Urubó,2026-03-19,ocasional,App móvil
+cli-01685,Mónica Quiroga,M,Equipetrol,2025-09-22,frecuente,App móvil
+cli-01686,Paula Morales,F,Sur,2025-07-20,regular,App móvil
+cli-01687,Isabel Vargas,F,Sur,2025-01-31,regular,App móvil
+cli-01688,Natalia Fernandez,M,Norte,2025-02-21,regular,App móvil
+cli-01689,Camila Morales,F,Las Palmas,2024-12-11,frecuente,Web
+cli-01690,Carla Flores,M,Norte,2024-12-15,ocasional,Web
+cli-01691,Carla Ribera,F,Norte,2025-05-03,regular,App móvil
+cli-01692,Sebastián Rojas,F,Sur,2025-05-25,regular,App móvil
+cli-01693,Gabriela Morales,F,Urubó,2025-12-28,ocasional,App móvil
+cli-01694,Jorge Quiroga,F,Sur,2026-10-08,ocasional,Web
+cli-01695,Luis Quiroga,M,Norte,2026-10-26,ocasional,Web
+cli-01696,Camila Aguilera,F,Sur,2025-05-22,frecuente,Mostrador
+cli-01697,Rodrigo Flores,F,Equipetrol,2025-01-03,ocasional,Web
+cli-01698,Rodrigo Vargas,F,Sur,2025-09-18,ocasional,App móvil
+cli-01699,Mariana Salvatierra,F,Equipetrol,2026-10-22,ocasional,Mostrador
+cli-01700,Carla Rojas,F,Sur,2025-04-25,regular,Web
+cli-01701,Daniela Montaño,F,Urbarí,2025-06-29,ocasional,Web
+cli-01702,Paula Fernandez,F,Centro,2026-01-19,regular,Mostrador
+cli-01703,Valeria Mendoza,F,Plan 3000,2026-01-11,frecuente,Web
+cli-01704,Mauricio Rivero,F,Urbarí,2025-10-15,ocasional,App móvil
+cli-01705,Paola Rojas,M,Sur,2025-10-20,regular,Web
+cli-01706,Daniela Rojas,F,Norte,2026-10-04,regular,App móvil
+cli-01707,Sofía Vargas,F,Equipetrol,2026-02-08,regular,Web
+cli-01708,Jimena Chávez,F,Norte,2026-07-29,regular,Web
+cli-01709,Carla Suárez,F,Centro,2026-05-29,ocasional,Mostrador
+cli-01710,Rocío Chávez,F,Las Palmas,2025-10-21,regular,Mostrador
+cli-01711,Diego Montaño,F,Urbarí,2026-08-19,regular,App móvil
+cli-01712,Valeria Rojas,M,Sur,2026-09-23,ocasional,Mostrador
+cli-01713,Verónica Rojas,F,Urubó,2026-07-28,regular,Web
+cli-01714,Luis Mendoza,F,Norte,2025-05-25,regular,Mostrador
+cli-01715,Fernanda Vargas,M,Norte,2025-03-11,regular,Web
+cli-01716,Sofía Aguilera,F,Urbarí,2025-06-25,frecuente,App móvil
+cli-01717,Verónica Quiroga,F,Urbarí,2026-07-07,regular,App móvil
+cli-01718,Natalia Aguilera,F,Las Palmas,2025-09-14,regular,Web
+cli-01719,Carla Fernandez,F,Las Palmas,2025-02-14,regular,Web
+cli-01720,Marcelo Flores,F,Urbarí,2025-12-15,ocasional,App móvil
+cli-01721,Carolina Saavedra,F,Plan 3000,2026-04-29,frecuente,Mostrador
+cli-01722,Valeria Suárez,F,Urubó,2026-05-19,regular,Web
+cli-01723,Jimena Flores,F,Warnes,2025-07-29,ocasional,Web
+cli-01724,Fernanda Antelo,F,Centro,2026-04-27,frecuente,App móvil
+cli-01725,Andrea Aguilera,F,Norte,2025-11-29,regular,App móvil
+cli-01726,Mónica Antelo,M,Sur,2026-10-26,ocasional,Web
+cli-01727,Lucía Morales,F,Equipetrol,2025-08-11,ocasional,Web
+cli-01728,Paola Saavedra,M,Villa 1ro de Mayo,2026-09-11,regular,Mostrador
+cli-01729,Rocío Saavedra,F,Norte,2026-06-04,ocasional,Web
+cli-01730,Camila Salvatierra,F,Centro,2025-11-24,frecuente,App móvil
+cli-01731,Gonzalo Flores,F,Sur,2026-01-30,frecuente,Mostrador
+cli-01732,Sebastián Quiroga,F,Sur,2025-01-12,ocasional,Mostrador
+cli-01733,Verónica Vargas,F,Las Palmas,2026-08-11,ocasional,Web
+cli-01734,Valeria Mendoza,F,Equipetrol,2025-05-10,regular,App móvil
+cli-01735,Lucía Ribera,M,Plan 3000,2025-09-27,regular,Mostrador
+cli-01736,Sofía Saavedra,M,Norte,2026-01-22,ocasional,App móvil
+cli-01737,Natalia Rojas,M,Equipetrol,2026-01-09,ocasional,Web
+cli-01738,Gabriela Morales,F,Equipetrol,2026-01-08,ocasional,Web
+cli-01739,Valeria Justiniano,M,Las Palmas,2025-06-26,regular,App móvil
+cli-01740,Marcelo Paz,F,Urbarí,2025-06-16,regular,App móvil
+cli-01741,Gonzalo Montaño,F,Equipetrol,2025-06-21,ocasional,App móvil
+cli-01742,Jimena Justiniano,F,Equipetrol,2026-10-02,regular,App móvil
+cli-01743,Alejandro Fernandez,F,Equipetrol,2026-10-15,regular,Web
+cli-01744,Verónica Rivero,M,Sur,2025-02-09,regular,Web
+cli-01745,Rodrigo Vargas,F,Plan 3000,2026-03-29,frecuente,Web
+cli-01746,Mauricio Chávez,F,Norte,2025-12-16,ocasional,Web
+cli-01747,Camila Salvatierra,M,Villa 1ro de Mayo,2025-08-28,frecuente,Mostrador
+cli-01748,Diego Flores,F,Las Palmas,2026-08-05,frecuente,App móvil
+cli-01749,Jorge Saavedra,F,Sur,2025-09-05,ocasional,App móvil
+cli-01750,Marcelo Morales,M,Urbarí,2025-03-15,regular,Mostrador
+cli-01751,Sofía Antelo,F,Centro,2025-02-18,regular,Mostrador
+cli-01752,Verónica Saavedra,F,Plan 3000,2025-04-16,regular,Web
+cli-01753,Sebastián Gutiérrez,F,Centro,2025-05-31,ocasional,Web
+cli-01754,Alejandra Ribera,F,Sur,2026-04-21,regular,App móvil
+cli-01755,Andrea Suárez,F,Norte,2025-04-28,regular,Web
+cli-01756,Rodrigo Morales,F,Las Palmas,2026-02-06,frecuente,App móvil
+cli-01757,Javier Mendoza,M,Urubó,2025-07-17,regular,Web
+cli-01758,Luis Roca,F,Plan 3000,2026-06-03,regular,App móvil
+cli-01759,Paula Suárez,F,Sur,2025-09-11,ocasional,Web
+cli-01760,Rocío Quiroga,F,Centro,2026-10-10,frecuente,App móvil
+cli-01761,Daniela Roca,F,Norte,2025-08-08,ocasional,App móvil
+cli-01762,Diego Vargas,F,Sur,2026-09-13,ocasional,Web
+cli-01763,Luis Morales,F,Urubó,2025-04-17,ocasional,App móvil
+cli-01764,Mariana Vargas,F,Norte,2025-04-09,regular,Web
+cli-01765,Camila Antelo,F,Equipetrol,2026-08-24,frecuente,Web
+cli-01766,Alejandro Aguilera,M,Sur,2026-08-28,regular,Web
+cli-01767,Valeria Quiroga,F,Plan 3000,2026-03-10,ocasional,Web
+cli-01768,Diego Quiroga,F,Equipetrol,2025-02-20,ocasional,Web
+cli-01769,Gabriela Quiroga,F,Equipetrol,2026-05-24,ocasional,Web
+cli-01770,Gabriela Suárez,M,Villa 1ro de Mayo,2025-03-17,ocasional,Web
+cli-01771,Sebastián Chávez,F,Plan 3000,2025-05-29,regular,Web
+cli-01772,Daniela Flores,F,Villa 1ro de Mayo,2026-05-19,regular,App móvil
+cli-01773,Fernanda Roca,F,Equipetrol,2025-09-20,frecuente,App móvil
+cli-01774,Sofía Antelo,F,Las Palmas,2026-09-12,ocasional,Mostrador
+cli-01775,Lucía Rivero,F,Equipetrol,2026-04-13,ocasional,Mostrador
+cli-01776,Carla Flores,F,Urbarí,2025-05-23,ocasional,Mostrador
+cli-01777,Gonzalo Salvatierra,F,Sur,2025-03-25,ocasional,Mostrador
+cli-01778,Jimena Rojas,M,Las Palmas,2025-03-06,regular,Web
+cli-01779,Valeria Rivero,F,Plan 3000,2025-01-06,regular,Web
+cli-01780,Javier Vargas,F,Plan 3000,2024-12-31,ocasional,App móvil
+cli-01781,Mariana Rivero,F,Villa 1ro de Mayo,2025-12-31,frecuente,App móvil
+cli-01782,Javier Fernandez,F,Centro,2026-06-01,frecuente,Mostrador
+cli-01783,Sofía Gutiérrez,F,Equipetrol,2026-07-26,ocasional,Web
+cli-01784,Lucía Flores,F,Norte,2026-02-26,frecuente,App móvil
+cli-01785,Valeria Chávez,F,Plan 3000,2024-12-22,regular,App móvil
+cli-01786,Luis Salvatierra,F,Plan 3000,2026-01-31,ocasional,App móvil
+cli-01787,Sebastián Salvatierra,F,Urubó,2025-02-05,ocasional,Mostrador
+cli-01788,Diego Saavedra,M,Norte,2025-05-02,ocasional,Web
+cli-01789,Paola Aguilera,M,Sur,2026-01-17,frecuente,App móvil
+cli-01790,Mónica Fernandez,F,Urbarí,2025-05-16,regular,Web
+cli-01791,Andrea Fernandez,F,Centro,2025-12-06,ocasional,Web
+cli-01792,Verónica Morales,F,Urbarí,2024-11-06,frecuente,App móvil
+cli-01793,Jorge Justiniano,F,Sur,2026-08-23,ocasional,App móvil
+cli-01794,Marcelo Fernandez,M,Norte,2025-04-29,regular,App móvil
+cli-01795,Carla Montaño,F,Urbarí,2025-01-07,regular,App móvil
+cli-01796,Gonzalo Rojas,F,Las Palmas,2025-12-09,ocasional,Web
+cli-01797,Mónica Montaño,F,Las Palmas,2025-02-02,frecuente,Mostrador
+cli-01798,Verónica Salvatierra,F,Las Palmas,2025-10-29,regular,Mostrador
+cli-01799,Natalia Ribera,F,Norte,2025-01-23,ocasional,Web
+cli-01800,Isabel Rivero,F,Villa 1ro de Mayo,2024-11-08,frecuente,App móvil

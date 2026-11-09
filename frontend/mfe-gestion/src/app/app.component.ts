@@ -7,9 +7,10 @@ import { CounterComponent } from './features/counter.component';
 import { InventoryComponent } from './features/inventory.component';
 import { ModerationComponent } from './features/moderation.component';
 import { PanelComponent } from './features/panel.component';
+import { ReportsComponent } from './features/reports.component';
 import { StylistsComponent } from './features/stylists.component';
 
-type Tab = 'panel' | 'agenda' | 'counter' | 'inventory' | 'stylists' | 'clients' | 'moderation' | 'agent';
+type Tab = 'panel' | 'agenda' | 'counter' | 'inventory' | 'stylists' | 'clients' | 'moderation' | 'agent' | 'reports';
 type Role = 'ADMIN' | 'STYLIST' | 'RECEPTIONIST';
 
 /** Cada pestaña indica qué roles la ven. Ocultarla es comodidad: quien autoriza es cada servicio. */
@@ -22,13 +23,15 @@ const TABS: { id: Tab; label: string; roles: Role[] }[] = [
   { id: 'clients', label: 'Clientes', roles: ['ADMIN', 'STYLIST', 'RECEPTIONIST'] },
   { id: 'moderation', label: 'Moderación', roles: ['ADMIN', 'STYLIST'] },
   { id: 'agent', label: 'Asistentes', roles: ['ADMIN', 'STYLIST'] },
+  // Los reportes traen datos de clientes y facturación: solo la administración
+  { id: 'reports', label: 'Reportes', roles: ['ADMIN'] },
 ];
 
 @Component({
   selector: 'app-root',
   imports: [
     AgendaComponent, AgentComponent, ClientsComponent, CounterComponent, InventoryComponent,
-    ModerationComponent, PanelComponent, StylistsComponent,
+    ModerationComponent, PanelComponent, ReportsComponent, StylistsComponent,
   ],
   template: `
     <div class="page">
@@ -53,6 +56,7 @@ const TABS: { id: Tab; label: string; roles: Role[] }[] = [
           @case ('clients') { <app-clients /> }
           @case ('moderation') { <app-moderation /> }
           @case ('agent') { <app-agent /> }
+          @case ('reports') { <app-reports /> }
         }
       }
     </div>

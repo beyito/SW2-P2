@@ -1,0 +1,10 @@
+insumo_id,insumo,categoria,costo_unitario
+inv-001,Tinte Rubio Cenizo 8.1 60ml,COLORACION,14.5
+inv-002,Tratamiento Keratina Hidronutritiva 1000ml,TRATAMIENTOS,65.0
+inv-003,Oxidante en Crema 20 Volúmenes 1L,DECOLORACION,9.8
+inv-004,Polvo decolorante 500g,DECOLORACION,18.0
+inv-005,Mascarilla hidratante 500ml,TRATAMIENTOS,21.0
+inv-006,Esmalte semipermanente,UÑAS,6.5
+inv-007,Base de maquillaje profesional,MAQUILLAJE,12.0
+inv-008,Laca fijadora 400ml,PEINADO,7.2
+inv-009,Alisado orgánico 1L,TRATAMIENTOS,58.0

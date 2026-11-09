@@ -144,6 +144,8 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-salon_admin}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-salon_secret_pass}
       POSTGRES_DB: ${POSTGRES_DB:-postgres}
+      # Usuario de solo lectura de los reportes del Servidor MCP
+      REPORTES_PGPASSWORD: ${REPORTES_PGPASSWORD:-salon_reportes_local}
     volumes:
       - ./docker/postgres/migrate.sh:/migrate.sh:ro
       - ./docker/postgres/migrations:/migrations:ro
@@ -214,6 +216,7 @@ services:
       KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "true"
       # Valores del realm; solo se aplican cuando el realm se importa por primera vez
       SALON_AGENT_SECRET: ${SALON_AGENT_SECRET:-salon-agent-secret-local}
+      SALON_BI_SECRET: ${SALON_BI_SECRET:-salon-bi-secret-local}
     networks:
       - salon-network
     depends_on:
@@ -442,11 +445,16 @@ services:
       SALON_TIMEZONE: ${SALON_TIMEZONE:-America/La_Paz}
       GESTION_GRAPHQL_URL: http://ms-gestion:8081/graphql
       CRM_GRAPHQL_URL: http://ms-crm:8000/graphql
+      # Reportes dinámicos: conexiones de solo lectura a cada base (CU-18)
+      REPORTES_GESTION_DB_URL: postgres://salon_reportes:${REPORTES_PGPASSWORD:-salon_reportes_local}@postgres:5432/salon_gestion
+      REPORTES_CRM_DB_URL: postgres://salon_reportes:${REPORTES_PGPASSWORD:-salon_reportes_local}@postgres:5432/salon_crm
       <<: *auth-env
     networks:
       - salon-network
     depends_on:
       dynamodb-init:
+        condition: service_completed_successfully
+      db-migrate:
         condition: service_completed_successfully
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:4000/health > /dev/null || exit 1"]
@@ -454,6 +462,34 @@ services:
       timeout: 5s
       retries: 10
       start_period: 10s
+
+  # ------------------------------------------------------------------
+  # Tablero de inteligencia de negocios en Python (Streamlit): KPI sobre el dataset histórico.
+  # Inicia sesión con Keycloak (cliente salon-bi) y exige el rol ADMIN.
+  # ------------------------------------------------------------------
+  bi-dashboard:
+    build: ./backend/bi-dashboard
+    container_name: salon-bi-dashboard
+    restart: unless-stopped
+    ports:
+      - "8501:8501"
+    environment:
+      BI_URL: http://localhost:8501
+      BI_CLIENT_SECRET: ${SALON_BI_SECRET:-salon-bi-secret-local}
+      BI_COOKIE_SECRET: ${BI_COOKIE_SECRET:-salon-bi-cookie-local}
+      # Desde la red interna, Keycloak publica el inicio de sesión en localhost y el token en keycloak:8080
+      BI_KEYCLOAK_METADATA_URL: http://keycloak:8080/realms/salon/.well-known/openid-configuration
+    networks:
+      - salon-network
+    depends_on:
+      keycloak:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8501/_stcore/health')\""]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
 
   # ------------------------------------------------------------------
   # Orquestador de la SAGA de reserva y pago (CU-10, RF-07, RNF-03, RNF-04)

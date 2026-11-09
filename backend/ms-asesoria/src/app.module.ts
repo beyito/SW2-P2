@@ -22,6 +22,7 @@ import { CommunityService } from './adapters/inbound/services/community.service'
 import { MediaService } from './adapters/inbound/services/media.service';
 import { RabbitEventPublisher } from './adapters/outbound/messaging/rabbit-event.publisher';
 import { GridFsMediaStorage } from './adapters/outbound/persistence/gridfs-media.storage';
+import { S3MediaStorage, s3ConfigFromEnv } from './adapters/outbound/storage/s3-media.storage';
 import { EVENT_PUBLISHER } from './ports/outbound/event-publisher.port';
 import { MEDIA_STORAGE } from './ports/outbound/media-storage.port';
 import { MongoClosetRepository } from './adapters/outbound/persistence/mongo-closet.repository';
@@ -66,7 +67,16 @@ const MONGO_URI =
   providers: [
     DynamoHttpClient,
     MediaService,
-    { provide: MEDIA_STORAGE, useClass: GridFsMediaStorage },
+    GridFsMediaStorage,
+    {
+      // Con S3_BUCKET las imágenes van a Amazon S3 y GridFS queda solo para migrar las anteriores
+      provide: MEDIA_STORAGE,
+      inject: [GridFsMediaStorage],
+      useFactory: (gridFs: GridFsMediaStorage) => {
+        const s3 = s3ConfigFromEnv();
+        return s3 ? new S3MediaStorage({ ...s3, fallback: gridFs }) : gridFs;
+      },
+    },
     { provide: EVENT_PUBLISHER, useClass: RabbitEventPublisher },
     { provide: SESSION_REGISTRY, useClass: DynamoSessionRegistry },
     { provide: TOKEN_VERIFIER, useClass: KeycloakTokenVerifier },

@@ -12,6 +12,7 @@ const { BackendError, createBackends } = require('./backends');
 const { createGeminiAgentModel, createGeminiGenerator } = require('./gemini');
 const { canUseTool, createToolRunner, toolsFor } = require('./tools');
 const { createDynamoActions } = require('./actions');
+const { createReportDatabases } = require('./reports');
 
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'http://localhost:3000').split(',');
 const MCP_PATH = '/mcp';
@@ -31,6 +32,7 @@ class McpHttpServer {
     generateText = createGeminiGenerator(),
     callModel = createGeminiAgentModel(),
     actions = createDefaultActions(),
+    reportDatabases = createReportDatabases(),
   } = {}) {
     this.port = port;
     this.authenticate = authenticate;
@@ -38,6 +40,7 @@ class McpHttpServer {
     this.generateText = generateText;
     this.callModel = callModel;
     this.actions = actions;
+    this.reportDatabases = reportDatabases;
   }
 
   /** Crea el servidor de protocolo con los permisos y los datos de quien hace la petición. */
@@ -50,6 +53,7 @@ class McpHttpServer {
       roles: user.roles,
       actions: this.actions,
       ownerId: user.agentId,
+      reportDatabases: this.reportDatabases,
     });
 
     server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: toolsFor(user.roles) }));
