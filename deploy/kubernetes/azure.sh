@@ -64,6 +64,13 @@ DB_PASSWORD=$AZURE_PG_CLAVE
 RABBITMQ_PASSWORD=$RABBITMQ_CLAVE
 AWS_SECRET_ACCESS_KEY=$DYNAMO_CRM_SECRETO
 ENV
+# Notificaciones push: este worker comparte la cola con el de Container Apps y procesa la mitad de
+# los eventos. Sin la cuenta de FCM, guardaría esos avisos en la app pero no enviaría su push.
+if [ -f "$SALIDA/fcm-cuenta.json" ]; then
+  echo "FCM_CREDENTIALS_JSON=$(base64 -w0 "$SALIDA/fcm-cuenta.json")" >> "$OVERLAY/generado/ms-crm-worker-secretos.env"
+else
+  echo "Aviso: falta deploy/salida/fcm-cuenta.json; el worker de AKS no enviará notificaciones push." >&2
+fi
 
 paso "Despliegue en AKS"
 kubectl kustomize "$OVERLAY" | sed "s#REGISTRO/#$REGISTRO_NOMBRE.azurecr.io/#" | kubectl apply -f -

@@ -694,6 +694,8 @@ Aprobada el 10 de noviembre de 2026: las cuentas de demostración partían casi 
 - [x] Error encontrado al probar: un reporte agrupado sumaba el número de factura, que es un identificador. Ahora se excluye de sumas y totales. MCP 87/87, con la prueba ampliada; desplegado en AWS.
 - [x] Las suites de navegador pasan con el historial cargado. `fase_f`, `fase_g` y `seguridad` fallaron alguna vez por tiempo: el agente local en CPU llegó a tardar más de un minuto con la máquina cargada, y una espera fija de 1,5 s no alcanzó. Al repetirlas, `fase_f` y `seguridad` pasaron.
 
+- [x] Error encontrado por el usuario: una reserva en la nube envió el WhatsApp, pero no el push. El worker del CRM en AKS, que procesa la mitad de los eventos de la SAGA, no tenía la cuenta de FCM: guardaba el aviso en la app y omitía el push sin error. `deploy/kubernetes/azure.sh` ahora se la pasa; aplicada en AKS y comprobada dentro del pod.
+
 **Limitaciones conocidas:**
 - **Fechas:** el historial termina el 4 de noviembre de 2026: «este mes» y «esta semana» muestran pocos datos del historial.
 - **Datos sintéticos:** no coinciden con el dataset del BI, que tiene 12 servicios y 6 estilistas.

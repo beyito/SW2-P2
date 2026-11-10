@@ -168,6 +168,7 @@ Los comandos de cada suite están en el manual, sección 7. Últimos conteos: or
 - La credencial de RabbitMQ de n8n necesita `"passwordless": false`: con TLS, n8n usa por defecto un certificado de cliente (SASL EXTERNAL), CloudAMQP lo rechaza y ningún flujo se activa. En local no se nota, porque va sin TLS.
 - El cliente HTTP de Java (puerta del ERP en `ms-gestion`) va en HTTP/1.1: si intenta subir a HTTP/2, uvicorn (`ms-ia`) rechaza la petición cuando lleva cuerpo.
 - El modelo local en la nube (`salon-llm`) está detrás de un proxy con clave: no lo publiques sin ella.
+- **Push y Kubernetes:** el worker del CRM en AKS comparte la cola con el de Container Apps y procesa la mitad de los eventos. Si le falta `FCM_CREDENTIALS_JSON`, guarda el aviso pero no envía el push, sin ningún error. `deploy/kubernetes/azure.sh` ya se la pasa.
 - Crear cuentas de servicio, roles o claves en la nube (por ejemplo, `deploy/firebase/cuenta-envio.sh`) lo hace a mano la persona dueña de la cuenta.
 - Un heredoc dentro de un comando de Bash puede convertir una barra invertida doble en una sola, y romper el código que se edita así. Para editar archivos con barras invertidas (PHP, Bash), usa la herramienta de edición o un script en un archivo aparte.
 
