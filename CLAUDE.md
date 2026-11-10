@@ -29,7 +29,7 @@ Este archivo se escribió el 7 de noviembre de 2026, para que otro integrante de
 
 ## Estado actual
 
-Las fases A a X están completadas. La Fase P desplegó la plataforma en AWS, Azure y Google Cloud, como exige el docente, el 9 de noviembre de 2026. Las fases R a V se hicieron después a partir de los modelos de examen de semestres anteriores. Son reportes en Excel y PDF, BI en Python, imágenes en S3, Kubernetes en las tres nubes, notificaciones push, el ERP 100 % GraphQL y la IA con un modelo local (Ollama). [CUMPLIMIENTO_EXAMEN.md](CUMPLIMIENTO_EXAMEN.md) responde cada pregunta con su evidencia. La web está en **https://salon-sw2-app.web.app** y Keycloak en https://auth.salon-ai.beauty. Ver [DESPLIEGUE_MULTICLOUD.md](DESPLIEGUE_MULTICLOUD.md): regiones, direcciones y lo verificado en vivo.
+Las fases A a Y están completadas. La Fase P desplegó la plataforma en AWS, Azure y Google Cloud, como exige el docente, el 9 de noviembre de 2026. Las fases R a V se hicieron después a partir de los modelos de examen de semestres anteriores. Son reportes en Excel y PDF, BI en Python, imágenes en S3, Kubernetes en las tres nubes, notificaciones push, el ERP 100 % GraphQL y la IA con un modelo local (Ollama). La Fase Y cargó un año de historial (citas, facturas, puntos, reseñas e inventario) y 13 prendas con foto en el clóset de Camila, en local y en la nube; se borra con `docker/historial/limpiar_*.sql` o `bash deploy/historial.sh limpiar`. [CUMPLIMIENTO_EXAMEN.md](CUMPLIMIENTO_EXAMEN.md) responde cada pregunta con su evidencia. La web está en **https://salon-sw2-app.web.app** y Keycloak en https://auth.salon-ai.beauty. Ver [DESPLIEGUE_MULTICLOUD.md](DESPLIEGUE_MULTICLOUD.md): regiones, direcciones y lo verificado en vivo.
 
 **Las cuentas de demostración en la nube no usan las contraseñas del manual.** Están en `deploy/salida/cuentas-demo.env`, que solo existe en la PC de quien desplegó: pídelas por un canal privado. En Docker Compose local siguen las del manual.
 
@@ -104,6 +104,7 @@ Los comandos de cada suite están en el manual, sección 7. Últimos conteos: or
 - Tras cambiar un microfrontend, repite también sus E2E anteriores, no solo el nuevo.
 - Después de cada corrida, revisa que no queden datos de prueba: puntos, stock, citas, Mongo. Hubo pruebas que pasaban y dejaban restos. Comprueba cuántos registros borró cada limpieza.
 - Una prueba E2E no debe depender del perfil de `cli-001`: usa `perfilDePruebaVacio()` de `tests/e2e/soporte.mjs`.
+- **Historial de demostración:** Camila (`cli-001`) tiene 38 citas pasadas y miles de puntos. Una prueba no debe contar sus citas, facturas ni puntos totales; mide diferencias. Las limpiezas no deben tocar los registros `hist-`.
 - Una `ReadTimeout` con poca memoria no indica un error de código, pero repite la suite para demostrarlo.
 
 ## Trampas conocidas

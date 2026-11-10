@@ -67,6 +67,10 @@ test('agrupar suma las columnas numéricas pedidas y cuenta registros', () => {
   assert.match(sql, /GROUP BY 1/);
   assert.deepEqual(salida.map((c) => c.clave), ['servicio', 'cantidad', 'total']);
   assert.throws(() => construirConsulta({ entidad: 'facturas', agrupar_por: 'total' }), /No se puede agrupar/);
+  // El número de factura es un identificador: agrupado, no se suma
+  const conNumero = construirConsulta({ entidad: 'facturas', columnas: ['numero', 'servicio', 'total'], agrupar_por: 'servicio' });
+  assert.ok(!conNumero.sql.includes('sum(f.invoice_number)'), conNumero.sql);
+  assert.deepEqual(conNumero.salida.map((c) => c.clave), ['servicio', 'cantidad', 'total']);
 });
 
 test('el reporte en Excel trae encabezados, filas traducidas y totales', async () => {

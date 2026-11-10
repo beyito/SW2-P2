@@ -1,0 +1,158 @@
+[
+ {
+  "archivo": "sueter-tejido-blanco.jpg",
+  "name": "Suéter tejido blanco",
+  "category": "TOP",
+  "color": "Blanco",
+  "season": "WINTER",
+  "tags": [
+   "casual",
+   "abrigado",
+   "demo"
+  ]
+ },
+ {
+  "archivo": "polera-celeste.jpg",
+  "name": "Polera celeste estampada",
+  "category": "TOP",
+  "color": "Celeste",
+  "season": "SUMMER",
+  "tags": [
+   "casual",
+   "urbano",
+   "demo"
+  ]
+ },
+ {
+  "archivo": "cardigan-colores.jpg",
+  "name": "Cárdigan tejido de colores",
+  "category": "TOP",
+  "color": "Multicolor",
+  "season": "AUTUMN",
+  "tags": [
+   "bohemio",
+   "tejido",
+   "demo"
+  ]
+ },
+ {
+  "archivo": "pantalon-recto-azul.jpg",
+  "name": "Pantalón recto azul grisáceo",
+  "category": "BOTTOM",
+  "color": "Azul",
+  "season": "ALL_SEASON",
+  "tags": [
+   "clásico",
+   "oficina",
+   "demo"
+  ]
+ },
+ {
+  "archivo": "falda-plisada-cuadros.jpg",
+  "name": "Falda plisada a cuadros",
+  "category": "BOTTOM",
+  "color": "Azul y rojo",
+  "season": "AUTUMN",
+  "tags": [
+   "clásico",
+   "colegial",
+   "demo"
+  ]
+ },
+ {
+  "archivo": "falda-plisada-verde.jpg",
+  "name": "Falda plisada verde oscuro con borde rojo",
+  "category": "BOTTOM",
+  "color": "Verde oscuro",
+  "season": "ALL_SEASON",
+  "tags": [
+   "elegante",
+   "noche",
+   "demo"
+  ]
+ },
+ {
+  "archivo": "chaqueta-jean.jpg",
+  "name": "Chaqueta de jean",
+  "category": "OUTERWEAR",
+  "color": "Azul",
+  "season": "SPRING",
+  "tags": [
+   "casual",
+   "urbano",
+   "demo"
+  ]
+ },
+ {
+  "archivo": "zapatillas-blancas.jpg",
+  "name": "Zapatillas blancas",
+  "category": "SHOES",
+  "color": "Blanco",
+  "season": "ALL_SEASON",
+  "tags": [
+   "casual",
+   "deportivo",
+   "demo"
+  ]
+ },
+ {
+  "archivo": "tacones-rojos.jpg",
+  "name": "Tacones rojos de gamuza",
+  "category": "SHOES",
+  "color": "Rojo",
+  "season": "ALL_SEASON",
+  "tags": [
+   "elegante",
+   "fiesta",
+   "demo"
+  ]
+ },
+ {
+  "archivo": "tacones-plateados.jpg",
+  "name": "Tacones plateados con brillo",
+  "category": "SHOES",
+  "color": "Plateado",
+  "season": "ALL_SEASON",
+  "tags": [
+   "gala",
+   "evento",
+   "demo"
+  ]
+ },
+ {
+  "archivo": "cartera-cuero-cafe.jpg",
+  "name": "Cartera de cuero café",
+  "category": "ACCESSORY",
+  "color": "Café",
+  "season": "ALL_SEASON",
+  "tags": [
+   "clásico",
+   "oficina",
+   "demo"
+  ]
+ },
+ {
+  "archivo": "lentes-sol-amarillos.jpg",
+  "name": "Lentes de sol amarillos",
+  "category": "ACCESSORY",
+  "color": "Amarillo",
+  "season": "SUMMER",
+  "tags": [
+   "playa",
+   "divertido",
+   "demo"
+  ]
+ },
+ {
+  "archivo": "bufandas-tejidas.jpg",
+  "name": "Bufandas tejidas",
+  "category": "ACCESSORY",
+  "color": "Verde y gris",
+  "season": "WINTER",
+  "tags": [
+   "abrigado",
+   "tejido",
+   "demo"
+  ]
+ }
+]

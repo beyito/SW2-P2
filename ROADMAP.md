@@ -36,6 +36,7 @@ Registro oficial del desarrollo de la **Plataforma Inteligente para Salón de Be
 | **V** | Notificaciones push en el móvil (Firebase Cloud Messaging) | Lun 9 | **COMPLETADA** |
 | **W** | ERP 100 % GraphQL con una puerta en ms-gestion | Lun 9 | **COMPLETADA** |
 | **X** | IA con un modelo de lenguaje local (Ollama) | Lun 9 | **COMPLETADA** |
+| **Y** | Historial de operación y prendas de demostración | Mar 10 | **COMPLETADA** |
 
 ---
 
@@ -667,6 +668,37 @@ Aprobada el 9 de noviembre de 2026, a partir de los modelos de examen: la IA deb
 - Un modelo de 3B en CPU es más lento y menos preciso que Gemini: en una prueba mezcló "ingresos cobrados" con "sin pagos".
 - La simulación de cortes y ropa sigue en Replicate: un modelo de difusión en CPU no es práctico.
 - `salon-llm` siempre encendido cuesta unos 15 USD al día de crédito de Google: hay que borrarlo después de la entrega.
+
+## Fase Y: Historial de operación y prendas de demostración (Completada)
+Aprobada el 10 de noviembre de 2026: las cuentas de demostración partían casi vacías y los agentes y reportes tenían poco que mostrar. El dataset del BI (CSV) solo lo lee el tablero.
+
+- [x] **Un año de historial** (10 de noviembre de 2025 al 4 de noviembre de 2026) con el catálogo real: 3 servicios y 3 estilistas. Lo genera `docker/historial/generar_historial.py` con una semilla fija:
+  - 1 712 citas: 1 508 atendidas, 143 canceladas y 61 con inasistencia;
+  - 40 clientes nuevos, con teléfonos ficticios a propósito;
+  - 1 712 facturas con IVA del 13 %, 143 notas de crédito y 2 395 movimientos de puntos (canjes, acumulación y reversiones);
+  - 825 reseñas;
+  - 1 918 movimientos de inventario.
+
+  Camila tiene 38 citas, casi todas con Valentina, y Alejandro tiene 17. Las dos cuentas conservan su saldo real y suman el del historial.
+- [x] **Coherente con el sistema:**
+  - Usa los mismos textos y reglas que la SAGA: «Consumo por cita confirmada», «Devolución por cita cancelada», 10 puntos por dólar y canje de hasta el 30 % del precio.
+  - El saldo de puntos de cada cliente coincide con su libro de movimientos y nunca queda negativo.
+  - La cadena de movimientos de inventario termina en el stock real de hoy: el stock actual no cambia.
+  - Ninguna cita choca con otra real: si alguna chocara, la carga se deshace entera.
+- [x] **Sin efectos externos:** se inserta directamente en las bases, sin pasar por la SAGA: no cobra con Stripe ni envía WhatsApp ni push. Todo lleva el prefijo `hist-`. Una segunda carga se rechaza, y `limpiar_*.sql` lo borra todo y devuelve los saldos originales (probado en local).
+- [x] **Clóset:** 13 prendas con foto para Camila (partes de arriba y de abajo, abrigo, calzado y accesorios). Las fotos son CC0 o de dominio público, de Openverse, reducidas a menos de 1 MP; la fuente de cada una está en `docker/historial/prendas/CREDITOS.md`. Se suben por la API real (`cargar_prendas.mjs`, con inicio de sesión PKCE), así que en la nube quedan en S3.
+- [x] **En la nube** (`bash deploy/historial.sh cargar|verificar|limpiar`): RDS y Azure con los mismos totales que en local. En la web, Camila ve su historial en «Mis citas» y sus 14 prendas; las estilistas muestran su calificación con las reseñas (Valentina: 4,6 con 277).
+- [x] **Agentes en la nube, con el modelo local:**
+  - el de operación resumió los ingresos y las citas del último mes en 41 s;
+  - el de reportes generó «facturas de octubre agrupadas por servicio, en PDF» en 49 s.
+- [x] Error encontrado al probar: un reporte agrupado sumaba el número de factura, que es un identificador. Ahora se excluye de sumas y totales. MCP 87/87, con la prueba ampliada; desplegado en AWS.
+- [x] Las suites de navegador pasan con el historial cargado. `fase_f`, `fase_g` y `seguridad` fallaron alguna vez por tiempo: el agente local en CPU llegó a tardar más de un minuto con la máquina cargada, y una espera fija de 1,5 s no alcanzó. Al repetirlas, `fase_f` y `seguridad` pasaron.
+
+**Limitaciones conocidas:**
+- **Fechas:** el historial termina el 4 de noviembre de 2026: «este mes» y «esta semana» muestran pocos datos del historial.
+- **Datos sintéticos:** no coinciden con el dataset del BI, que tiene 12 servicios y 6 estilistas.
+- **Calidad del modelo local:** el de 3B a veces mezcla las cifras al resumirlas.
+- **`fase_g`:** el agente por voz y la recomendación de corte pueden pasar del tiempo de espera de la prueba con la máquina cargada.
 
 ## WhatsApp con la cuenta de Meta (CU-19, RF-12) (Completada)
 El 8 de noviembre de 2026 se conectó la app de Meta de un compañero del usuario.

@@ -63,7 +63,7 @@ const ENTIDADES = {
     fecha: 'f.issued_at',
     orden: 'f.issued_at',
     columnas: {
-      numero: { etiqueta: 'N.º', sql: 'f.invoice_number', tipo: 'numero' },
+      numero: { etiqueta: 'N.º', sql: 'f.invoice_number', tipo: 'numero', sumable: false },
       fecha: { etiqueta: 'Fecha', sql: "to_char(f.issued_at, 'YYYY-MM-DD')" },
       cliente: { etiqueta: 'Cliente', sql: 'f.client_name' },
       servicio: { etiqueta: 'Servicio', sql: "coalesce(f.service_name, '')" },
@@ -166,6 +166,8 @@ const ENTIDADES = {
 };
 
 const esNumerica = (columna) => columna.tipo === 'numero' || columna.tipo === 'dinero';
+// Un identificador numérico, como el número de factura, no se suma ni se totaliza
+const esSumable = (columna) => esNumerica(columna) && columna.sumable !== false;
 
 /** Lo que se puede pedir, para el formulario del ERP y para el modelo. */
 function catalogo() {
@@ -245,7 +247,7 @@ function construirConsulta({ entidad, columnas, filtros = {}, desde, hasta, agru
       throw new BackendError(`No se puede agrupar por '${agruparPor}'. Use: ${opciones.join(', ')}.`);
     }
     // Agrupado: la columna elegida, la cantidad de registros y la suma de cada columna numérica pedida
-    const sumas = claves.filter((clave) => clave !== agruparPor && esNumerica(definicion.columnas[clave]));
+    const sumas = claves.filter((clave) => clave !== agruparPor && esSumable(definicion.columnas[clave]));
     const salida = [
       { clave: agruparPor, ...grupo },
       { clave: 'cantidad', etiqueta: 'Cantidad', tipo: 'numero' },
@@ -277,7 +279,7 @@ function normalizar(filas, salida) {
 }
 
 function totalesDe(filas, salida) {
-  return Object.fromEntries(salida.filter(esNumerica).filter((c) => c.clave !== 'numero').map((columna) => [
+  return Object.fromEntries(salida.filter(esSumable).map((columna) => [
     columna.clave, Math.round(filas.reduce((suma, fila) => suma + (Number(fila[columna.clave]) || 0), 0) * 100) / 100,
   ]));
 }

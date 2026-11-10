@@ -226,6 +226,21 @@ La recepcionista inicia sesión y entra directo al ERP. Ve **Agenda**, **Mostrad
 - **Estilistas:** puede configurar el horario de cualquier estilista, pero no registrarlos ni editarlos.
 - Toda reserva se paga: la recepción no puede agendar sin cobro. El administrador también puede usar el mostrador.
 
+## Historial de demostración
+
+Un año de citas, facturas, puntos, reseñas e inventario, para que las cuentas de demostración y los agentes tengan datos (Fase Y). No pasa por la SAGA: no cobra ni envía WhatsApp. Todo lleva el prefijo `hist-`.
+
+```powershell
+# Local: cargar (se rechaza si ya está cargado)
+Get-Content docker/historial/historial_gestion.sql | docker exec -i salon-postgres sh -c 'psql -q -U "$POSTGRES_USER" -d salon_gestion'
+Get-Content docker/historial/historial_crm.sql | docker exec -i salon-postgres sh -c 'psql -q -U "$POSTGRES_USER" -d salon_crm'
+# Prendas con foto en el clóset de Camila
+$env:CLAVE='Cliente#2026'; node docker/historial/cargar_prendas.mjs http://localhost:3000 http://localhost:3100 camila.fernandez
+# Borrar: limpiar_gestion.sql y limpiar_crm.sql de la misma forma, y cargar_prendas.mjs ... --borrar
+```
+
+En la nube: `bash deploy/historial.sh cargar`, `verificar` o `limpiar`.
+
 ## IA local (Ollama)
 
 Los agentes, los reportes por prompt y los textos de marca personal usan primero un **modelo de lenguaje local**, Qwen 2.5 de 3B, en el servicio `ollama`. Gemini queda como respaldo si el modelo no responde.
