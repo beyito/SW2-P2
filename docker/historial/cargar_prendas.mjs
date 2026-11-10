@@ -1,4 +1,5 @@
-// Agrega al clóset de una clienta las prendas de demostración de prendas/prendas.json (Fase Y).
+// Agrega al clóset de una persona las prendas de demostración de prendas/prendas.json (Fase Y);
+// con LISTA=prendas-hombre.json, las de hombre.
 // Entra al portal como esa clienta (Keycloak con PKCE, como una persona), toma su token y usa la API
 // real de ms-asesoria: POST /media para la foto (GridFS en local, S3 en la nube) y POST /closet.
 // Es idempotente: omite las prendas cuyo nombre ya está en su clóset. Con --borrar quita las de demostración.
@@ -49,7 +50,7 @@ async function api(ruta, opciones = {}) {
 }
 
 const actuales = await api(`/closet/client/${clienteId}`);
-const prendas = JSON.parse(readFileSync(join(aqui, 'prendas', 'prendas.json'), 'utf8'));
+const prendas = JSON.parse(readFileSync(join(aqui, 'prendas', process.env.LISTA || 'prendas.json'), 'utf8'));
 
 if (opcion === '--borrar') {
   // Solo las prendas de demostración: llevan la etiqueta "demo" y un nombre de la lista

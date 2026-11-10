@@ -17,3 +17,14 @@ Fotos de demostración del clóset virtual, todas con licencia CC0 o de dominio 
 | Cartera de cuero café | Stylish Brown Leather Handbag Isolated On White Background jpg | personalgraphic.official | CC0 1.0 | https://www.flickr.com/photos/198895458@N04/53097411519 |
 | Lentes de sol amarillos | Sunglasses Summer | Jakub Rostkowski | CC0 1.0 | https://stocksnap.io/photo/sunglasses-summer-EVAARS1W4M |
 | Bufandas tejidas | Blanket Scarf | Kelly Sikkema | CC0 1.0 | https://stocksnap.io/photo/blanket-scarf-LQZSN13S95 |
+| Camisa de vestir a cuadros | Free men's shirt packagaing image | autor desconocido | CC0 1.0 | https://www.rawpixel.com/image/5924394/photo-image-public-domain-shirt-free |
+| Camisa celeste manga larga | man wearing button shirt jeans | autor desconocido | CC0 1.0 | https://www.rawpixel.com/image/5927839/photo-image-public-domain-shirt-person |
+| Suéter tejido beige | Sweater table | autor desconocido | CC0 1.0 | https://www.rawpixel.com/image/3301353/free-photo-image-animal-apparel-blanket |
+| Poleras básicas lisas | Wooden hangers with t-shirts | autor desconocido | CC0 1.0 | https://www.rawpixel.com/image/11515762/wooden-hangers-with-t-shirts |
+| Pantalón chino caqui | Low shot person white sneakers | autor desconocido | CC0 1.0 | https://www.rawpixel.com/image/3283318/free-photo-image-man-guy-standing-apparel |
+| Saco azul marino | Suit Jacket | Olu Eletu | CC0 1.0 | https://stocksnap.io/photo/suit-jacket-J18ZCO3IPA |
+| Zapatos de cuero café | Leather Shoes | Markus Spiske | CC0 1.0 | https://stocksnap.io/photo/leather-shoes-DC246EC89C |
+| Zapatos tejidos color miel | Free leather shoes image | autor desconocido | CC0 1.0 | https://www.rawpixel.com/image/5904144/photo-image-public-domain-blue-mountain |
+| Zapatillas deportivas blancas | Sport Sneaker Shoe | autor desconocido | CC0 1.0 | https://www.rawpixel.com/image/5917192/sport-sneaker-shoe-free-public-domain-cc0-image |
+| Reloj de correa negra | Marble faces wrist watch lined | autor desconocido | CC0 1.0 | https://www.rawpixel.com/image/11524272/photo-image-face-shadow-marble |
+| Cinturón de cuero café | Leather belt | autor desconocido | CC0 1.0 | https://www.rawpixel.com/image/6040795/leather-belt-free-public-domain-cc0-photo |

@@ -686,8 +686,8 @@ Aprobada el 10 de noviembre de 2026: las cuentas de demostración partían casi 
   - La cadena de movimientos de inventario termina en el stock real de hoy: el stock actual no cambia.
   - Ninguna cita choca con otra real: si alguna chocara, la carga se deshace entera.
 - [x] **Sin efectos externos:** se inserta directamente en las bases, sin pasar por la SAGA: no cobra con Stripe ni envía WhatsApp ni push. Todo lleva el prefijo `hist-`. Una segunda carga se rechaza, y `limpiar_*.sql` lo borra todo y devuelve los saldos originales (probado en local).
-- [x] **Clóset:** 13 prendas con foto para Camila (partes de arriba y de abajo, abrigo, calzado y accesorios). Las fotos son CC0 o de dominio público, de Openverse, reducidas a menos de 1 MP; la fuente de cada una está en `docker/historial/prendas/CREDITOS.md`. Se suben por la API real (`cargar_prendas.mjs`, con inicio de sesión PKCE), así que en la nube quedan en S3.
-- [x] **En la nube** (`bash deploy/historial.sh cargar|verificar|limpiar`): RDS y Azure con los mismos totales que en local. En la web, Camila ve su historial en «Mis citas» y sus 14 prendas; las estilistas muestran su calificación con las reseñas (Valentina: 4,6 con 277).
+- [x] **Clóset:** 13 prendas con foto para Camila (partes de arriba y de abajo, abrigo, calzado y accesorios) y 17 de hombre para Alejandro: 11 propias y 6 unisex. Las fotos son CC0 o de dominio público, de Openverse, reducidas a menos de 1 MP; la fuente de cada una está en `docker/historial/prendas/CREDITOS.md`. Se suben por la API real (`cargar_prendas.mjs`, con inicio de sesión PKCE), así que en la nube quedan en S3.
+- [x] **En la nube** (`bash deploy/historial.sh cargar|verificar|limpiar`): RDS y Azure con los mismos totales que en local. En la web, Camila ve su historial en «Mis citas» y sus 14 prendas, y Alejandro sus 17 (las 17 fotos responden desde S3); las estilistas muestran su calificación con las reseñas (Valentina: 4,6 con 277).
 - [x] **Agentes en la nube, con el modelo local:**
   - el de operación resumió los ingresos y las citas del último mes en 41 s;
   - el de reportes generó «facturas de octubre agrupadas por servicio, en PDF» en 49 s.

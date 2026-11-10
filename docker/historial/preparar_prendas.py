@@ -34,28 +34,54 @@ PRENDAS = {
     'scarf_7': ('bufandas-tejidas', 'Bufandas tejidas', 'ACCESSORY', 'Verde y gris', 'WINTER', ['abrigado', 'tejido']),
 }
 
+# Clóset de Alejandro: ropa de hombre y, además, las prendas unisex de la lista anterior
+PRENDAS_HOMBRE = {
+    'mens_shirt_1': ('camisa-cuadros', 'Camisa de vestir a cuadros', 'TOP', 'Blanco y negro', 'ALL_SEASON', ['formal', 'oficina']),
+    'button_down_shirt_1': ('camisa-celeste', 'Camisa celeste manga larga', 'TOP', 'Celeste', 'SPRING', ['casual', 'oficina']),
+    'knit_sweater_4': ('sueter-beige', 'Suéter tejido beige', 'TOP', 'Beige', 'WINTER', ['abrigado', 'casual']),
+    'plain_t-shirt_2': ('poleras-basicas', 'Poleras básicas lisas', 'TOP', 'Varios', 'SUMMER', ['básico', 'casual']),
+    'mens_sneakers_4': ('pantalon-chino-caqui', 'Pantalón chino caqui', 'BOTTOM', 'Caqui', 'ALL_SEASON', ['casual', 'urbano']),
+    'suit_jacket_0': ('saco-azul-marino', 'Saco azul marino', 'OUTERWEAR', 'Azul marino', 'ALL_SEASON', ['formal', 'evento']),
+    'leather_shoes_0': ('zapatos-cuero-cafe', 'Zapatos de cuero café', 'SHOES', 'Café', 'ALL_SEASON', ['formal', 'clásico']),
+    'leather_shoes_6': ('zapatos-tejidos-miel', 'Zapatos tejidos color miel', 'SHOES', 'Miel', 'SUMMER', ['casual', 'elegante']),
+    'mens_sneakers_0': ('zapatillas-deportivas', 'Zapatillas deportivas blancas', 'SHOES', 'Blanco', 'ALL_SEASON', ['deportivo', 'urbano']),
+    'wrist_watch_0': ('reloj-correa-negra', 'Reloj de correa negra', 'ACCESSORY', 'Negro', 'ALL_SEASON', ['clásico', 'minimalista']),
+    'leather_belt_2': ('cinturon-cuero', 'Cinturón de cuero café', 'ACCESSORY', 'Café', 'ALL_SEASON', ['clásico', 'formal']),
+}
+UNISEX = ['white_sneakers_1', 'linen_pants_2', 'denim_jacket_1', 'white_sneakers_3', 'sunglasses_0', 'scarf_7']
+
 indice = {}
 for archivo in sys.argv[1:]:
     indice.update(json.loads(Path(archivo).read_text(encoding='utf-8')))
 
 carpeta = Path(__file__).parent / 'prendas'
 carpeta.mkdir(exist_ok=True)
-lista, creditos = [], []
-for clave, (archivo, nombre, categoria, color, temporada, etiquetas) in PRENDAS.items():
+creditos = []
+
+
+def prenda(archivo, nombre, categoria, color, temporada, etiquetas):
+    return {'archivo': f'{archivo}.jpg', 'name': nombre, 'category': categoria, 'color': color,
+            'season': temporada, 'tags': etiquetas + ['demo']}
+
+
+for clave, (archivo, nombre, categoria, color, temporada, etiquetas) in {**PRENDAS, **PRENDAS_HOMBRE}.items():
     fuente = indice[clave]
     assert fuente['license'] in ('cc0', 'pdm'), (clave, fuente['license'])
     datos = urllib.request.urlopen(urllib.request.Request(fuente['url'], headers={'User-Agent': UA}), timeout=90).read()
     imagen = Image.open(io.BytesIO(datos)).convert('RGB')
     imagen.thumbnail((LADO, LADO))
     imagen.save(carpeta / f'{archivo}.jpg', 'JPEG', quality=85, optimize=True)
-    lista.append({'archivo': f'{archivo}.jpg', 'name': nombre, 'category': categoria, 'color': color,
-                  'season': temporada, 'tags': etiquetas + ['demo']})
     licencia = 'CC0 1.0' if fuente['license'] == 'cc0' else 'Dominio público'
     autor = fuente.get('creator') or 'autor desconocido'
     creditos.append(f"| {nombre} | {fuente.get('title') or '-'} | {autor} | {licencia} | {fuente['foreign_landing_url']} |")
     print(f'{archivo}: {imagen.size[0]}x{imagen.size[1]}')
 
-(carpeta / 'prendas.json').write_text(json.dumps(lista, ensure_ascii=False, indent=1), encoding='utf-8', newline='\n')
+listas = {
+    'prendas.json': [prenda(*v) for v in PRENDAS.values()],
+    'prendas-hombre.json': [prenda(*v) for v in PRENDAS_HOMBRE.values()] + [prenda(*PRENDAS[c]) for c in UNISEX],
+}
+for nombre, lista in listas.items():
+    (carpeta / nombre).write_text(json.dumps(lista, ensure_ascii=False, indent=1), encoding='utf-8', newline='\n')
 (carpeta / 'CREDITOS.md').write_text(
     '# Créditos de las fotos de prendas\n\n'
     'Fotos de demostración del clóset virtual, todas con licencia CC0 o de dominio público, obtenidas con '

@@ -234,8 +234,10 @@ Un año de citas, facturas, puntos, reseñas e inventario, para que las cuentas 
 # Local: cargar (se rechaza si ya está cargado)
 Get-Content docker/historial/historial_gestion.sql | docker exec -i salon-postgres sh -c 'psql -q -U "$POSTGRES_USER" -d salon_gestion'
 Get-Content docker/historial/historial_crm.sql | docker exec -i salon-postgres sh -c 'psql -q -U "$POSTGRES_USER" -d salon_crm'
-# Prendas con foto en el clóset de Camila
+# Prendas con foto en el clóset de Camila (ropa de mujer)
 $env:CLAVE='Cliente#2026'; node docker/historial/cargar_prendas.mjs http://localhost:3000 http://localhost:3100 camila.fernandez
+# Ropa de hombre en el clóset de Alejandro
+$env:LISTA='prendas-hombre.json'; node docker/historial/cargar_prendas.mjs http://localhost:3000 http://localhost:3100 alejandro.morales
 # Borrar: limpiar_gestion.sql y limpiar_crm.sql de la misma forma, y cargar_prendas.mjs ... --borrar
 ```
 

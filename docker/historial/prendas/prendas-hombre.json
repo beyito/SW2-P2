@@ -1,0 +1,206 @@
+[
+ {
+  "archivo": "camisa-cuadros.jpg",
+  "name": "Camisa de vestir a cuadros",
+  "category": "TOP",
+  "color": "Blanco y negro",
+  "season": "ALL_SEASON",
+  "tags": [
+   "formal",
+   "oficina",
+   "demo"
+  ]
+ },
+ {
+  "archivo": "camisa-celeste.jpg",
+  "name": "Camisa celeste manga larga",
+  "category": "TOP",
+  "color": "Celeste",
+  "season": "SPRING",
+  "tags": [
+   "casual",
+   "oficina",
+   "demo"
+  ]
+ },
+ {
+  "archivo": "sueter-beige.jpg",
+  "name": "Suéter tejido beige",
+  "category": "TOP",
+  "color": "Beige",
+  "season": "WINTER",
+  "tags": [
+   "abrigado",
+   "casual",
+   "demo"
+  ]
+ },
+ {
+  "archivo": "poleras-basicas.jpg",
+  "name": "Poleras básicas lisas",
+  "category": "TOP",
+  "color": "Varios",
+  "season": "SUMMER",
+  "tags": [
+   "básico",
+   "casual",
+   "demo"
+  ]
+ },
+ {
+  "archivo": "pantalon-chino-caqui.jpg",
+  "name": "Pantalón chino caqui",
+  "category": "BOTTOM",
+  "color": "Caqui",
+  "season": "ALL_SEASON",
+  "tags": [
+   "casual",
+   "urbano",
+   "demo"
+  ]
+ },
+ {
+  "archivo": "saco-azul-marino.jpg",
+  "name": "Saco azul marino",
+  "category": "OUTERWEAR",
+  "color": "Azul marino",
+  "season": "ALL_SEASON",
+  "tags": [
+   "formal",
+   "evento",
+   "demo"
+  ]
+ },
+ {
+  "archivo": "zapatos-cuero-cafe.jpg",
+  "name": "Zapatos de cuero café",
+  "category": "SHOES",
+  "color": "Café",
+  "season": "ALL_SEASON",
+  "tags": [
+   "formal",
+   "clásico",
+   "demo"
+  ]
+ },
+ {
+  "archivo": "zapatos-tejidos-miel.jpg",
+  "name": "Zapatos tejidos color miel",
+  "category": "SHOES",
+  "color": "Miel",
+  "season": "SUMMER",
+  "tags": [
+   "casual",
+   "elegante",
+   "demo"
+  ]
+ },
+ {
+  "archivo": "zapatillas-deportivas.jpg",
+  "name": "Zapatillas deportivas blancas",
+  "category": "SHOES",
+  "color": "Blanco",
+  "season": "ALL_SEASON",
+  "tags": [
+   "deportivo",
+   "urbano",
+   "demo"
+  ]
+ },
+ {
+  "archivo": "reloj-correa-negra.jpg",
+  "name": "Reloj de correa negra",
+  "category": "ACCESSORY",
+  "color": "Negro",
+  "season": "ALL_SEASON",
+  "tags": [
+   "clásico",
+   "minimalista",
+   "demo"
+  ]
+ },
+ {
+  "archivo": "cinturon-cuero.jpg",
+  "name": "Cinturón de cuero café",
+  "category": "ACCESSORY",
+  "color": "Café",
+  "season": "ALL_SEASON",
+  "tags": [
+   "clásico",
+   "formal",
+   "demo"
+  ]
+ },
+ {
+  "archivo": "sueter-tejido-blanco.jpg",
+  "name": "Suéter tejido blanco",
+  "category": "TOP",
+  "color": "Blanco",
+  "season": "WINTER",
+  "tags": [
+   "casual",
+   "abrigado",
+   "demo"
+  ]
+ },
+ {
+  "archivo": "pantalon-recto-azul.jpg",
+  "name": "Pantalón recto azul grisáceo",
+  "category": "BOTTOM",
+  "color": "Azul",
+  "season": "ALL_SEASON",
+  "tags": [
+   "clásico",
+   "oficina",
+   "demo"
+  ]
+ },
+ {
+  "archivo": "chaqueta-jean.jpg",
+  "name": "Chaqueta de jean",
+  "category": "OUTERWEAR",
+  "color": "Azul",
+  "season": "SPRING",
+  "tags": [
+   "casual",
+   "urbano",
+   "demo"
+  ]
+ },
+ {
+  "archivo": "zapatillas-blancas.jpg",
+  "name": "Zapatillas blancas",
+  "category": "SHOES",
+  "color": "Blanco",
+  "season": "ALL_SEASON",
+  "tags": [
+   "casual",
+   "deportivo",
+   "demo"
+  ]
+ },
+ {
+  "archivo": "lentes-sol-amarillos.jpg",
+  "name": "Lentes de sol amarillos",
+  "category": "ACCESSORY",
+  "color": "Amarillo",
+  "season": "SUMMER",
+  "tags": [
+   "playa",
+   "divertido",
+   "demo"
+  ]
+ },
+ {
+  "archivo": "bufandas-tejidas.jpg",
+  "name": "Bufandas tejidas",
+  "category": "ACCESSORY",
+  "color": "Verde y gris",
+  "season": "WINTER",
+  "tags": [
+   "abrigado",
+   "tejido",
+   "demo"
+  ]
+ }
+]

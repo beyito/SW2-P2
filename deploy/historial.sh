@@ -26,9 +26,11 @@ psql_en() {  # psql_en <gestion|crm> <archivo.sql>
     postgres:16-alpine psql -q -h "$host" -U "$usuario" -d "$base" < "$2"
 }
 
-prendas() {  # prendas [--borrar]: el clóset de Camila, la clienta de demostración
-  requerir CLAVE_CAMILA_FERNANDEZ
+prendas() {  # prendas [--borrar]: los clósets de Camila (ropa de mujer) y Alejandro (ropa de hombre)
+  requerir CLAVE_CAMILA_FERNANDEZ CLAVE_ALEJANDRO_MORALES
   CLAVE="$CLAVE_CAMILA_FERNANDEZ" node "$HISTORIAL/cargar_prendas.mjs" "$PORTAL" "$ASESORIA_URL" camila.fernandez "$@"
+  CLAVE="$CLAVE_ALEJANDRO_MORALES" LISTA=prendas-hombre.json \
+    node "$HISTORIAL/cargar_prendas.mjs" "$PORTAL" "$ASESORIA_URL" alejandro.morales "$@"
 }
 
 case "${1:-}" in
