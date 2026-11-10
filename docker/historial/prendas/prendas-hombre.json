@@ -132,6 +132,66 @@
   ]
  },
  {
+  "archivo": "poleras-dobladas.jpg",
+  "name": "Poleras dobladas de colores",
+  "category": "TOP",
+  "color": "Varios",
+  "season": "ALL_SEASON",
+  "tags": [
+   "básico",
+   "casual",
+   "demo"
+  ]
+ },
+ {
+  "archivo": "mocasines-negros.jpg",
+  "name": "Mocasines negros de cuero",
+  "category": "SHOES",
+  "color": "Negro",
+  "season": "ALL_SEASON",
+  "tags": [
+   "formal",
+   "oficina",
+   "demo"
+  ]
+ },
+ {
+  "archivo": "lentes-aviador-azules.jpg",
+  "name": "Lentes aviador azules",
+  "category": "ACCESSORY",
+  "color": "Azul",
+  "season": "SUMMER",
+  "tags": [
+   "urbano",
+   "playa",
+   "demo"
+  ]
+ },
+ {
+  "archivo": "reloj-negro-minimalista.jpg",
+  "name": "Reloj negro minimalista",
+  "category": "ACCESSORY",
+  "color": "Negro",
+  "season": "ALL_SEASON",
+  "tags": [
+   "minimalista",
+   "formal",
+   "demo"
+  ]
+ },
+ {
+  "archivo": "bolso-viaje-cuero.jpg",
+  "name": "Bolso de viaje de cuero",
+  "category": "ACCESSORY",
+  "color": "Café",
+  "season": "ALL_SEASON",
+  "tags": [
+   "viaje",
+   "clásico",
+   "demo"
+  ]
+ },
+ {
   "archivo": "sueter-tejido-blanco.jpg",
   "name": "Suéter tejido blanco",
   "category": "TOP",

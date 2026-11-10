@@ -17,6 +17,8 @@ Fotos de demostración del clóset virtual, todas con licencia CC0 o de dominio 
 | Cartera de cuero café | Stylish Brown Leather Handbag Isolated On White Background jpg | personalgraphic.official | CC0 1.0 | https://www.flickr.com/photos/198895458@N04/53097411519 |
 | Lentes de sol amarillos | Sunglasses Summer | Jakub Rostkowski | CC0 1.0 | https://stocksnap.io/photo/sunglasses-summer-EVAARS1W4M |
 | Bufandas tejidas | Blanket Scarf | Kelly Sikkema | CC0 1.0 | https://stocksnap.io/photo/blanket-scarf-LQZSN13S95 |
+| Tacones dorados con brillo | Free glitter high heels image | autor desconocido | CC0 1.0 | https://www.rawpixel.com/image/5922522/photo-image-public-domain-gold-celebration |
+| Lentes de sol de marco blanco | Sunglasses Summer | Caio Resende | CC0 1.0 | https://stocksnap.io/photo/sunglasses-summer-1V4XONID9H |
 | Camisa de vestir a cuadros | Free men's shirt packagaing image | autor desconocido | CC0 1.0 | https://www.rawpixel.com/image/5924394/photo-image-public-domain-shirt-free |
 | Camisa celeste manga larga | man wearing button shirt jeans | autor desconocido | CC0 1.0 | https://www.rawpixel.com/image/5927839/photo-image-public-domain-shirt-person |
 | Suéter tejido beige | Sweater table | autor desconocido | CC0 1.0 | https://www.rawpixel.com/image/3301353/free-photo-image-animal-apparel-blanket |
@@ -28,3 +30,8 @@ Fotos de demostración del clóset virtual, todas con licencia CC0 o de dominio 
 | Zapatillas deportivas blancas | Sport Sneaker Shoe | autor desconocido | CC0 1.0 | https://www.rawpixel.com/image/5917192/sport-sneaker-shoe-free-public-domain-cc0-image |
 | Reloj de correa negra | Marble faces wrist watch lined | autor desconocido | CC0 1.0 | https://www.rawpixel.com/image/11524272/photo-image-face-shadow-marble |
 | Cinturón de cuero café | Leather belt | autor desconocido | CC0 1.0 | https://www.rawpixel.com/image/6040795/leather-belt-free-public-domain-cc0-photo |
+| Poleras dobladas de colores | Stack of folded t-shirts | autor desconocido | CC0 1.0 | https://www.rawpixel.com/image/11515803/stack-folded-t-shirts |
+| Mocasines negros de cuero | Leather Shoes | Caio Resende | CC0 1.0 | https://stocksnap.io/photo/leather-shoes-I1GV6WICCT |
+| Lentes aviador azules | Sunglasses Blue | Dave Meier | CC0 1.0 | https://stocksnap.io/photo/sunglasses-blue-YUJAISV8PW |
+| Reloj negro minimalista | Black white wrist watches lined | autor desconocido | CC0 1.0 | https://www.rawpixel.com/image/11524383/photo-image-faces-shadow-public-domain |
+| Bolso de viaje de cuero | Handbag Leather | Harsh Jadav | CC0 1.0 | https://stocksnap.io/photo/handbag-leather-Z9ESJO45V5 |

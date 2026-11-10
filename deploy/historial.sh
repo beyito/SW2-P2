@@ -5,6 +5,7 @@
 # el clóset de las clientas (por la API real: las fotos quedan en S3).
 #
 #   bash deploy/historial.sh cargar      carga el historial y las prendas (se niega si ya está cargado)
+#   bash deploy/historial.sh fotos       solo prendas y publicaciones con foto (idempotente)
 #   bash deploy/historial.sh verificar   muestra qué hay cargado
 #   bash deploy/historial.sh limpiar     borra todo lo del historial (prefijo hist-) y las prendas de demostración
 #
@@ -33,28 +34,44 @@ prendas() {  # prendas [--borrar]: los clósets de Camila (ropa de mujer) y Alej
     node "$HISTORIAL/cargar_prendas.mjs" "$PORTAL" "$ASESORIA_URL" alejandro.morales "$@"
 }
 
+comunidad() {  # comunidad [--borrar]: publicaciones del muro de Valentina, Camila y Alejandro
+  requerir CLAVE_VALENTINA_ROSSI CLAVE_CAMILA_FERNANDEZ CLAVE_ALEJANDRO_MORALES
+  CLAVE_VALENTINA="$CLAVE_VALENTINA_ROSSI" CLAVE_CAMILA="$CLAVE_CAMILA_FERNANDEZ" CLAVE_ALEJANDRO="$CLAVE_ALEJANDRO_MORALES" \
+    node "$HISTORIAL/cargar_comunidad.mjs" "$PORTAL" "$ASESORIA_URL" "$@"
+}
+
+fotos() {  # Todo lo que tiene foto (S3): idempotente, se puede repetir aunque el historial ya esté cargado
+  paso "Prendas de demostración en el clóset (fotos en S3)"
+  prendas
+  paso "Publicaciones de la comunidad (fotos en S3)"
+  comunidad
+}
+
 case "${1:-}" in
   cargar)
     paso "Historial de ms-gestion en RDS"
     psql_en gestion "$HISTORIAL/historial_gestion.sql"
     paso "Historial de ms-crm en Azure PostgreSQL"
     psql_en crm "$HISTORIAL/historial_crm.sql"
-    paso "Prendas de demostración en el clóset (fotos en S3)"
-    prendas
+    fotos
+    ;;
+  fotos)
+    fotos
     ;;
   limpiar)
     paso "Borrando el historial de RDS y Azure PostgreSQL"
     psql_en gestion "$HISTORIAL/limpiar_gestion.sql"
     psql_en crm "$HISTORIAL/limpiar_crm.sql"
-    paso "Borrando las prendas de demostración"
+    paso "Borrando las prendas y publicaciones de demostración"
     prendas --borrar
+    comunidad --borrar
     ;;
   verificar)
     psql_en gestion "$HISTORIAL/verificar_gestion.sql"
     psql_en crm "$HISTORIAL/verificar_crm.sql"
     ;;
   *)
-    echo "Uso: bash deploy/historial.sh cargar|verificar|limpiar" >&2
+    echo "Uso: bash deploy/historial.sh cargar|fotos|verificar|limpiar" >&2
     exit 2
     ;;
 esac

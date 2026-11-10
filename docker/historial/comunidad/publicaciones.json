@@ -1,0 +1,355 @@
+[
+ {
+  "archivo": "mechas-balayage.jpg",
+  "autor": "valentina",
+  "title": "Balayage en puntas",
+  "description": "Aclarado a mano alzada solo en medios y puntas: la raíz natural crece sin marcar línea. Ideal si quieres color con poco mantenimiento.",
+  "comentarios": [
+   {
+    "autor": "camila",
+    "content": "¡Me encanta! ¿Cuánto dura el color?",
+    "respondeA": null
+   },
+   {
+    "autor": "valentina",
+    "content": "Entre 3 y 4 meses, con matizador una vez por semana.",
+    "respondeA": 0
+   }
+  ],
+  "reacciones": [
+   "camila",
+   "alejandro"
+  ]
+ },
+ {
+  "archivo": "trenza-espiga.jpg",
+  "autor": "valentina",
+  "title": "Trenza espiga en rubio miel",
+  "description": "Peinado de día para un evento al aire libre. Con un poco de textura en spray se ve más natural.",
+  "comentarios": [
+   {
+    "autor": "camila",
+    "content": "Quiero esta para el matrimonio de mi prima.",
+    "respondeA": null
+   }
+  ],
+  "reacciones": [
+   "camila"
+  ]
+ },
+ {
+  "archivo": "color-turquesa.jpg",
+  "autor": "valentina",
+  "title": "Color fantasía turquesa",
+  "description": "Decoloración controlada y depósito de color turquesa. Dura más si lavas con agua fría.",
+  "comentarios": [
+   {
+    "autor": "alejandro",
+    "content": "Muy bueno el tono.",
+    "respondeA": null
+   }
+  ],
+  "reacciones": [
+   "alejandro",
+   "camila"
+  ]
+ },
+ {
+  "archivo": "recogido-perlas.jpg",
+  "autor": "valentina",
+  "title": "Recogido de novia con perlas",
+  "description": "Recogido bajo con horquillas de perla. La prueba de peinado se hace una semana antes del evento.",
+  "comentarios": [
+   {
+    "autor": "camila",
+    "content": "Precioso. ¿Hacen prueba a domicilio?",
+    "respondeA": null
+   },
+   {
+    "autor": "valentina",
+    "content": "Sí, coordinamos por WhatsApp.",
+    "respondeA": 0
+   }
+  ],
+  "reacciones": [
+   "camila"
+  ]
+ },
+ {
+  "archivo": "antes-despues-matizado.jpg",
+  "autor": "valentina",
+  "title": "Antes y después del matizado",
+  "description": "Izquierda: tono amarillo después del sol. Derecha: matizado violeta de 20 minutos. Diferencia notable con poco tiempo.",
+  "comentarios": [],
+  "reacciones": [
+   "camila",
+   "alejandro"
+  ]
+ },
+ {
+  "archivo": "rizos-cobrizos.jpg",
+  "autor": "valentina",
+  "title": "Rizos cobrizos definidos",
+  "description": "Definición con crema sin enjuague y secado con difusor. El cobrizo realza el movimiento del rizo.",
+  "comentarios": [
+   {
+    "autor": "camila",
+    "content": "Así quiero mis rizos.",
+    "respondeA": null
+   }
+  ],
+  "reacciones": [
+   "camila"
+  ]
+ },
+ {
+  "archivo": "rizos-naturales.jpg",
+  "autor": "valentina",
+  "title": "Rizos naturales con volumen",
+  "description": "Corte en capas para rizo 3A: quita peso arriba y da forma redonda. Nada de plancha.",
+  "comentarios": [],
+  "reacciones": [
+   "alejandro"
+  ]
+ },
+ {
+  "archivo": "recogido-labios-rojos.jpg",
+  "autor": "valentina",
+  "title": "Recogido clásico con labios rojos",
+  "description": "Look de noche: recogido alto pulido y labial rojo mate. El rojo frío favorece a pieles de subtono rosado.",
+  "comentarios": [
+   {
+    "autor": "camila",
+    "content": "Elegantísimo.",
+    "respondeA": null
+   }
+  ],
+  "reacciones": [
+   "camila",
+   "alejandro"
+  ]
+ },
+ {
+  "archivo": "unas-oscuras.jpg",
+  "autor": "valentina",
+  "title": "Uñas oscuras minimalistas",
+  "description": "Semipermanente en tono ciruela, forma almendra corta. Dura unas tres semanas.",
+  "comentarios": [],
+  "reacciones": [
+   "camila"
+  ]
+ },
+ {
+  "archivo": "unas-rojas.jpg",
+  "autor": "valentina",
+  "title": "Uñas rojas brillantes",
+  "description": "El clásico que nunca falla. Brillo extra con top coat de gel.",
+  "comentarios": [
+   {
+    "autor": "camila",
+    "content": "Las quiero para fin de año.",
+    "respondeA": null
+   }
+  ],
+  "reacciones": [
+   "camila"
+  ]
+ },
+ {
+  "archivo": "ondas-al-agua.jpg",
+  "autor": "valentina",
+  "title": "Inspiración retro: ondas al agua",
+  "description": "Ondas de los años 40, de revista de peluquería de la época. Se logran con tenaza gruesa y cepillado suave.",
+  "comentarios": [
+   {
+    "autor": "alejandro",
+    "content": "Muy de película antigua.",
+    "respondeA": null
+   }
+  ],
+  "reacciones": [
+   "camila"
+  ]
+ },
+ {
+  "archivo": "bob-voluminoso.jpg",
+  "autor": "valentina",
+  "title": "Inspiración retro: bob con volumen",
+  "description": "Bob de los años 60 con mucho cuerpo en la coronilla. Hoy lo hacemos con brushing y menos laca.",
+  "comentarios": [],
+  "reacciones": [
+   "camila",
+   "alejandro"
+  ]
+ },
+ {
+  "archivo": "volumen-flequillo.jpg",
+  "autor": "valentina",
+  "title": "Inspiración retro: volumen con flequillo",
+  "description": "Otra idea de revista de 1963: flequillo recto y volumen lateral. ¿Lo traemos de vuelta?",
+  "comentarios": [
+   {
+    "autor": "camila",
+    "content": "¡Sí! Con un poco menos de volumen.",
+    "respondeA": null
+   },
+   {
+    "autor": "valentina",
+    "content": "Hecho, una versión moderna.",
+    "respondeA": 0
+   }
+  ],
+  "reacciones": [
+   "camila"
+  ]
+ },
+ {
+  "archivo": "rulos-clasicos.jpg",
+  "autor": "valentina",
+  "title": "Cómo se colocaban los rulos",
+  "description": "Esquema de una revista de 1941 con la dirección de cada rulo. La técnica sigue sirviendo para dar volumen sin calor.",
+  "comentarios": [],
+  "reacciones": [
+   "alejandro"
+  ]
+ },
+ {
+  "archivo": "mi-bob-mechas.jpg",
+  "autor": "camila",
+  "title": "Mi nuevo bob con mechas",
+  "description": "Me corté con Valentina y estoy feliz. Mucho más fácil de peinar en la mañana.",
+  "comentarios": [
+   {
+    "autor": "valentina",
+    "content": "¡Te queda increíble, Camila!",
+    "respondeA": null
+   },
+   {
+    "autor": "camila",
+    "content": "Gracias, ya agendo el retoque.",
+    "respondeA": 0
+   }
+  ],
+  "reacciones": [
+   "valentina",
+   "alejandro"
+  ]
+ },
+ {
+  "archivo": "mis-rizos-otono.jpg",
+  "autor": "camila",
+  "title": "Rizos de otoño",
+  "description": "Probando la rutina para rizos que me recomendaron. Primera semana y ya noto la diferencia.",
+  "comentarios": [
+   {
+    "autor": "valentina",
+    "content": "Se ven muy definidos. Sigue con el difusor.",
+    "respondeA": null
+   }
+  ],
+  "reacciones": [
+   "valentina"
+  ]
+ },
+ {
+  "archivo": "mi-manicure-nude.jpg",
+  "autor": "camila",
+  "title": "Manicure nude para la oficina",
+  "description": "Discreta y elegante. Dos semanas y sigue perfecta.",
+  "comentarios": [],
+  "reacciones": [
+   "valentina",
+   "alejandro"
+  ]
+ },
+ {
+  "archivo": "quiero-este-recogido.jpg",
+  "autor": "camila",
+  "title": "¿Alguien se anima a este recogido?",
+  "description": "Lo encontré en una revista antigua. ¿Se podrá hacer con mi largo?",
+  "comentarios": [
+   {
+    "autor": "valentina",
+    "content": "Sí, con tu largo queda perfecto. Te lo hago en la próxima cita.",
+    "respondeA": null
+   }
+  ],
+  "reacciones": [
+   "valentina"
+  ]
+ },
+ {
+  "archivo": "ondas-cortas.jpg",
+  "autor": "camila",
+  "title": "Ondas cortas años 50",
+  "description": "Me encantó este estilo. Lo guardo como inspiración para el verano.",
+  "comentarios": [],
+  "reacciones": [
+   "valentina"
+  ]
+ },
+ {
+  "archivo": "mi-degradado.jpg",
+  "autor": "alejandro",
+  "title": "Mi degradado de hoy",
+  "description": "Degradado bajo con máquina y tijera arriba. Rápido y prolijo.",
+  "comentarios": [
+   {
+    "autor": "valentina",
+    "content": "Gracias por venir, Alejandro.",
+    "respondeA": null
+   },
+   {
+    "autor": "camila",
+    "content": "Quedó muy bien.",
+    "respondeA": null
+   }
+  ],
+  "reacciones": [
+   "valentina",
+   "camila"
+  ]
+ },
+ {
+  "archivo": "corte-tijera.jpg",
+  "autor": "alejandro",
+  "title": "Corte con tijera para el trabajo",
+  "description": "Quería algo clásico para las reuniones. Me recomendaron dejar un poco más de largo arriba.",
+  "comentarios": [
+   {
+    "autor": "valentina",
+    "content": "Con ese largo puedes peinarlo hacia atrás o de lado.",
+    "respondeA": null
+   }
+  ],
+  "reacciones": [
+   "valentina"
+  ]
+ },
+ {
+  "archivo": "tupe-retro.jpg",
+  "autor": "alejandro",
+  "title": "Tupé retro: ¿sirve para hombre?",
+  "description": "Vi este peinado antiguo y me dio curiosidad. ¿Se puede adaptar a un corte masculino?",
+  "comentarios": [
+   {
+    "autor": "valentina",
+    "content": "Sí: el pompadour es su versión masculina. Pide la próxima vez.",
+    "respondeA": null
+   }
+  ],
+  "reacciones": [
+   "camila"
+  ]
+ },
+ {
+  "archivo": "recogido-flequillo.jpg",
+  "autor": "valentina",
+  "title": "Inspiración retro: recogido con flequillo",
+  "description": "De la misma revista de 1941. Buen punto de partida para un peinado de graduación.",
+  "comentarios": [],
+  "reacciones": [
+   "camila"
+  ]
+ }
+]

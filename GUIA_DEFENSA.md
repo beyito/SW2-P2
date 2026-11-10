@@ -249,8 +249,12 @@ Ver la pregunta 4 del Modelo 1. En la demostración, hacer uno **por voz** y otr
 > «Sí. Las fotos del clóset y de la comunidad se guardan en un bucket de Amazon S3, privado y cifrado. El usuario de IAM solo puede usar ese bucket. Las peticiones se firman con SigV4, que implementamos y probamos con los vectores oficiales. Las fotos antiguas se migran solas desde GridFS la primera vez que se piden.»
 
 **Mostrar:**
+- **Volumen:** el muro de la comunidad tiene 23 publicaciones con foto, y los clósets de Camila y Alejandro, 37 prendas. En total, el bucket guarda unas 60 fotos.
 - Subir una prenda al clóset o una publicación a la comunidad.
-- En la consola de AWS → S3, ver el objeto nuevo.
+- En la consola de AWS → S3, ver el objeto nuevo, o contarlos todos en la terminal:
+  ```bash
+  aws s3 ls s3://<bucket> --recursive --summarize
+  ```
 - [s3-media.storage.ts:31](backend/ms-asesoria/src/adapters/outbound/storage/s3-media.storage.ts#L31) (clase) y la [línea 48](backend/ms-asesoria/src/adapters/outbound/storage/s3-media.storage.ts#L48) (firma SigV4).
 
 **Si preguntan por qué no se usa el SDK:** para mantener la imagen liviana y el mismo firmador en todos los servicios, probado contra los vectores de botocore.

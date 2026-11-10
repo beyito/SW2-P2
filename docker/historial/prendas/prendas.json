@@ -154,5 +154,29 @@
    "tejido",
    "demo"
   ]
+ },
+ {
+  "archivo": "tacones-dorados.jpg",
+  "name": "Tacones dorados con brillo",
+  "category": "SHOES",
+  "color": "Dorado",
+  "season": "ALL_SEASON",
+  "tags": [
+   "fiesta",
+   "gala",
+   "demo"
+  ]
+ },
+ {
+  "archivo": "lentes-sol-blancos.jpg",
+  "name": "Lentes de sol de marco blanco",
+  "category": "ACCESSORY",
+  "color": "Blanco",
+  "season": "SUMMER",
+  "tags": [
+   "playa",
+   "urbano",
+   "demo"
+  ]
  }
 ]

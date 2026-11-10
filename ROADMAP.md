@@ -686,7 +686,13 @@ Aprobada el 10 de noviembre de 2026: las cuentas de demostración partían casi 
   - La cadena de movimientos de inventario termina en el stock real de hoy: el stock actual no cambia.
   - Ninguna cita choca con otra real: si alguna chocara, la carga se deshace entera.
 - [x] **Sin efectos externos:** se inserta directamente en las bases, sin pasar por la SAGA: no cobra con Stripe ni envía WhatsApp ni push. Todo lleva el prefijo `hist-`. Una segunda carga se rechaza, y `limpiar_*.sql` lo borra todo y devuelve los saldos originales (probado en local).
-- [x] **Clóset:** 13 prendas con foto para Camila (partes de arriba y de abajo, abrigo, calzado y accesorios) y 17 de hombre para Alejandro: 11 propias y 6 unisex. Las fotos son CC0 o de dominio público, de Openverse, reducidas a menos de 1 MP; la fuente de cada una está en `docker/historial/prendas/CREDITOS.md`. Se suben por la API real (`cargar_prendas.mjs`, con inicio de sesión PKCE), así que en la nube quedan en S3.
+- [x] **Clóset:** 13 prendas con foto para Camila (partes de arriba y de abajo, abrigo, calzado y accesorios) y 17 de hombre para Alejandro: 11 propias y 6 unisex. Después se sumaron 2 prendas para Camila y 5 para Alejandro (37 en total).
+- [x] **Comunidad:** 23 publicaciones con foto en el muro (`cargar_comunidad.mjs`), con comentarios, respuestas y reacciones:
+  - Valentina, como estilista, publica trabajos del salón e inspiración retro;
+  - Camila y Alejandro publican sus looks y comentan.
+
+  Se crean por la API real con la sesión de cada cuenta, así que el autor sale del token. Las fotos son CC0 o de dominio público, con su fuente en `docker/historial/comunidad/CREDITOS.md`.
+- [x] **S3 en la nube:** el bucket guarda 60 fotos (5,2 MB), contadas con `aws s3 ls --summarize`. `bash deploy/historial.sh fotos` repite solo esta parte, sin duplicar nada. Las fotos son CC0 o de dominio público, de Openverse, reducidas a menos de 1 MP; la fuente de cada una está en `docker/historial/prendas/CREDITOS.md`. Se suben por la API real (`cargar_prendas.mjs`, con inicio de sesión PKCE), así que en la nube quedan en S3.
 - [x] **En la nube** (`bash deploy/historial.sh cargar|verificar|limpiar`): RDS y Azure con los mismos totales que en local. En la web, Camila ve su historial en «Mis citas» y sus 14 prendas, y Alejandro sus 17 (las 17 fotos responden desde S3); las estilistas muestran su calificación con las reseñas (Valentina: 4,6 con 277).
 - [x] **Agentes en la nube, con el modelo local:**
   - el de operación resumió los ingresos y las citas del último mes en 41 s;

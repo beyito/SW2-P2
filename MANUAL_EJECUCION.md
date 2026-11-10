@@ -238,10 +238,13 @@ Get-Content docker/historial/historial_crm.sql | docker exec -i salon-postgres s
 $env:CLAVE='Cliente#2026'; node docker/historial/cargar_prendas.mjs http://localhost:3000 http://localhost:3100 camila.fernandez
 # Ropa de hombre en el clóset de Alejandro
 $env:LISTA='prendas-hombre.json'; node docker/historial/cargar_prendas.mjs http://localhost:3000 http://localhost:3100 alejandro.morales
-# Borrar: limpiar_gestion.sql y limpiar_crm.sql de la misma forma, y cargar_prendas.mjs ... --borrar
+# Publicaciones de la comunidad (Valentina, Camila y Alejandro)
+$env:CLAVE_VALENTINA='Estilista#2026'; $env:CLAVE_CAMILA='Cliente#2026'; $env:CLAVE_ALEJANDRO='Cliente#2026'
+node docker/historial/cargar_comunidad.mjs http://localhost:3000 http://localhost:3100
+# Borrar: limpiar_gestion.sql y limpiar_crm.sql de la misma forma, y los dos cargadores con --borrar
 ```
 
-En la nube: `bash deploy/historial.sh cargar`, `verificar` o `limpiar`.
+En la nube: `bash deploy/historial.sh cargar`, `fotos` (solo prendas y publicaciones), `verificar` o `limpiar`.
 
 ## IA local (Ollama)
 

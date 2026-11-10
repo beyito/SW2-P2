@@ -32,6 +32,8 @@ PRENDAS = {
     'handbag_7': ('cartera-cuero-cafe', 'Cartera de cuero café', 'ACCESSORY', 'Café', 'ALL_SEASON', ['clásico', 'oficina']),
     'sunglasses_0': ('lentes-sol-amarillos', 'Lentes de sol amarillos', 'ACCESSORY', 'Amarillo', 'SUMMER', ['playa', 'divertido']),
     'scarf_7': ('bufandas-tejidas', 'Bufandas tejidas', 'ACCESSORY', 'Verde y gris', 'WINTER', ['abrigado', 'tejido']),
+    'high_heels_1': ('tacones-dorados', 'Tacones dorados con brillo', 'SHOES', 'Dorado', 'ALL_SEASON', ['fiesta', 'gala']),
+    'sunglasses_1': ('lentes-sol-blancos', 'Lentes de sol de marco blanco', 'ACCESSORY', 'Blanco', 'SUMMER', ['playa', 'urbano']),
 }
 
 # Clóset de Alejandro: ropa de hombre y, además, las prendas unisex de la lista anterior
@@ -47,6 +49,11 @@ PRENDAS_HOMBRE = {
     'mens_sneakers_0': ('zapatillas-deportivas', 'Zapatillas deportivas blancas', 'SHOES', 'Blanco', 'ALL_SEASON', ['deportivo', 'urbano']),
     'wrist_watch_0': ('reloj-correa-negra', 'Reloj de correa negra', 'ACCESSORY', 'Negro', 'ALL_SEASON', ['clásico', 'minimalista']),
     'leather_belt_2': ('cinturon-cuero', 'Cinturón de cuero café', 'ACCESSORY', 'Café', 'ALL_SEASON', ['clásico', 'formal']),
+    'plain_t-shirt_1': ('poleras-dobladas', 'Poleras dobladas de colores', 'TOP', 'Varios', 'ALL_SEASON', ['básico', 'casual']),
+    'leather_shoes_1': ('mocasines-negros', 'Mocasines negros de cuero', 'SHOES', 'Negro', 'ALL_SEASON', ['formal', 'oficina']),
+    'sunglasses_7': ('lentes-aviador-azules', 'Lentes aviador azules', 'ACCESSORY', 'Azul', 'SUMMER', ['urbano', 'playa']),
+    'wrist_watch_3': ('reloj-negro-minimalista', 'Reloj negro minimalista', 'ACCESSORY', 'Negro', 'ALL_SEASON', ['minimalista', 'formal']),
+    'handbag_1': ('bolso-viaje-cuero', 'Bolso de viaje de cuero', 'ACCESSORY', 'Café', 'ALL_SEASON', ['viaje', 'clásico']),
 }
 UNISEX = ['white_sneakers_1', 'linen_pants_2', 'denim_jacket_1', 'white_sneakers_3', 'sunglasses_0', 'scarf_7']
 
