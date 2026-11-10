@@ -31,6 +31,10 @@ class Settings(BaseSettings):
     # Gemini es opcional: sin clave, los textos de marca personal salen de plantillas
     GEMINI_API_KEY: str = ""
     GEMINI_MODEL: str = "gemini-2.5-flash"
+    # Modelo local (Ollama): se usa primero; Gemini queda como respaldo
+    OLLAMA_URL: str = ""
+    OLLAMA_MODEL: str = "qwen2.5:3b"
+    OLLAMA_API_KEY: str = ""
 
     # Replicate es opcional: sin clave, la generación de imágenes responde que no está disponible
     REPLICATE_API_KEY: str = ""

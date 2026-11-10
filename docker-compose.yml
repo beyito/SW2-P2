@@ -305,6 +305,13 @@ services:
       SPRING_RABBITMQ_HOST: rabbitmq
       SPRING_RABBITMQ_USERNAME: ${RABBITMQ_DEFAULT_USER:-rabbit_admin}
       SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_DEFAULT_PASS:-rabbit_secret_pass}
+      # Puerta GraphQL del ERP: servicios a los que reenvía la moderación, el mostrador, el comprobante,
+      # la voz y los agentes, con el token de la persona
+      ASESORIA_URL: http://ms-asesoria:3100
+      SAGA_URL: http://saga-orchestrator:4100
+      IA_URL: http://ms-ia:8002/api/v1
+      MCP_URL: http://mcp-server:4000/mcp
+      CRM_BASE_URL: http://ms-crm:8000
       <<: *auth-env
     networks:
       - salon-network
@@ -415,6 +422,8 @@ services:
       GESTION_GRAPHQL_URL: http://ms-gestion:8081/graphql
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash}
+      OLLAMA_URL: http://ollama:11434
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-qwen2.5:3b}
       REPLICATE_API_KEY: ${REPLICATE_API_KEY:-}
       REPLICATE_HAIRCUT_MODEL: ${REPLICATE_HAIRCUT_MODEL:-flux-kontext-apps/change-haircut}
       REPLICATE_TRY_ON_MODEL: ${REPLICATE_TRY_ON_MODEL:-black-forest-labs/flux-2-max}
@@ -435,6 +444,29 @@ services:
   # ------------------------------------------------------------------
   # Servidor MCP para agentes de IA
   # ------------------------------------------------------------------
+  # ------------------------------------------------------------------
+  # Modelo de lenguaje local (Ollama, Qwen 2.5 de 3B): agentes, reportes y textos de marca sin un
+  # servicio público de IA. Gemini queda como respaldo. El modelo se descarga una vez al volumen.
+  # ------------------------------------------------------------------
+  ollama:
+    image: ollama/ollama:0.12.6
+    container_name: salon-ollama
+    restart: unless-stopped
+    entrypoint: ["sh", "-c", "ollama serve & until ollama list >/dev/null 2>&1; do sleep 1; done; ollama pull ${OLLAMA_MODEL:-qwen2.5:3b}; wait"]
+    environment:
+      # El modelo queda cargado en memoria entre preguntas
+      OLLAMA_KEEP_ALIVE: 24h
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - salon-network
+    healthcheck:
+      test: ["CMD-SHELL", "ollama list | grep -q '${OLLAMA_MODEL:-qwen2.5:3b}'"]
+      interval: 15s
+      timeout: 10s
+      retries: 60
+      start_period: 30s
+
   mcp-server:
     build: ./backend/mcp-server
     container_name: salon-mcp-server
@@ -447,6 +479,9 @@ services:
       SALON_TIMEZONE: ${SALON_TIMEZONE:-America/La_Paz}
       GESTION_GRAPHQL_URL: http://ms-gestion:8081/graphql
       CRM_GRAPHQL_URL: http://ms-crm:8000/graphql
+      # IA local primero; Gemini como respaldo
+      OLLAMA_URL: http://ollama:11434
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-qwen2.5:3b}
       # Reportes dinámicos: conexiones de solo lectura a cada base (CU-18)
       REPORTES_GESTION_DB_URL: postgres://salon_reportes:${REPORTES_PGPASSWORD:-salon_reportes_local}@postgres:5432/salon_gestion
       REPORTES_CRM_DB_URL: postgres://salon_reportes:${REPORTES_PGPASSWORD:-salon_reportes_local}@postgres:5432/salon_crm
@@ -663,3 +698,6 @@ volumes:
   n8n_data:
     driver: local
     name: salon-n8n-data
+  ollama_data:
+    driver: local
+    name: salon-ollama-data

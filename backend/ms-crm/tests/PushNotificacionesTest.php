@@ -91,6 +91,16 @@ class PushNotificacionesTest extends TestCase
         $this->assertSame([str_repeat('c', 120)], array_column($this->push->sent, 'token'));
     }
 
+    public function test_el_aviso_de_stock_dice_el_nombre_del_insumo(): void
+    {
+        $this->useCase->stockCritical(['KERAT-BIO-1L'], '2026-11-09', ['Tratamiento Keratina Hidronutritiva 1000ml']);
+        $this->assertStringContainsString('Tratamiento Keratina Hidronutritiva 1000ml', $this->push->sent[0]['body']);
+        $this->assertStringNotContainsString('KERAT-BIO-1L', $this->push->sent[0]['body']);
+        // Sin nombres (mensajes anteriores), se muestra el código
+        $this->useCase->stockCritical(['TINT-RUBIO-8.1'], '2026-11-09');
+        $this->assertStringContainsString('TINT-RUBIO-8.1', $this->push->sent[1]['body']);
+    }
+
     public function test_un_token_invalido_se_olvida(): void
     {
         $this->push->answers[str_repeat('a', 120)] = PushSenderInterface::INVALID_TOKEN;

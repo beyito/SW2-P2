@@ -244,7 +244,7 @@ servicio_ecs() { # nombre tarea grupo-destino puerto [subredes ip-publica]
 
 servicios() {
   requerir RDS_HOST SG_ALB SG_ECS KEYCLOAK_ADMIN_CLAVE SALON_AGENT_SECRET GEMINI_API_KEY CRM_URL \
-    RABBITMQ_HOST RABBITMQ_USUARIO RABBITMQ_CLAVE RABBITMQ_VHOST REPORTES_CLAVE AZURE_PG_HOST SUBRED_PRIVADA
+    RABBITMQ_HOST RABBITMQ_USUARIO RABBITMQ_CLAVE RABBITMQ_VHOST REPORTES_CLAVE AZURE_PG_HOST SUBRED_PRIVADA SAGA_URL
 
   paso "Imágenes"
   aws ecr get-login-password | docker login --username AWS --password-stdin "$REGISTRO"
@@ -287,6 +287,9 @@ servicios() {
       --query 'LoadBalancers[0].LoadBalancerArn' --output text)
     aws elbv2 wait load-balancer-available --load-balancer-arns "$ALB"
   fi
+  # Una pregunta a un agente (sobre todo con el modelo local) puede pasar de los 60 s por defecto
+  aws elbv2 modify-load-balancer-attributes --load-balancer-arn "$ALB" \
+    --attributes Key=idle_timeout.timeout_seconds,Value=300 >/dev/null
   # Keycloak responde su salud en el puerto de administración 9000
   TG_KEYCLOAK=$(grupo_destino keycloak 8080 /health/ready 9000)
   TG_GESTION=$(grupo_destino gestion 8081 /actuator/health traffic-port)
@@ -336,17 +339,22 @@ servicios() {
     "$(entorno "${COMUNES[@]}" AWS_ACCESS_KEY_ID="$DYNAMO_GESTION_ID" \
       SPRING_DATASOURCE_URL="jdbc:postgresql://$RDS_HOST:5432/salon_gestion?sslmode=require" SPRING_DATASOURCE_USERNAME="$RDS_USUARIO" \
       SPRING_RABBITMQ_HOST="$RABBITMQ_HOST" SPRING_RABBITMQ_PORT=5671 SPRING_RABBITMQ_SSL_ENABLED=true \
-      SPRING_RABBITMQ_USERNAME="$RABBITMQ_USUARIO" SPRING_RABBITMQ_VIRTUAL_HOST="$RABBITMQ_VHOST")" \
+      SPRING_RABBITMQ_USERNAME="$RABBITMQ_USUARIO" SPRING_RABBITMQ_VIRTUAL_HOST="$RABBITMQ_VHOST" \
+      ASESORIA_URL="${ASESORIA_URL:-}" SAGA_URL="$SAGA_URL" IA_URL="${IA_URL:+$IA_URL/api/v1}" MCP_URL="$MCP_URL/mcp" CRM_BASE_URL="$CRM_URL")" \
     "$(secretos SPRING_DATASOURCE_PASSWORD="$P_RDS" SPRING_RABBITMQ_PASSWORD="$P_RABBIT" AWS_SECRET_ACCESS_KEY="$P_DYN_GESTION")")
   servicio_ecs gestion "$TAREA" "$TG_GESTION" 8081
 
   paso "Servidor MCP"
+  # Modelo de lenguaje local (Ollama en Google Cloud): lo usa primero; Gemini queda como respaldo.
+  # Su dirección y su clave salen de gcp/desplegar.sh; antes de ese paso, el MCP usa solo Gemini.
+  P_OLLAMA=$(parametro ollama-clave "${OLLAMA_CLAVE:-sin-modelo-local}")
   # 1 GiB: arma en memoria los archivos Excel y PDF de los reportes
   TAREA=$(registrar_tarea mcp "$REGISTRO/salon-mcp-server:latest" 4000 512 1024 \
     "$(entorno "${COMUNES[@]}" AWS_ACCESS_KEY_ID="$DYNAMO_MCP_ID" GEMINI_MODEL="${GEMINI_MODEL:-gemini-2.5-flash}" \
-      SALON_TIMEZONE=America/La_Paz GESTION_GRAPHQL_URL="$GESTION_URL/graphql" CRM_GRAPHQL_URL="$CRM_URL/graphql")" \
+      SALON_TIMEZONE=America/La_Paz GESTION_GRAPHQL_URL="$GESTION_URL/graphql" CRM_GRAPHQL_URL="$CRM_URL/graphql" \
+      OLLAMA_URL="${LLM_URL:-}")" \
     "$(secretos GEMINI_API_KEY="$P_GEMINI" AWS_SECRET_ACCESS_KEY="$P_DYN_MCP" \
-      REPORTES_GESTION_DB_URL="$P_REP_GESTION" REPORTES_CRM_DB_URL="$P_REP_CRM")")
+      REPORTES_GESTION_DB_URL="$P_REP_GESTION" REPORTES_CRM_DB_URL="$P_REP_CRM" OLLAMA_API_KEY="$P_OLLAMA")")
   # En la subred privada: sale por el NAT con la IP fija que Azure PostgreSQL acepta para los reportes
   servicio_ecs mcp "$TAREA" "$TG_MCP" 4000 "$SUBRED_PRIVADA" DISABLED
 

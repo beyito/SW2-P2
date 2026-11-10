@@ -37,7 +37,7 @@ class SagaMessageHandler
                 return [];
 
             case 'inventory.stock.critical':
-                $this->notices->stockCritical($message['items'] ?? [], date('Y-m-d'));
+                $this->notices->stockCritical($message['items'] ?? [], date('Y-m-d'), $message['names'] ?? []);
                 return [];
 
             case 'community.post.hidden':

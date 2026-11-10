@@ -7,10 +7,6 @@ const VARIABLES = {
   gestionUrl: 'VITE_GESTION_URL',
   crmUrl: 'VITE_CRM_URL',
   asesoriaUrl: 'VITE_ASESORIA_URL',
-  mcpUrl: 'VITE_MCP_URL',
-  iaUrl: 'VITE_IA_URL',
-  sagaUrl: 'VITE_SAGA_URL',
-  crmBaseUrl: 'VITE_CRM_BASE_URL',
   biUrl: 'VITE_BI_URL',
 };
 

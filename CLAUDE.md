@@ -29,13 +29,13 @@ Este archivo se escribió el 7 de noviembre de 2026, para que otro integrante de
 
 ## Estado actual
 
-Las fases A a V están completadas. La Fase P desplegó la plataforma en AWS, Azure y Google Cloud, como exige el docente, el 9 de noviembre de 2026. Las fases R a V se hicieron después a partir de los modelos de examen de semestres anteriores. Son reportes en Excel y PDF, BI en Python, imágenes en S3, Kubernetes en las tres nubes y notificaciones push. [CUMPLIMIENTO_EXAMEN.md](CUMPLIMIENTO_EXAMEN.md) responde cada pregunta con su evidencia. La web está en **https://salon-sw2-app.web.app** y Keycloak en https://auth.salon-ai.beauty. Ver [DESPLIEGUE_MULTICLOUD.md](DESPLIEGUE_MULTICLOUD.md): regiones, direcciones y lo verificado en vivo.
+Las fases A a X están completadas. La Fase P desplegó la plataforma en AWS, Azure y Google Cloud, como exige el docente, el 9 de noviembre de 2026. Las fases R a V se hicieron después a partir de los modelos de examen de semestres anteriores. Son reportes en Excel y PDF, BI en Python, imágenes en S3, Kubernetes en las tres nubes, notificaciones push, el ERP 100 % GraphQL y la IA con un modelo local (Ollama). [CUMPLIMIENTO_EXAMEN.md](CUMPLIMIENTO_EXAMEN.md) responde cada pregunta con su evidencia. La web está en **https://salon-sw2-app.web.app** y Keycloak en https://auth.salon-ai.beauty. Ver [DESPLIEGUE_MULTICLOUD.md](DESPLIEGUE_MULTICLOUD.md): regiones, direcciones y lo verificado en vivo.
 
 **Las cuentas de demostración en la nube no usan las contraseñas del manual.** Están en `deploy/salida/cuentas-demo.env`, que solo existe en la PC de quien desplegó: pídelas por un canal privado. En Docker Compose local siguen las del manual.
 
 Roles de Keycloak: `ADMIN`, `RECEPTIONIST`, `STYLIST` y `CLIENT`. Las cuentas administrativas (`ADMIN` y `RECEPTIONIST`) tienen sesión única en los seis servicios.
 
-Según la matriz del ROADMAP, 21 de 22 casos de uso están completos, varios con salvedades. El único incompleto es CU-19, porque el envío real por WhatsApp no se probó.
+Según la matriz del ROADMAP, los 22 casos de uso están completos, varios con salvedades. CU-19 se cerró con el envío real por WhatsApp en la nube; la app de Meta sigue sin publicar, así que solo escribe a los números de su lista de prueba.
 
 | Parte | Estructura | Dónde |
 | :--- | :--- | :--- |
@@ -55,12 +55,12 @@ Según la matriz del ROADMAP, 21 de 22 casos de uso están completos, varios con
 
 **Nube:** está desplegada y las cuentas son de un integrante del equipo. Para volver a desplegar tras un cambio, corre de nuevo el guion de la nube que aloja ese servicio (sección 8 de `DESPLIEGUE_MULTICLOUD.md`). Los guiones son idempotentes. Antes de editarlos, corre `bash deploy/simulacion/correr.sh </dev/null`. `deploy/configuracion.env` y `deploy/salida/` tienen claves y están en `.gitignore`: nunca los subas. **Después de la entrega hay que borrar los recursos**, porque cobran aunque nadie use la plataforma.
 
-En la nube falta probar los agentes de consulta con Gemini (el de reportes sí se probó), n8n con WhatsApp y la generación de imágenes. Las suites automáticas apuntan a localhost. **Los tres clústeres de Kubernetes y el NAT cuestan de 5 a 7 USD al día**: bórralos primero después de la entrega.
+En la nube falta probar la generación de imágenes (Replicate), para no gastar crédito. Las suites automáticas apuntan a localhost. **Los tres clústeres de Kubernetes, el NAT y el modelo local siempre encendido cuestan unos 20 USD al día**: bórralos primero después de la entrega.
 
 Cualquier fase nueva requiere aprobación del equipo antes de empezar.
 
 **Lo único que depende de terceros:**
-- **WhatsApp real (CU-19):** los flujos de n8n están hechos y probados contra un servidor local que imita a Meta. Falta una cuenta de Meta: ver `MANUAL_EJECUCION.md`, sección "WhatsApp".
+- **WhatsApp (CU-19):** funciona en la nube con la app de Meta de un compañero, sin publicar: solo escribe a los números de su lista de prueba. Ver `MANUAL_EJECUCION.md`, sección "WhatsApp".
 
 **Limitaciones declaradas en el ROADMAP:**
 - **iOS:** requiere macOS y nunca se compiló.
@@ -94,7 +94,7 @@ Tu base de datos parte de las semillas del proyecto, no de los datos de otro int
 
 ## Pruebas
 
-Los comandos de cada suite están en el manual, sección 7. Últimos conteos: orquestador 51, `ms-gestion` 81, CRM 66, `ms-asesoria` 99, `ms-ia` 184, `mcp-server` 80, `bi-dashboard` 5, `mfe-gestion` 43, `mfe-estudio-ia` 38, Shell 18, `mfe-reservas` 11, móvil 85, integración en vivo 336 (327 más 9 de reportes) y navegador 193 comprobaciones más `reportes.e2e.mjs` y `bi.e2e.mjs`.
+Los comandos de cada suite están en el manual, sección 7. Últimos conteos: orquestador 51, `ms-gestion` 88, CRM 67, `ms-asesoria` 99, `ms-ia` 189, `mcp-server` 87, `bi-dashboard` 5, `mfe-gestion` 46, `mfe-estudio-ia` 38, Shell 18, `mfe-reservas` 11, móvil 85, integración en vivo 336 (327 más 9 de reportes) y navegador 193 comprobaciones más `reportes.e2e.mjs` y `bi.e2e.mjs`.
 
 **Gastan dinero o cupo:**
 - **Replicate:** `IMAGENES_REALES=1` en `tests/e2e/generacion_imagenes.e2e.mjs` y `integration_test/image_generation_real_test.dart`. Nunca los ejecutes sin permiso. Las pruebas de `TestConjunto` usan una imagen dañada a propósito para detenerse antes del proveedor: mantén ese diseño.
@@ -164,6 +164,9 @@ Los comandos de cada suite están en el manual, sección 7. Últimos conteos: or
 - El entorno *Express* de Container Apps reutiliza la imagen guardada de una etiqueta repetida: `azure/desplegar.sh` etiqueta cada despliegue con una marca de tiempo. Sin eso, el CRM seguía sirviendo el esquema GraphQL viejo.
 - Azure for Students en `canadacentral`: todos los tamaños x86 permitidos tienen cuota 0, y AKS queda en "Creating" sin error visible. El nodo es ARM64 (`Standard_B2pls_v2`). El error real está en el registro de actividad del grupo `MC_salon-rg_salon-aks_canadacentral`.
 - El Servidor MCP corre en una subred privada con NAT (IP fija), porque Azure PostgreSQL solo admite esa IP para los reportes. No abras esa base a todo internet: el clasificador de seguridad lo bloquea, y con razón.
+- La credencial de RabbitMQ de n8n necesita `"passwordless": false`: con TLS, n8n usa por defecto un certificado de cliente (SASL EXTERNAL), CloudAMQP lo rechaza y ningún flujo se activa. En local no se nota, porque va sin TLS.
+- El cliente HTTP de Java (puerta del ERP en `ms-gestion`) va en HTTP/1.1: si intenta subir a HTTP/2, uvicorn (`ms-ia`) rechaza la petición cuando lleva cuerpo.
+- El modelo local en la nube (`salon-llm`) está detrás de un proxy con clave: no lo publiques sin ella.
 - Crear cuentas de servicio, roles o claves en la nube (por ejemplo, `deploy/firebase/cuenta-envio.sh`) lo hace a mano la persona dueña de la cuenta.
 - Un heredoc dentro de un comando de Bash puede convertir una barra invertida doble en una sola, y romper el código que se edita así. Para editar archivos con barras invertidas (PHP, Bash), usa la herramienta de edición o un script en un archivo aparte.
 

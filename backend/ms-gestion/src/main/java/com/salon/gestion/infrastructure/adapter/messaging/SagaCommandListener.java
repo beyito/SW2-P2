@@ -33,6 +33,7 @@ public class SagaCommandListener {
     private final BookingSagaUseCase booking;
     private final RabbitTemplate rabbit;
     private final ObjectMapper mapper;
+    private final StockItemNames stockItemNames;
 
     @RabbitListener(queues = SagaMessagingConfig.COMMANDS_QUEUE)
     public void onCommand(Message message) throws IOException {
@@ -97,7 +98,9 @@ public class SagaCommandListener {
         publish("inventory.committed", Map.of("sagaId", sagaId));
         // RF-03: alerta de stock crítico para las automatizaciones
         if (!critical.isEmpty()) {
-            send("inventory.stock.critical", Map.of("sagaId", sagaId, "items", critical));
+            Map<String, Object> alert = new java.util.LinkedHashMap<>(stockItemNames.alert(critical));
+            alert.put("sagaId", sagaId);
+            send("inventory.stock.critical", alert);
         }
     }
 

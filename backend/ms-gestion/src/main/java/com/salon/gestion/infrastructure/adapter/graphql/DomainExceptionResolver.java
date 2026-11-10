@@ -1,5 +1,6 @@
 package com.salon.gestion.infrastructure.adapter.graphql;
 
+import com.salon.gestion.infrastructure.adapter.erp.ErpServiceException;
 import graphql.ErrorClassification;
 import graphql.GraphQLError;
 import graphql.GraphqlErrorBuilder;
@@ -19,6 +20,17 @@ public class DomainExceptionResolver extends DataFetcherExceptionResolverAdapter
 
     @Override
     protected GraphQLError resolveToSingleError(Throwable error, DataFetchingEnvironment environment) {
+        // Un servicio detrás de la puerta del ERP rechazó la petición: se conserva su mensaje real
+        if (error instanceof ErpServiceException rejected) {
+            ErrorClassification type = switch (rejected.status()) {
+                case 401 -> ErrorType.UNAUTHORIZED;
+                case 403 -> ErrorType.FORBIDDEN;
+                case 404 -> ErrorType.NOT_FOUND;
+                case 409 -> CONFLICT;
+                default -> rejected.status() >= 500 ? ErrorType.INTERNAL_ERROR : ErrorType.BAD_REQUEST;
+            };
+            return build(environment, type, error.getMessage());
+        }
         if (error instanceof IllegalArgumentException) {
             return build(environment, ErrorType.BAD_REQUEST, error.getMessage());
         }

@@ -40,7 +40,20 @@ describe('CounterComponent', () => {
     });
     await TestBed.configureTestingModule({
       imports: [CounterComponent],
-      providers: [{ provide: ApiService, useValue: { saga, crm, gestion, openReceipt: vi.fn() } }],
+      // Las operaciones del mostrador van por la puerta GraphQL; el doble las anota con la ruta de la SAGA
+      // que representan, para comprobar qué pide la pantalla
+      providers: [{
+        provide: ApiService,
+        useValue: {
+          crm,
+          gestion,
+          openReceipt: vi.fn(),
+          startCounterBooking: (input: object, key: string) => saga('/counter/bookings', 'POST', input, key),
+          payCounterBooking: (id: string) => saga(`/counter/bookings/${id}/pay`, 'POST'),
+          voidCounterBooking: (id: string) => saga(`/counter/bookings/${id}/void`, 'POST'),
+          counterBooking: (id: string) => saga(`/bookings/${id}`),
+        },
+      }],
     }).compileComponents();
   });
 

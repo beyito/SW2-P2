@@ -31,6 +31,9 @@ docker push "$REGISTRO/ms-asesoria:latest"
 docker push "$REGISTRO/ms-ia:latest"
 docker build --platform linux/amd64 -t "$REGISTRO/bi-dashboard:latest" "$RAIZ/backend/bi-dashboard"
 docker push "$REGISTRO/bi-dashboard:latest"
+# Ollama con el modelo incluido: la imagen pesa unos 3 GB
+docker build --platform linux/amd64 -t "$REGISTRO/salon-llm:latest" "$RAIZ/deploy/ollama"
+docker push "$REGISTRO/salon-llm:latest"
 
 paso "Secretos (Secret Manager)"
 secreto() { # nombre valor: crea el secreto o le agrega una versión
@@ -52,6 +55,9 @@ grep -q '^BI_CLIENT_SECRET=' "$SALIDA/gcp.env" 2>/dev/null || guardar gcp BI_CLI
 grep -q '^BI_COOKIE_SECRET=' "$SALIDA/gcp.env" 2>/dev/null || guardar gcp BI_COOKIE_SECRET "$(openssl rand -hex 32)"
 secreto salon-bi-cliente "$BI_CLIENT_SECRET"
 secreto salon-bi-cookie "$BI_COOKIE_SECRET"
+# Clave del proxy que protege al modelo local: Ollama no trae autenticación propia
+grep -q '^OLLAMA_CLAVE=' "$SALIDA/gcp.env" 2>/dev/null || guardar gcp OLLAMA_CLAVE "$(openssl rand -hex 32)"
+secreto salon-ollama-clave "$OLLAMA_CLAVE"
 # Cloud Run usa la cuenta de servicio predeterminada de Compute Engine
 NUMERO=$(gcloud projects describe "$GCP_PROYECTO" --format 'value(projectNumber)')
 gcloud projects add-iam-policy-binding "$GCP_PROYECTO" --condition=None --quiet \
@@ -69,14 +75,22 @@ gcloud run deploy salon-asesoria --image "$REGISTRO/ms-asesoria:latest" --region
   --set-secrets "MONGO_URI=salon-mongo-uri:latest,RABBITMQ_URL=salon-rabbitmq-url:latest,AWS_SECRET_ACCESS_KEY=salon-dynamo-asesoria:latest,S3_SECRET_ACCESS_KEY=salon-s3-asesoria:latest"
 guardar gcp ASESORIA_URL "$(gcloud run services describe salon-asesoria --region "$GCP_REGION" --format 'value(status.url)')"
 
+paso "Modelo de lenguaje local (Ollama) en Cloud Run"
+# IA sin servicios públicos: agentes, reportes y textos de marca. En CPU, así que con 8 vCPU y siempre
+# encendido para que responda rápido; Gemini queda solo como respaldo.
+gcloud run deploy salon-llm --image "$REGISTRO/salon-llm:latest" --region "$GCP_REGION" \
+  --port 8080 --cpu 8 --memory 16Gi --min-instances 1 --max-instances 1 --no-cpu-throttling --timeout 600 \
+  --allow-unauthenticated --set-secrets "OLLAMA_API_KEY=salon-ollama-clave:latest"
+guardar gcp LLM_URL "$(gcloud run services describe salon-llm --region "$GCP_REGION" --format 'value(status.url)' | tr -d '\r')"
+
 paso "ms-ia en Cloud Run (siempre encendido: la imagen pesa unos 4 GB)"
 REPLICATE_SECRETO=""
 [ -n "${REPLICATE_API_KEY:-}" ] && REPLICATE_SECRETO=",REPLICATE_API_KEY=salon-replicate:latest"
 gcloud run deploy salon-ia --image "$REGISTRO/ms-ia:latest" --region "$GCP_REGION" \
   --port 8002 --cpu 2 --memory 4Gi --min-instances 1 --max-instances 2 --no-cpu-throttling --timeout 300 \
   --allow-unauthenticated \
-  --set-env-vars "$AUTENTICACION@AWS_ACCESS_KEY_ID=$DYNAMO_IA_ID@ASESORIA_URL=$ASESORIA_URL@GESTION_GRAPHQL_URL=$GESTION_URL/graphql@GEMINI_MODEL=${GEMINI_MODEL:-gemini-2.5-flash}" \
-  --set-secrets "AWS_SECRET_ACCESS_KEY=salon-dynamo-ia:latest,GEMINI_API_KEY=salon-gemini:latest$REPLICATE_SECRETO"
+  --set-env-vars "$AUTENTICACION@AWS_ACCESS_KEY_ID=$DYNAMO_IA_ID@ASESORIA_URL=$ASESORIA_URL@GESTION_GRAPHQL_URL=$GESTION_URL/graphql@GEMINI_MODEL=${GEMINI_MODEL:-gemini-2.5-flash}@OLLAMA_URL=$LLM_URL" \
+  --set-secrets "AWS_SECRET_ACCESS_KEY=salon-dynamo-ia:latest,GEMINI_API_KEY=salon-gemini:latest,OLLAMA_API_KEY=salon-ollama-clave:latest$REPLICATE_SECRETO"
 guardar gcp IA_URL "$(gcloud run services describe salon-ia --region "$GCP_REGION" --format 'value(status.url)')"
 
 paso "Tablero de inteligencia de negocios (Python) en Cloud Run"

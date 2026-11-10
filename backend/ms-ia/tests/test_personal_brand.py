@@ -1,3 +1,4 @@
+import pytest
 from fastapi.testclient import TestClient
 
 from app.adapters import gemini
@@ -9,6 +10,12 @@ from app.services.brand_service import match_closet
 client = TestClient(app)
 URL = "/api/v1/brand/strategy"
 DIAGNOSTICO = {"faceShape": "OVAL", "hairType": "CURLY", "hairTone": "DARK", "skinUndertone": "COOL"}
+
+
+@pytest.fixture(autouse=True)
+def sin_modelo_local(monkeypatch):
+    """Estas pruebas son de Gemini y de las plantillas: el modelo local se prueba aparte."""
+    monkeypatch.setattr(settings, "OLLAMA_URL", "")
 
 
 def estrategia(red="LINKEDIN", **extra):

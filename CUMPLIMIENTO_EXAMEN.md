@@ -8,7 +8,7 @@ Respuestas a las preguntas de los modelos de examen de semestres anteriores, con
 
 ### 1. ¿Está desarrollada al 100 % de acuerdo con lo solicitado?
 
-**Casi.** 21 de los 22 casos de uso están completos y verificados en vivo (matriz del ROADMAP). El pendiente es CU-19: los flujos de WhatsApp están hechos y la cuenta de Meta está conectada, pero el envío real espera la aprobación de las plantillas de Meta.
+**Sí.** Los 22 casos de uso están completos y verificados en vivo (matriz del ROADMAP), incluido el envío real por WhatsApp (CU-19). Además, la plataforma está desplegada en tres nubes. La salvedad es la app de Meta: está sin publicar, así que solo escribe a los números de su lista de prueba.
 
 ### 2. ¿Realiza la lógica, notificaciones, logs, protocolo MCP y uso de recursos de memoria y de red?
 
@@ -58,9 +58,9 @@ Respuestas a las preguntas de los modelos de examen de semestres anteriores, con
 
 | # | Pregunta | Respuesta |
 | :-: | :--- | :--- |
-| ① | Terminada y en calidad de producto | **Casi:** desplegada en tres nubes y probada en vivo; falta CU-19 (depende de Meta). |
+| ① | Terminada y en calidad de producto | **Sí:** los 22 casos de uso, desplegada en tres nubes con HTTPS, dominio propio, Kubernetes, pagos reales en modo prueba, WhatsApp y push, y probada en vivo. Las salvedades están en las "Limitaciones conocidas" del ROADMAP. |
 | ② | Móvil con notificaciones push, IA y recursos más allá de cámara y micrófono | **Sí.** **Notificaciones push con Firebase Cloud Messaging**: cada aviso del CRM (pago confirmado, reembolso, stock crítico…) llega al teléfono aunque la app esté cerrada (`mobile/salon_mobile/lib/core/push/push_service.dart`; el envío, en `backend/ms-crm/app/FrameworksDrivers/Push/FcmPushSender.php`). **IA dentro del teléfono:** TFLite y MediaPipe sin conexión. **Otros recursos:** base local SQLite, detección de red y cola sin conexión, almacenamiento seguro, impresión y PDF, y pago con Stripe. |
-| ③ | La gestión empresarial usa GraphQL al 100 % | **Parcial.** Gestión y CRM son GraphQL; el ERP usa además REST para la moderación (asesoría), el cobro en el mostrador (orquestador) y la voz (IA), y MCP para los agentes. |
-| ④ | IA sin servicios públicos (modelos locales) | **Parcial.** Visión, clasificación y voz (Whisper) son locales. Los agentes y los textos de marca usan Gemini, y la simulación de cortes y ropa usa Replicate. Sin esos servicios, la plataforma sigue funcionando con plantillas y entrada manual. |
+| ③ | La gestión empresarial usa GraphQL al 100 % | **Sí.** El ERP tiene un solo `fetch`, hacia dos API GraphQL: gestión y CRM. Lo que atienden otros servicios (moderación, cobro en el mostrador, comprobante, voz y agentes MCP) pasa por la **puerta GraphQL** de `ms-gestion` (patrón *Backend for Frontend*), que lo reenvía con el token de la persona (`backend/ms-gestion/src/main/resources/graphql/erp.graphqls`). |
+| ④ | IA sin servicios públicos (modelos locales) | **Sí, salvo una función opcional.** Visión (MediaPipe y TFLite propio), voz (Whisper) y también **los agentes, los reportes por prompt y los textos de marca** corren con un **modelo de lenguaje local**: Qwen 2.5 de 3B en Ollama, desplegado en la propia nube y protegido con una clave (`deploy/ollama`). Gemini queda solo como respaldo si el modelo local no responde. La única excepción es la simulación de cortes y ropa en imagen (Replicate): un modelo de difusión en CPU no es práctico, y la función es opcional y no envía datos personales. |
 | ⑤ | Reportes por prompt, audio o texto, eligiendo columnas, criterios y Excel o PDF | **Sí.** Ver la pregunta 4 del Modelo 1. |
 | ⑥ | S3 para almacenamiento masivo | **Sí.** Las fotos del clóset y la comunidad se guardan en un bucket de **Amazon S3**, privado y cifrado, con un usuario de IAM que solo puede usar ese bucket (`backend/ms-asesoria/src/adapters/outbound/storage/s3-media.storage.ts`). Las fotos anteriores se migran solas desde GridFS la primera vez que se piden. |

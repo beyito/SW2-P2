@@ -260,7 +260,7 @@ export class CounterComponent implements OnInit, OnDestroy {
     this.error.set('');
     this.step.set('reserving');
     try {
-      const started = await this.api.saga<CounterBooking>('/counter/bookings', 'POST', {
+      const started = await this.api.startCounterBooking({
         clientId: client.id,
         clientName: client.fullName,
         clientEmail: client.email || null,
@@ -301,7 +301,7 @@ export class CounterComponent implements OnInit, OnDestroy {
     this.error.set('');
     this.step.set('paying');
     try {
-      await this.api.saga(`/counter/bookings/${booking.sagaId}/pay`, 'POST');
+      await this.api.payCounterBooking(booking.sagaId);
       const paid = await this.waitFor(booking.sagaId, (b) => b.status === 'COMPLETED');
       if (paid) await this.finish(paid);
     } catch (error) {
@@ -315,7 +315,7 @@ export class CounterComponent implements OnInit, OnDestroy {
     if (!booking) return;
     this.error.set('');
     try {
-      await this.api.saga(`/counter/bookings/${booking.sagaId}/void`, 'POST');
+      await this.api.voidCounterBooking(booking.sagaId);
       // Termina cuando la SAGA empieza a revertir: waitFor lo informa con el motivo de la anulación
       await this.waitFor(booking.sagaId, () => false);
     } catch (error) {
@@ -328,7 +328,7 @@ export class CounterComponent implements OnInit, OnDestroy {
    */
   private async waitFor(sagaId: string, done: (booking: CounterBooking) => boolean): Promise<CounterBooking | null> {
     for (let attempt = 0; attempt < MAX_POLLS && !this.destroyed; attempt += 1) {
-      const current = await this.api.saga<CounterBooking>(`/bookings/${sagaId}`);
+      const current = await this.api.counterBooking(sagaId);
       if (done(current)) return current;
       if (REVERTED.includes(current.status)) {
         this.fail(current.failureReason);

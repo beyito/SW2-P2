@@ -3,13 +3,11 @@ declare const SALON_URLS: Partial<typeof LOCAL_URLS> | undefined;
 
 /** Direcciones de los servicios en el entorno local. */
 const LOCAL_URLS = {
+  // El ERP habla solo GraphQL: con gestión (que también es la puerta hacia los demás servicios) y con el CRM
   gestionUrl: 'http://localhost:8081/graphql',
   crmUrl: 'http://localhost:8083/graphql',
+  // Solo para mostrar las imágenes de la comunidad, que la asesoría sirve como archivos públicos
   asesoriaUrl: 'http://localhost:3100',
-  mcpUrl: 'http://localhost:4000/mcp',
-  iaUrl: 'http://localhost:8002/api/v1',
-  sagaUrl: 'http://localhost:4100',
-  crmBaseUrl: 'http://localhost:8083',
   // Tablero de inteligencia de negocios en Python (Streamlit)
   biUrl: 'http://localhost:8501',
 };

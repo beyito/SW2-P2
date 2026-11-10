@@ -53,6 +53,17 @@ export interface TimeSlot {
 }
 
 /** Avance de una reserva del mostrador, tal como lo informa el orquestador SAGA. */
+/** Datos para iniciar una reserva en el mostrador. */
+export interface CounterBookingInput {
+  clientId: string;
+  clientName: string;
+  clientEmail: string | null;
+  serviceId: string;
+  stylistId: string;
+  appointmentDate: string;
+  paymentMethod: string;
+}
+
 export interface CounterBooking {
   sagaId: string;
   status: string;

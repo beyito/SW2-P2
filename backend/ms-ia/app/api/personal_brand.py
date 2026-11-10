@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 
 from app.adapters.gemini import generate_brand_copy
+from app.adapters.ollama import first_available, generate_brand_copy_local
 from app.adapters.platform_client import PlatformClient, get_platform
 from app.services.brand_service import BrandService
 
@@ -29,5 +30,6 @@ def get_brand_strategy(req: BrandStrategyRequest, platform: PlatformClient = Dep
         sector=req.sector,
         gender=req.gender,
         age_range=req.age_range,
-        generate_copy=generate_brand_copy,
+        # IA local primero; Gemini como respaldo, y plantillas si ninguno responde
+        generate_copy=first_available(generate_brand_copy_local, generate_brand_copy),
     )

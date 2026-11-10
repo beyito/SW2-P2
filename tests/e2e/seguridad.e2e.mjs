@@ -66,9 +66,13 @@ const adminA = await ctxA.newPage();
 await login(adminA, ADMIN);
 check('admin ve la pestaña ERP', (await adminA.locator('#tab-mfe-gestion').count()) === 1);
 
+// El ERP habla solo GraphQL: llega al Servidor MCP a través de la puerta de ms-gestion, con el mismo token
 const rpcEstados = [];
-adminA.on('response', (r) => {
-  if (r.url().includes(':4000/mcp') && r.request().method() === 'POST') rpcEstados.push(r.status());
+adminA.on('response', async (r) => {
+  if (r.url().includes(':8081/graphql') && /mcpTools|callMcpTool/.test(r.request().postData() ?? '')) {
+    const cuerpo = await r.json().catch(() => ({}));
+    rpcEstados.push(cuerpo.errors?.length ? `error: ${cuerpo.errors[0].message}` : r.status());
+  }
 });
 await adminA.click('#tab-mfe-gestion');
 await adminA.waitForTimeout(1500);
@@ -76,7 +80,7 @@ const erp = adminA.locator('#mfe-root');
 await erp.getByRole('button', { name: /Agente|MCP|Asistente/i }).first().click();
 await erp.locator('.btn-preset').first().click();
 await adminA.waitForTimeout(2500);
-check('el ERP llama a MCP con token real', rpcEstados.length > 0 && rpcEstados.every((s) => s === 200), JSON.stringify(rpcEstados));
+check('el ERP llama a MCP con token real, por GraphQL', rpcEstados.length > 0 && rpcEstados.every((s) => s === 200), JSON.stringify(rpcEstados));
 
 await adminA.waitForTimeout(1200);
 const ctxB = await browser.newContext();

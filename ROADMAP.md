@@ -34,6 +34,8 @@ Registro oficial del desarrollo de la **Plataforma Inteligente para Salón de Be
 | **T** | Imágenes del clóset y la comunidad en Amazon S3 | Lun 9 | **COMPLETADA** |
 | **U** | Kubernetes en AWS, Azure y Google Cloud | Lun 9 | **COMPLETADA** |
 | **V** | Notificaciones push en el móvil (Firebase Cloud Messaging) | Lun 9 | **COMPLETADA** |
+| **W** | ERP 100 % GraphQL con una puerta en ms-gestion | Lun 9 | **COMPLETADA** |
+| **X** | IA con un modelo de lenguaje local (Ollama) | Lun 9 | **COMPLETADA** |
 
 ---
 
@@ -637,18 +639,48 @@ Aprobada el 9 de noviembre de 2026, a partir de los modelos de examen: el móvil
 - Solo Android: iOS necesita una cuenta de Apple y macOS.
 - El token usa `getToken`, que firebase_messaging 17 marca como obsoleto a favor del identificador de instalación, con otro modo de envío.
 
-## WhatsApp con la cuenta de Meta (CU-19, RF-12) (En curso)
+## Fase W: ERP 100 % GraphQL (Completada)
+Aprobada el 9 de noviembre de 2026, a partir de los modelos de examen: la aplicación de gestión empresarial debe usar GraphQL en un 100 %.
+
+- [x] **Puerta GraphQL en `ms-gestion`** (patrón *Backend for Frontend*, `graphql/erp.graphqls`):
+  - la moderación (asesoría);
+  - el cobro en el mostrador (orquestador);
+  - el comprobante (CRM);
+  - la voz (ms-ia);
+  - las herramientas MCP.
+
+  `ms-gestion` reenvía cada operación con el token de la persona, así que cada servicio vuelve a validar el rol. Los errores llegan con el mensaje real del servicio.
+- [x] **El ERP tiene un solo `fetch`**, hacia dos API GraphQL: gestión y CRM. Se quitaron de su configuración las direcciones REST.
+- [x] Pruebas: `ms-gestion` 88/88 (7 nuevas, contra un servidor HTTP real en memoria); ERP 46/46; contratos GraphQL 11/11. E2E `fase_f`, `recepcion`, `reportes`, `fase_g` (voz del administrador) y `seguridad` en verde. **En la nube**, el ERP funciona y un agente respondió por la puerta.
+- [x] Error encontrado al probar: el cliente HTTP de Java intentaba subir a HTTP/2, y uvicorn (ms-ia) rechazaba esa petición cuando llevaba el audio. Ahora la puerta usa HTTP/1.1, y una prueba lo comprueba.
+- [x] El balanceador de AWS espera 300 s, en lugar de 60, por las preguntas largas a los agentes.
+
+## Fase X: IA con un modelo de lenguaje local (Completada)
+Aprobada el 9 de noviembre de 2026, a partir de los modelos de examen: la IA debe funcionar con modelos locales, sin servicios públicos.
+
+- [x] **Ollama con Qwen 2.5 de 3B**, en Docker Compose (`ollama`) y en Cloud Run (`salon-llm`: 8 vCPU, 16 GB, siempre encendido). En la nube, la imagen trae el modelo incluido y un nginx delante que exige una clave (`deploy/ollama`). Sin clave responde 401, y solo expone `/api/chat`.
+- [x] **Agentes y reportes** (`mcp-server/src/ollama.js`): traduce el ciclo del agente entre el formato de Gemini y el de Ollama. Gemini queda como respaldo si el modelo local no responde.
+- [x] **Textos de marca personal** (`ms-ia/app/adapters/ollama.py`): con salida JSON por esquema, y Gemini y las plantillas como respaldo.
+- [x] Pruebas: MCP 87/87 (7 nuevas), `ms-ia` 189/189 (5 nuevas). En local, los agentes de inventario, operación y reportes eligieron bien su herramienta: 139 s la primera respuesta, mientras carga el modelo, y de 28 a 39 s las siguientes. **En la nube**, el agente de inventario respondió con el modelo local en 25 s, por la puerta GraphQL.
+
+**Limitaciones conocidas:**
+- Un modelo de 3B en CPU es más lento y menos preciso que Gemini: en una prueba mezcló "ingresos cobrados" con "sin pagos".
+- La simulación de cortes y ropa sigue en Replicate: un modelo de difusión en CPU no es práctico.
+- `salon-llm` siempre encendido cuesta unos 15 USD al día de crédito de Google: hay que borrarlo después de la entrega.
+
+## WhatsApp con la cuenta de Meta (CU-19, RF-12) (Completada)
 El 8 de noviembre de 2026 se conectó la app de Meta de un compañero del usuario.
 
 - [x] Variables en `.env`, cargadas en n8n, y el webhook expuesto con un túnel de `cloudflared`.
 - [x] **Webhook verificado por Meta:** n8n devuelve el desafío solo con el `WHATSAPP_VERIFY_TOKEN` correcto.
 - [x] **Mensaje de prueba recibido:** el mensaje de prueba del panel llegó y se procesó. La respuesta falló con el error 131030 de Meta, porque el remitente de prueba es ficticio y no está en la lista de destinatarios; es lo esperado.
 - [x] **Firma de Meta:** el flujo entrante comprueba `X-Hub-Signature-256` con `WHATSAPP_APP_SECRET` y descarta lo que no esté firmado o esté firmado con otra clave. Las pruebas en vivo firman sus mensajes como Meta y usan su propia configuración, sin heredar la cuenta real del `.env`. Pasaron 24/24, 2 de ellas nuevas. Con la configuración real, un aviso sin firma enviado por el túnel se descartó antes de responder.
-- [ ] **Envío real:** confirmación, recordatorio y alerta de stock, cuando Meta apruebe las plantillas.
+- [x] **Envío real (9 de noviembre de 2026), con las plantillas aprobadas:** una reserva pagada en la nube por la clienta de prueba, con su teléfono y su autorización en "Mi perfil", recibió la confirmación por WhatsApp. n8n corre en Azure con dirección fija: ya no hace falta el túnel.
+- [x] Error encontrado en la nube: con TLS, la credencial de RabbitMQ de n8n usaba por defecto un certificado de cliente (SASL EXTERNAL), que CloudAMQP no admite, y ningún flujo se activaba. Ahora la credencial indica `"passwordless": false`.
+- [x] Los avisos de stock dicen el nombre del insumo, y no su código, en la app, en el push y por WhatsApp.
 
 **Limitaciones conocidas:**
 - **App sin publicar:** las respuestas de clientes reales no llegan, solo las pruebas del panel. Publicarla requiere, entre otras cosas, una política de privacidad.
-- **Túnel rápido:** su dirección cambia al reabrirlo; no sirve para producción.
 - **Lista de destinatarios:** solo se puede escribir a los números agregados en ella.
 
 ---
@@ -677,7 +709,7 @@ Estado actualizado al cierre de cada fase. ✅ completo y verificado en vivo. �
 | CU-16 | Asesoría para redes sociales | ✅ (web y móvil) | G, L |
 | CU-17 | Métricas por agente (MCP) | ✅ (cuatro agentes con Skills; cambios con confirmación de una persona) | F, H, J, R |
 | CU-18 | Reportes por lenguaje natural | ✅ (texto, voz o formulario; columnas, criterios, agrupación y Excel o PDF) | F, G, R |
-| CU-19 | Recordatorios y reservas por WhatsApp | 🟡 (cuenta de Meta conectada: webhook verificado y mensaje de prueba recibido; envío real pendiente de la aprobación de las plantillas) | H |
+| CU-19 | Recordatorios y reservas por WhatsApp | ✅ (envío real de la confirmación en la nube; app de Meta sin publicar: solo a números de la lista de prueba; también push en el móvil) | H, V |
 | CU-20 | Publicar look | ✅ (web y móvil; fotos en S3) | F, L, T |
 | CU-21 | Reaccionar y comentar | ✅ (web y móvil) | F, L |
 | CU-22 | Sincronizar cola offline | ✅ (web y Android) | H |

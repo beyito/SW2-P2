@@ -23,6 +23,7 @@ Guía para poner en marcha el entorno local. El avance real de cada funcionalida
 | Backend | `mcp-server` | Node.js, SDK oficial de MCP (`POST /mcp`) | `4000` | http://localhost:4000/health |
 | Backend | `saga-orchestrator` | Node.js, RabbitMQ, Stripe | `4100` | http://localhost:4100/health |
 | Backend | `bi-dashboard` | Python, Streamlit, pandas | `8501` | http://localhost:8501 (solo administración) |
+| IA | `ollama` | Modelo de lenguaje local, Qwen 2.5 de 3B | interno | `docker exec salon-ollama ollama list` |
 | Frontend | `shell` | React + Vite | `3000` | http://localhost:3000 |
 | Frontend | `mfe-estudio-ia` | React | `3001` | http://localhost:3001 |
 | Frontend | `mfe-reservas` | Vue | `3002` | http://localhost:3002 |
@@ -224,6 +225,20 @@ La recepcionista inicia sesión y entra directo al ERP. Ve **Agenda**, **Mostrad
 - **Mostrador**, para un cliente que llega sin reserva: elija o registre al cliente, el servicio, el estilista y un turno libre, y la forma de pago (efectivo o tarjeta en el terminal). **Apartar turno** reserva el horario y los insumos. Cobre y pulse **Confirmar cobro**: la cita queda confirmada, se descuentan los insumos y se emiten la factura y los puntos. Si el cliente se retira, **Anular** libera todo. Si nadie confirma el cobro en 15 minutos, la reserva vence sola.
 - **Estilistas:** puede configurar el horario de cualquier estilista, pero no registrarlos ni editarlos.
 - Toda reserva se paga: la recepción no puede agendar sin cobro. El administrador también puede usar el mostrador.
+
+## IA local (Ollama)
+
+Los agentes, los reportes por prompt y los textos de marca personal usan primero un **modelo de lenguaje local**, Qwen 2.5 de 3B, en el servicio `ollama`. Gemini queda como respaldo si el modelo no responde.
+
+- **Primer arranque:** el modelo (1,9 GB) se descarga al volumen `salon-ollama-data`, una sola vez.
+- **Velocidad:** en CPU, la primera respuesta tarda un par de minutos mientras se carga el modelo; las siguientes, entre 20 y 40 segundos.
+- **Memoria:** ocupa unos 2,5 GB.
+- **Sin modelo local:** sin el servicio `ollama`, todo sigue funcionando con Gemini.
+- **En la nube** corre en Cloud Run (`salon-llm`) detrás de un proxy con clave: `deploy/ollama`.
+
+## ERP: solo GraphQL
+
+El ERP habla solo con dos API GraphQL: gestión y CRM. La moderación, el mostrador, el comprobante, la voz y los agentes pasan por la **puerta GraphQL** de `ms-gestion` (`graphql/erp.graphqls`), que los reenvía con el mismo token a la asesoría, al orquestador, al CRM, a `ms-ia` y al Servidor MCP. Las direcciones se configuran con `ASESORIA_URL`, `SAGA_URL`, `IA_URL`, `MCP_URL` y `CRM_BASE_URL`.
 
 ## Reportes e inteligencia de negocios
 

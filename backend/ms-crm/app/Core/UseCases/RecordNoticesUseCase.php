@@ -33,11 +33,16 @@ class RecordNoticesUseCase
         $this->add($clientId, 'REFUND', 'Reembolso procesado', sprintf('Se reembolsaron $%.2f y se emitió la nota de crédito.', $amount), "saga:{$sagaId}:notice-refund");
     }
 
-    /** @param string[] $itemCodes Un aviso por insumo y por día, para no saturar a los administradores. */
-    public function stockCritical(array $itemCodes, string $date): void
+    /**
+     * Un aviso por insumo y por día, para no saturar a los administradores.
+     * @param string[] $itemCodes Identifican el insumo en la referencia del aviso.
+     * @param string[] $names Lo que lee la persona; si falta, se muestra el código.
+     */
+    public function stockCritical(array $itemCodes, string $date, array $names = []): void
     {
-        foreach ($itemCodes as $code) {
-            $this->add(Notice::ADMINS, 'STOCK', 'Stock crítico', "El insumo {$code} llegó a su nivel mínimo. Conviene reponerlo.", "stock:{$code}:{$date}");
+        foreach (array_values($itemCodes) as $index => $code) {
+            $name = $names[$index] ?? $code;
+            $this->add(Notice::ADMINS, 'STOCK', 'Stock crítico', "El insumo {$name} llegó a su nivel mínimo. Conviene reponerlo.", "stock:{$code}:{$date}");
         }
     }
 

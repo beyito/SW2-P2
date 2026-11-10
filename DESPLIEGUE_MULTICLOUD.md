@@ -58,6 +58,7 @@ El entorno de Container Apps que crea Azure for Students es de tipo *Express*: n
 | `ms-asesoria` (NestJS) | **Cloud Run** | 1 vCPU, 1 GiB, de 1 a 3 instancias |
 | `ms-ia` (FastAPI) | **Cloud Run** | 2 vCPU, 4 GiB, **mínimo 1 instancia** y CPU siempre asignada. Sin GPU: MediaPipe, TFLite y Whisper corren en CPU. |
 | MongoDB | **MongoDB Atlas** | Comunidad, clóset y diagnósticos; las fotos anteriores a S3, en GridFS, hasta que se migran |
+| Modelo de lenguaje local (Ollama, Qwen 2.5 de 3B) | **Cloud Run** `salon-llm`, 8 vCPU, 16 GB, siempre encendido | Modelo incluido en la imagen y un nginx que exige una clave (`deploy/ollama`). Lo usan el Servidor MCP y `ms-ia`; Gemini queda de respaldo. |
 | Tablero de BI (Python, Streamlit) | **Cloud Run** y **GKE Autopilot** (Kubernetes) | https://salon-bi-qfdwhthkma-uk.a.run.app y https://bi.salon-ai.beauty. Ver la sección 10. |
 | Shell, Estudio IA, Reservas y ERP | **Firebase Hosting**, 4 sitios `*.web.app` | Con CORS y `remoteEntry.js` sin caché, como el nginx local |
 | Secretos | **Secret Manager** | |
@@ -243,4 +244,4 @@ Requieren `kubectl` (viene con Docker Desktop). En Google, además, el complemen
 3. `bash deploy/azure/desplegar.sh` y `bash deploy/base-de-datos.sh`: el CRM recibe la clave y se crea la tabla `push_devices`.
 4. Compilar la app (sección 9). Al iniciar sesión, el teléfono registra su token.
 
-**Costo adicional:** EKS cobra 0,10 USD por hora por el plano de control, más Fargate; AKS, el nodo; y GKE Autopilot, solo los pods, porque la gestión del primer clúster es gratuita. En total son de 4 a 6 USD al día. **Hay que borrar los tres clústeres después de la entrega.**
+**El modelo local** suma unos 15 USD al día (8 vCPU siempre encendidos). **Costo adicional de Kubernetes:** EKS cobra 0,10 USD por hora por el plano de control, más Fargate; AKS, el nodo; y GKE Autopilot, solo los pods, porque la gestión del primer clúster es gratuita. En total son de 4 a 6 USD al día. **Hay que borrar los tres clústeres después de la entrega.**

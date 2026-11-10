@@ -10,6 +10,7 @@ const { CallToolRequestSchema, ListToolsRequestSchema } = require('@modelcontext
 const { AuthError, DynamoSessionRegistry, createAuthenticator, createKeycloakVerifier } = require('./security');
 const { BackendError, createBackends } = require('./backends');
 const { createGeminiAgentModel, createGeminiGenerator } = require('./gemini');
+const { createOllamaAgentModel, createOllamaGenerator, firstAvailable } = require('./ollama');
 const { canUseTool, createToolRunner, toolsFor } = require('./tools');
 const { createDynamoActions } = require('./actions');
 const { createReportDatabases } = require('./reports');
@@ -29,8 +30,9 @@ class McpHttpServer {
       gestionUrl: process.env.GESTION_GRAPHQL_URL || 'http://localhost:8081/graphql',
       crmUrl: process.env.CRM_GRAPHQL_URL || 'http://localhost:8083/graphql',
     }),
-    generateText = createGeminiGenerator(),
-    callModel = createGeminiAgentModel(),
+    // IA local primero (Ollama, si OLLAMA_URL está definida) y Gemini solo como respaldo
+    generateText = firstAvailable(createOllamaGenerator(), createGeminiGenerator()),
+    callModel = firstAvailable(createOllamaAgentModel(), createGeminiAgentModel()),
     actions = createDefaultActions(),
     reportDatabases = createReportDatabases(),
   } = {}) {

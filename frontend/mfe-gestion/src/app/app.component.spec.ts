@@ -29,7 +29,7 @@ describe('AppComponent', () => {
       imports: [AppComponent],
       providers: [
         { provide: AuthService, useValue: sesion(roles) },
-        { provide: ApiService, useValue: { gestion: vacio, crm: vacio, asesoria: vacio, mcp: vacio, saga: vacio } },
+        { provide: ApiService, useValue: { gestion: vacio, crm: vacio, mcp: vacio } },
       ],
     }).compileComponents();
     const fixture = TestBed.createComponent(AppComponent);

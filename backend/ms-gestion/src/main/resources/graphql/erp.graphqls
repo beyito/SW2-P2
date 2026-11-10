@@ -1,0 +1,80 @@
+# Puerta GraphQL del ERP (Backend for Frontend): el módulo de gestión empresarial habla solo GraphQL.
+# Estas operaciones las atienden otros microservicios; ms-gestion las reenvía con el token de la persona,
+# así que cada servicio sigue validando el rol (RNF-02).
+
+"Publicación de la comunidad que revisa la moderación (servicio de asesoría)."
+type ModerationPost {
+    id: ID!
+    authorName: String
+    title: String
+    description: String
+    imageUrl: String
+    status: String
+    moderationReason: String
+    reports: [ModerationReport!]!
+}
+
+type ModerationReport {
+    reason: String
+}
+
+"Reserva cobrada en el mostrador, seguida en la SAGA (orquestador)."
+type CounterBooking {
+    sagaId: ID!
+    status: String!
+    appointmentId: String
+    serviceName: String
+    amountToPayCents: Int
+    failureReason: String
+    clientId: String
+    paymentMethod: String
+}
+
+input CounterBookingInput {
+    clientId: String!
+    clientName: String!
+    clientEmail: String
+    serviceId: String!
+    stylistId: String!
+    appointmentDate: String!
+    paymentMethod: String!
+}
+
+"Herramienta del Servidor MCP disponible para el rol de quien pregunta."
+type McpTool {
+    name: String!
+    description: String
+}
+
+"Resultado de una herramienta MCP. El contenido estructurado viaja como JSON, porque cada herramienta tiene su forma."
+type McpToolResult {
+    isError: Boolean!
+    text: String
+    structuredContentJson: String
+}
+
+extend type Query {
+    "Publicaciones reportadas u ocultas, para la moderación."
+    moderationQueue: [ModerationPost!]!
+    "Estado de una reserva del mostrador."
+    counterBooking(sagaId: ID!): CounterBooking!
+    "Herramientas MCP que puede usar quien pregunta."
+    mcpTools: [McpTool!]!
+    "Comprobante imprimible de una factura, en HTML (CRM)."
+    invoiceReceipt(invoiceId: ID!): String!
+}
+
+extend type Mutation {
+    hidePost(id: ID!, reason: String!): Boolean!
+    restorePost(id: ID!): Boolean!
+    deletePost(id: ID!): Boolean!
+    "Inicia la reserva del mostrador. La llave evita apartar dos veces el mismo turno (RNF-04)."
+    startCounterBooking(input: CounterBookingInput!, idempotencyKey: String!): CounterBooking!
+    "Paso pivote: la recepción confirma que recibió el pago."
+    payCounterBooking(sagaId: ID!): Boolean!
+    voidCounterBooking(sagaId: ID!): Boolean!
+    "Convierte en texto una pregunta hablada (Whisper en ms-ia). El audio va en base64."
+    transcribeAudio(audioBase64: String!, mimeType: String): String!
+    "Ejecuta una herramienta del Servidor MCP con sus argumentos en JSON."
+    callMcpTool(name: String!, argumentsJson: String): McpToolResult!
+}

@@ -52,6 +52,13 @@ salon:
     audience: ${KEYCLOAK_AUDIENCE:salon-api}
     dynamodb-endpoint: ${DYNAMODB_ENDPOINT:http://localhost:8000}
     allowed-origins: ${ALLOWED_ORIGINS:http://localhost:3000}
+  # Puerta GraphQL del ERP: servicios a los que reenvía las operaciones que no son de gestión
+  erp:
+    asesoria-url: ${ASESORIA_URL:http://localhost:3100}
+    saga-url: ${SAGA_URL:http://localhost:4100}
+    ia-url: ${IA_URL:http://localhost:8002/api/v1}
+    mcp-url: ${MCP_URL:http://localhost:4000/mcp}
+    crm-base-url: ${CRM_BASE_URL:http://localhost:8083}
 
 # Configuración de Actuator y Métricas
 management:

@@ -54,7 +54,7 @@ export class ModerationComponent implements OnInit {
 
   private async load(): Promise<void> {
     try {
-      this.queue.set(await this.api.asesoria<CommunityPost[]>('/community/moderation/queue'));
+      this.queue.set(await this.api.moderationQueue());
     } catch (error) {
       this.error.set(messageOf(error));
     }
@@ -75,14 +75,14 @@ export class ModerationComponent implements OnInit {
   }
 
   hide(post: CommunityPost): Promise<void> {
-    return this.run(() => this.api.asesoria(`/community/${post.id}/hide`, 'POST', { reason: this.reasons[post.id] ?? '' }));
+    return this.run(() => this.api.hidePost(post.id, this.reasons[post.id] ?? ''));
   }
 
   restore(post: CommunityPost): Promise<void> {
-    return this.run(() => this.api.asesoria(`/community/${post.id}/restore`, 'POST', {}));
+    return this.run(() => this.api.restorePost(post.id));
   }
 
   remove(post: CommunityPost): Promise<void> {
-    return this.run(() => this.api.asesoria(`/community/${post.id}`, 'DELETE'));
+    return this.run(() => this.api.deletePost(post.id));
   }
 }
