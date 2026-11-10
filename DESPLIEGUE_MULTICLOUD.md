@@ -69,7 +69,7 @@ El entorno de Container Apps que crea Azure for Students es de tipo *Express*: n
 1. **Faltaban siete componentes:** Keycloak, orquestador SAGA, MCP, n8n, worker del CRM, los cuatro frontends y el webhook de Stripe. Sin Keycloak y el orquestador no hay inicio de sesión ni pago.
 2. **Azure Service Bus no es compatible.** Usa AMQP 1.0 y los servicios hablan AMQP 0-9-1 (RabbitMQ). Se mantiene RabbitMQ.
 3. **RabbitMQ gestionado en lugar de un contenedor.** Container Apps no ofrece TCP público ni disco persistente sin configuración avanzada de red. CloudAMQP corre en la infraestructura de Azure, en la misma región, con TLS.
-4. **Sin S3.** Las fotos ya se guardan en MongoDB (GridFS) dentro de `ms-asesoria`. Mandarlas a S3 haría que un servicio de Google escriba en AWS, y obligaría a cambiar código sin beneficio para la entrega.
+4. **S3 para las fotos (decisión revisada en la Fase T).** Al principio se descartó, porque las fotos ya estaban en MongoDB (GridFS). Los modelos de examen piden S3 para almacenamiento masivo, así que `ms-asesoria` (en Google Cloud) las guarda en un bucket de S3 con un usuario de IAM propio y firma SigV4. Las fotos antiguas se migran solas desde GridFS.
 5. **Sin GPU para `ms-ia`.** Encarece mucho y no acelera estos modelos. Lo que importa es tener una instancia siempre encendida: la imagen pesa 3,9 GB y el primer análisis tardaría en arrancar.
 6. **Regiones cercanas entre sí** (Ohio, Toronto y Virginia), para que la latencia entre nubes no afecte RNF-01.
 7. **DynamoDB real exige firmar las llamadas con SigV4** en los seis servicios que la usan. DynamoDB Local acepta cualquier firma; AWS no.
